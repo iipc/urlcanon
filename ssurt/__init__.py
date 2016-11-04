@@ -16,3 +16,4 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 from .parse import parse_url, ParsedUrl
+from .canon import Canonicalizer
