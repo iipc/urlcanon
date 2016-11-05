@@ -20,13 +20,15 @@
 
 package org.netpreserve.ssurt;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
 
 class WhatwgCanonicalizer implements Canonicalizer {
-    private static final Pattern PATH_SEGMENT_REGEX = Pattern.compile("(?:([.]|%2e)([.]|%2e)?|[^/\\\\]*)[/\\\\]", CASE_INSENSITIVE);
+    private static final Pattern PATH_SEGMENT_REGEX = Pattern.compile("(?:([.]|%2e)([.]|%2e)?|[^/\\\\]*)(?:[/\\\\]|\\Z)", CASE_INSENSITIVE);
     private static final Pattern PCT2D_REGEX = Pattern.compile("%2e", CASE_INSENSITIVE);
     /*
      * > The simple encode set are C0 controls and all code points greater than
@@ -86,15 +88,18 @@ class WhatwgCanonicalizer implements Canonicalizer {
     String resolvePathDots(String path) {
         if (!path.isEmpty() && (path.charAt(0) == '/' || path.charAt(0) == '\\')) {
             StringBuilder buf = new StringBuilder("/");
-            int startOfLastSegment = 1;
+            Deque<Integer> segmentOffsets = new ArrayDeque<>();
             Matcher m = PATH_SEGMENT_REGEX.matcher(path);
             m.region(1, path.length());
             while (m.lookingAt()) {
-                if (m.start(2) != -1) { // ..
-                    buf.setLength(startOfLastSegment);
-                } else if (m.start(1) != -1) { // .
-                    // ignore
+                if (m.start(2) != -1) {
+                    // "../" => pop last segment
+                    buf.setLength(segmentOffsets.isEmpty() ? 1 : segmentOffsets.pop());
+                } else if (m.start(1) != -1) {
+                    // "./" => do nothing
                 } else {
+                    // push new segment
+                    segmentOffsets.push(buf.length());
                     buf.append(path, m.start(), m.end());
                 }
                 m.region(m.end(), path.length());
