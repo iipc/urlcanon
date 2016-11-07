@@ -589,7 +589,9 @@ def test_resolve_path_dots():
 
 def test_w3c_test_data():
     tests = []
-    path = os.path.join(os.path.dirname(__file__), 'urltestdata.json')
+    path = os.path.join(
+            os.path.dirname(__file__), '..', '..', 'testdata',
+            'urltestdata.json')
     canon = ssurt.Canonicalizer.WHATWG
     with open(path, 'rb') as f:
         tests = json.loads(f.read().decode('utf-8'))
