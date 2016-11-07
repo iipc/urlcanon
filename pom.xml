@@ -33,6 +33,11 @@ limitations under the License.
     <build>
         <sourceDirectory>${basedir}/java/src</sourceDirectory>
         <testSourceDirectory>${basedir}/java/test</testSourceDirectory>
+        <testResources>
+            <testResource>
+                <directory>${basedir}/testdata</directory>
+            </testResource>
+        </testResources>
     </build>
 
 </project>
