@@ -4,7 +4,6 @@ ssurt/parse.py - url parser
 based on https://gist.github.com/ato/b9875c45171d082ca6c6738640347ecb and
 https://github.com/iipc/webarchive-commons/blob/master/src/main/java/org/archive/url/URLParser.java
 
-Copyright (C) 2016 Alex Osborne
 Copyright (C) 2016 National Library of Australia
 Copyright (C) 2016 Internet Archive
 
