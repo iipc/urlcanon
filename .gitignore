@@ -1,2 +1,5 @@
 /.idea
 /target
+/ssurt.egg-info
+__pycache__
+/.cache
