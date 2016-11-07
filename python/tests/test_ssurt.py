@@ -21,56 +21,43 @@ import ssurt
 import os
 import json
 
+def load_json_bytes(json_bytes):
+    '''
+    The python json parser only operates on strings, not bytes. :( This
+    hacky workaround is based on the observation that every possible byte
+    sequence can be represented as a str by "decoding" it as ISO-8859-1. It's
+    not very efficient, but oh well.
+    '''
+    def rebytify_data_structure(obj):
+        if isinstance(obj, dict):
+            bd = {}
+            for orig_key in obj:
+                new_key = rebytify_data_structure(orig_key)
+                new_value = rebytify_data_structure(obj[orig_key])
+                bd[new_key] = new_value
+            return bd
+        elif isinstance(obj, list):
+            for i in range(len(obj)):
+                obj[i] = rebytify_data_structure(obj[i])
+            return obj
+        elif isinstance(obj, str):
+            return obj.encode('latin1')
+        else: # a number or None
+            return obj
+    obj = json.loads(json_bytes.decode('latin1'))
+    return rebytify_data_structure(obj)
+
 def test_parser_idempotence():
-    for s in [
-            "https://user:pass@www.example.org:1443/path",
-            "file:///usr/bin",
-            "file:/usr/bin",
-            "https://user@www.example.org:1443/path",
-            "random!!garbage",
-            "screenshot:http://user:pass@www.example.org:1443/path",
-            "http:/日本.jp:80//.././[FÜNKY]",
-            "https://[2001:db8::1:0:0:1]:8080/",
-            "ssh://git@github.com/smola/galimatias.git",
-            "dns:example.com",
-            ":",
-            "::",
-            "x:[/]/foo",
-            "//noscheme.tld/foo.html?query#frag",
-            "http://www.archive.org/index.html#foo",
-            "http://www.archive.org/",
-            "http://www.archive.org",
-            "http://www.archive.org?",
-            "http://www.archive.org:8080/index.html?query#foo",
-            "http://www.archive.org:8080/index.html?#foo",
-            "http://www.archive.org:8080?#foo",
-            u"http://bücher.ch:8080?#foo",
-            u"dns:bücher.ch",
-            u"http://bücher.ch:8080?#foo",
-            u"dns:bücher.ch",
-            "http:////////////////www.vikings.com",
-            "http://https://order.1and1.com",
-            # ends with ':' without a port number
-            "http://mineral.galleries.com:/minerals/silicate/chabazit/chabazit.htm",
-            "mailto:bot@archive.org",
-            "file:///usr/bin",
-            "file:/usr/bin",
-            "file://usr/bin",
-            " ",
-            "\u0000 \u0000",
-            " file://usr/bin   ",
-            "\tx\t",
-            "\nx\n",
-            "\rx\nx\r",
-            "\tx\t",
-            "\tx\t",
-            "\tx\t",
-            "\tht\ttps://us\ter\t:\tpa\tss\t@w\tww.ex\tample.o\trg:\t1\t443\t/pa\tth?que\try#fra\tgment\t",
-            "\nht\ntps://us\ner\n:\npa\nss\n@w\nww.ex\nample.o\nrg:\n1\n443\n/pa\nth?que\nry#fra\ngment\n",]:
-        assert str(ssurt.parse_url(s)) == s
+    path = os.path.join(
+            os.path.dirname(__file__), '..', '..', 'testdata',
+            'idempotence.json')
+    with open(path, 'rb') as f:
+        inputs = load_json_bytes(f.read())
+    for s in inputs:
+        assert ssurt.parse_url(s).__bytes__() == s
 
 def test_resolve_path_dots():
-    # tests generated from browser using this html/js
+    # Most of path_dots.json was generated in the browser using this html/js.
     #
     # <html>
     # <head>
@@ -115,486 +102,25 @@ def test_resolve_path_dots():
     # </body>
     # </html>
     #
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo') == b'/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//.') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//foo') == b'//foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./.') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./foo') == b'/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../.') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../foo') == b'/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/.') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/foo') == b'/foo/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'///') == b'///'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//./') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//../') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//foo/') == b'//foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.//') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/././') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./../') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./foo/') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/..//') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.././') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../../') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../foo/') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo//') == b'/foo//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/./') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/../') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/foo/') == b'/foo/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'///') == b'///'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'///.') == b'///'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'///..') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'///foo') == b'///foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//./') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//./.') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//./..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//./foo') == b'//foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//../') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//../.') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//../..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//../foo') == b'/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//foo/') == b'//foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//foo/.') == b'//foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//foo/..') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//foo/foo') == b'//foo/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.//') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.//.') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.//..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.//foo') == b'//foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/././') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/././.') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/././..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/././foo') == b'/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./../') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./../.') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./../..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./../foo') == b'/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./foo/') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./foo/.') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./foo/..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./foo/foo') == b'/foo/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/..//') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/..//.') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/..//..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/..//foo') == b'//foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.././') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.././.') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.././..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.././foo') == b'/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../../') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../../.') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../../..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../../foo') == b'/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../foo/') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../foo/.') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../foo/..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../foo/foo') == b'/foo/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo//') == b'/foo//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo//.') == b'/foo//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo//..') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo//foo') == b'/foo//foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/./') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/./.') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/./..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/./foo') == b'/foo/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/../') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/../.') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/../..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/../foo') == b'/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/foo/') == b'/foo/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/foo/.') == b'/foo/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/foo/..') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/foo/foo') == b'/foo/foo/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'////') == b'////'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'///./') == b'///'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'///../') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'///foo/') == b'///foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//.//') == b'///'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//././') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//./../') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//./foo/') == b'//foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//..//') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//.././') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//../../') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//../foo/') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//foo//') == b'//foo//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//foo/./') == b'//foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//foo/../') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//foo/foo/') == b'//foo/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.///') == b'///'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.//./') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.//../') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.//foo/') == b'//foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/././/') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./././') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/././../') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/././foo/') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./..//') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./.././') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./../../') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./../foo/') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./foo//') == b'/foo//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./foo/./') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./foo/../') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./foo/foo/') == b'/foo/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/..///') == b'///'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/..//./') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/..//../') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/..//foo/') == b'//foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.././/') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../././') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.././../') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.././foo/') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../..//') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../.././') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../../../') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../../foo/') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../foo//') == b'/foo//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../foo/./') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../foo/../') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../foo/foo/') == b'/foo/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo///') == b'/foo///'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo//./') == b'/foo//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo//../') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo//foo/') == b'/foo//foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/.//') == b'/foo//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/././') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/./../') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/./foo/') == b'/foo/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/..//') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/.././') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/../../') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/../foo/') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/foo//') == b'/foo/foo//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/foo/./') == b'/foo/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/foo/../') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/foo/foo/') == b'/foo/foo/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'////') == b'////'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'////.') == b'////'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'////..') == b'///'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'////foo') == b'////foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'///./') == b'///'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'///./.') == b'///'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'///./..') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'///./foo') == b'///foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'///../') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'///../.') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'///../..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'///../foo') == b'//foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'///foo/') == b'///foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'///foo/.') == b'///foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'///foo/..') == b'///'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'///foo/foo') == b'///foo/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//.//') == b'///'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//.//.') == b'///'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//.//..') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//.//foo') == b'///foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//././') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//././.') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//././..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//././foo') == b'//foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//./../') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//./../.') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//./../..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//./../foo') == b'/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//./foo/') == b'//foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//./foo/.') == b'//foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//./foo/..') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//./foo/foo') == b'//foo/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//..//') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//..//.') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//..//..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//..//foo') == b'//foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//.././') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//.././.') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//.././..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//.././foo') == b'/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//../../') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//../../.') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//../../..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//../../foo') == b'/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//../foo/') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//../foo/.') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//../foo/..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//../foo/foo') == b'/foo/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//foo//') == b'//foo//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//foo//.') == b'//foo//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//foo//..') == b'//foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//foo//foo') == b'//foo//foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//foo/./') == b'//foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//foo/./.') == b'//foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//foo/./..') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//foo/./foo') == b'//foo/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//foo/../') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//foo/../.') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//foo/../..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//foo/../foo') == b'//foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//foo/foo/') == b'//foo/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//foo/foo/.') == b'//foo/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//foo/foo/..') == b'//foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//foo/foo/foo') == b'//foo/foo/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.///') == b'///'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.///.') == b'///'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.///..') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.///foo') == b'///foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.//./') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.//./.') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.//./..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.//./foo') == b'//foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.//../') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.//../.') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.//../..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.//../foo') == b'/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.//foo/') == b'//foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.//foo/.') == b'//foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.//foo/..') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.//foo/foo') == b'//foo/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/././/') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/././/.') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/././/..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/././/foo') == b'//foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./././') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./././.') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./././..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./././foo') == b'/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/././../') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/././../.') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/././../..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/././../foo') == b'/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/././foo/') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/././foo/.') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/././foo/..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/././foo/foo') == b'/foo/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./..//') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./..//.') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./..//..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./..//foo') == b'//foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./.././') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./.././.') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./.././..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./.././foo') == b'/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./../../') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./../../.') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./../../..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./../../foo') == b'/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./../foo/') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./../foo/.') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./../foo/..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./../foo/foo') == b'/foo/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./foo//') == b'/foo//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./foo//.') == b'/foo//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./foo//..') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./foo//foo') == b'/foo//foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./foo/./') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./foo/./.') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./foo/./..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./foo/./foo') == b'/foo/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./foo/../') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./foo/../.') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./foo/../..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./foo/../foo') == b'/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./foo/foo/') == b'/foo/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./foo/foo/.') == b'/foo/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./foo/foo/..') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/./foo/foo/foo') == b'/foo/foo/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/..///') == b'///'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/..///.') == b'///'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/..///..') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/..///foo') == b'///foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/..//./') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/..//./.') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/..//./..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/..//./foo') == b'//foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/..//../') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/..//../.') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/..//../..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/..//../foo') == b'/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/..//foo/') == b'//foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/..//foo/.') == b'//foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/..//foo/..') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/..//foo/foo') == b'//foo/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.././/') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.././/.') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.././/..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.././/foo') == b'//foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../././') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../././.') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../././..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../././foo') == b'/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.././../') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.././../.') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.././../..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.././../foo') == b'/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.././foo/') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.././foo/.') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.././foo/..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.././foo/foo') == b'/foo/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../..//') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../..//.') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../..//..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../..//foo') == b'//foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../.././') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../.././.') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../.././..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../.././foo') == b'/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../../../') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../../../.') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../../../..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../../../foo') == b'/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../../foo/') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../../foo/.') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../../foo/..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../../foo/foo') == b'/foo/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../foo//') == b'/foo//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../foo//.') == b'/foo//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../foo//..') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../foo//foo') == b'/foo//foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../foo/./') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../foo/./.') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../foo/./..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../foo/./foo') == b'/foo/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../foo/../') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../foo/../.') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../foo/../..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../foo/../foo') == b'/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../foo/foo/') == b'/foo/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../foo/foo/.') == b'/foo/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../foo/foo/..') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/../foo/foo/foo') == b'/foo/foo/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo///') == b'/foo///'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo///.') == b'/foo///'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo///..') == b'/foo//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo///foo') == b'/foo///foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo//./') == b'/foo//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo//./.') == b'/foo//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo//./..') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo//./foo') == b'/foo//foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo//../') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo//../.') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo//../..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo//../foo') == b'/foo/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo//foo/') == b'/foo//foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo//foo/.') == b'/foo//foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo//foo/..') == b'/foo//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo//foo/foo') == b'/foo//foo/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/.//') == b'/foo//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/.//.') == b'/foo//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/.//..') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/.//foo') == b'/foo//foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/././') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/././.') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/././..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/././foo') == b'/foo/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/./../') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/./../.') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/./../..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/./../foo') == b'/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/./foo/') == b'/foo/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/./foo/.') == b'/foo/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/./foo/..') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/./foo/foo') == b'/foo/foo/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/..//') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/..//.') == b'//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/..//..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/..//foo') == b'//foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/.././') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/.././.') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/.././..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/.././foo') == b'/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/../../') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/../../.') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/../../..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/../../foo') == b'/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/../foo/') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/../foo/.') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/../foo/..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/../foo/foo') == b'/foo/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/foo//') == b'/foo/foo//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/foo//.') == b'/foo/foo//'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/foo//..') == b'/foo/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/foo//foo') == b'/foo/foo//foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/foo/./') == b'/foo/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/foo/./.') == b'/foo/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/foo/./..') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/foo/./foo') == b'/foo/foo/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/foo/../') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/foo/../.') == b'/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/foo/../..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/foo/../foo') == b'/foo/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/foo/foo/') == b'/foo/foo/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/foo/foo/.') == b'/foo/foo/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/foo/foo/..') == b'/foo/foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo/foo/foo/foo') == b'/foo/foo/foo/foo'
-
-    # some backslash stuff
-    assert ssurt.Canonicalizer.resolve_path_dots(b'\\') == b'\\'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'\\') == b'\\'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'\\.') == b'\\'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'\\..') == b'\\'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'\\foo') == b'\\foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/\\') == b'/\\'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.\\') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/..\\') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo\\') == b'/foo\\'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'\\/') == b'\\/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'\\\\') == b'\\\\'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'\\./') == b'\\'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'\\.\\') == b'\\'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'\\../') == b'\\'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'\\..\\') == b'\\'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'\\foo/') == b'\\foo/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'\\foo\\') == b'\\foo\\'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/\\') == b'/\\'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/\\.') == b'/\\'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/\\..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/\\foo') == b'/\\foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.\\') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.\\.') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.\\..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.\\foo') == b'/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/..\\') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/..\\.') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/..\\..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/..\\foo') == b'/foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo\\') == b'/foo\\'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo\\.') == b'/foo\\'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo\\..') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/foo\\foo') == b'/foo\\foo'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'\\/') == b'\\/'
-
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.../') == b'/.../'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'//.../') == b'//.../'
-
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/%2e/') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/%2e./') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.%2e/') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/%2E/') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/%2E./') == b'/'
-    assert ssurt.Canonicalizer.resolve_path_dots(b'/.%2E/') == b'/'
+    path = os.path.join(
+            os.path.dirname(__file__), '..', '..', 'testdata',
+            'path_dots.json')
+    with open(path, 'rb') as f:
+        inputs = load_json_bytes(f.read())
+    for unresolved in inputs:
+        expected = inputs[unresolved]
+        assert ssurt.Canonicalizer.resolve_path_dots(unresolved) == expected
 
 def test_w3c_test_data():
     tests = []
     path = os.path.join(
             os.path.dirname(__file__), '..', '..', 'testdata',
             'urltestdata.json')
-    canon = ssurt.Canonicalizer.WHATWG
     with open(path, 'rb') as f:
+        # load_json_bytes doesn't work for urltestdata.json because it contains
+        # unicode character escapes beyond \u00ff such as \u0300
         tests = json.loads(f.read().decode('utf-8'))
+    canon = ssurt.Canonicalizer.WHATWG
     for test in tests:
         if (isinstance(test, dict) and test.get('base') == 'about:blank'
                 and 'href' in test):
