@@ -149,7 +149,7 @@ public class ParsedUrl {
         // we parse the authority + path into "pathish" initially so that we can
         // correctly handle file: urls
         String pathish = m.group("pathish");
-        if (pathish != null && (pathish.charAt(0) == '/' || pathish.charAt(0) == '\\')) {
+        if (pathish != null && !pathish.isEmpty() && (pathish.charAt(0) == '/' || pathish.charAt(0) == '\\')) {
             List<String> pathishComponents = new ArrayList<>();
             m = PATHISH_SEGMENT_REGEX.matcher(pathish);
             while (m.find()) {
@@ -188,6 +188,17 @@ public class ParsedUrl {
         } else {
             // pathish doesn't start with / so it's an opaque thing
             url.path = orBlank(pathish);
+
+            url.slashes = "";
+            url.username = "";
+            url.colonBeforePassword = "";
+            url.password = "";
+            url.atSign = "";
+            url.ip6 = "";
+            url.ip4 = "";
+            url.domain = "";
+            url.colonBeforePort = "";
+            url.port = "";
         }
         return url;
     }
@@ -198,5 +209,34 @@ public class ParsedUrl {
 
     boolean hasAuthority() {
         return !(domain.isEmpty() && ip6.isEmpty() && ip4.isEmpty());
+    }
+
+    public String host() {
+        if (!ip6.isEmpty()) {
+            return ip6;
+        } else if (!ip4.isEmpty()) {
+            return ip4;
+        } else {
+            return domain;
+        }
+    }
+
+    public String hostPort() {
+        return host() + colonBeforePort + port;
+    }
+
+    public String userinfo() {
+        return username + colonBeforePassword + password;
+    }
+
+    public String authority() {
+        return userinfo() + atSign + hostPort();
+    }
+
+    public String toString() {
+        return (leadingJunk + scheme + colonAfterScheme
+                + slashes + authority() + path
+                + questionMark + query + hashSign
+                + fragment + trailingJunk);
     }
 }

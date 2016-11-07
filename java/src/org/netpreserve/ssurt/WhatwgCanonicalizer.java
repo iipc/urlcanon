@@ -102,6 +102,9 @@ class WhatwgCanonicalizer implements Canonicalizer {
                     segmentOffsets.push(buf.length());
                     buf.append(path, m.start(), m.end());
                 }
+                if (m.end() == path.length()) {
+                    break;
+                }
                 m.region(m.end(), path.length());
             }
             return buf.toString();
@@ -126,8 +129,8 @@ class WhatwgCanonicalizer implements Canonicalizer {
             buf.append(url.path, pos, m.start());
             buf.append('%');
             int b = (url.path.charAt(m.start())) & 0xff;
-            buf.append(Character.forDigit(b >> 4, 16));
-            buf.append(Character.forDigit(b & 0xf, 16));
+            buf.append(Character.toUpperCase(Character.forDigit(b >> 4, 16)));
+            buf.append(Character.toUpperCase(Character.forDigit(b & 0xf, 16)));
             pos = m.end();
         }
         buf.append(url.path, pos, url.path.length());
