@@ -8,6 +8,9 @@ python:
 - 3.6-dev
 - nightly
 
+jdk:
+- oraclejdk8
+
 matrix:
   allow_failures:
   - python: nightly
