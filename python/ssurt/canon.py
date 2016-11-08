@@ -157,6 +157,10 @@ class Canonicalizer:
             url.colon_before_port = b''
             url.port = b''
 
+    def two_slashes(url):
+        if url.slashes:
+            url.slashes = b'//'
+
 Canonicalizer.WHATWG = Canonicalizer([
     Canonicalizer.remove_leading_trailing_junk,
     Canonicalizer.remove_tabs_and_newlines,
@@ -168,4 +172,5 @@ Canonicalizer.WHATWG = Canonicalizer([
     Canonicalizer.empty_path_to_slash,
     Canonicalizer.normalize_ip_address,
     Canonicalizer.elide_default_port,
+    Canonicalizer.two_slashes,
 ])
