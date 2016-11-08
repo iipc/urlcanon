@@ -21,6 +21,7 @@ limitations under the License.
 '''
 import re
 from . import canon
+import ipaddress
 
 # "leading and trailing C0 controls and space"
 LEADING_JUNK_REGEX = re.compile(rb'\A([\x00-\x20]*)(.*)\Z', re.DOTALL)
@@ -61,11 +62,7 @@ AUTHORITY_REGEX = re.compile(rb'''
    )?
    (?P<at_sign> @ )
 )?
-(?P<host>
-    (?P<ip6> \[ [^\]]* \] )
-  | (?P<ip4> [0-9]+ \. [0-9]+ \. [0-9]+ \. [0-9]+ )
-  | (?P<domain> [^:]* )
-)
+(?P<host> [^:]* )
 (?:
   (?P<colon_before_port> : )
   (?P<port> .* )
@@ -83,9 +80,9 @@ class ParsedUrl:
         self.colon_before_password = b''
         self.password = b''
         self.at_sign = b''
-        self.ip6 = b''
-        self.ip4 = b''
-        self.domain = b''
+        self.ip6 = None  # numeric value
+        self.ip4 = None  # numeric value
+        self.host = b''
         self.colon_before_port = b''
         self.port = b''
         self.path = b''
@@ -94,10 +91,6 @@ class ParsedUrl:
         self.hash_sign = b''
         self.fragment = b''
         self.trailing_junk = b''
-
-    @property
-    def host(self):
-        return self.ip6 or self.ip4 or self.domain
 
     @property
     def host_port(self):
@@ -119,6 +112,62 @@ class ParsedUrl:
 
     def __str__(self):
         return self.__bytes__().decode('utf-8')
+
+def _attempt_ipv4or6(host):
+    '''
+    Returns tuple (ip4, ip6). Values are integers or None. Both values will be
+    None if host does not parse as an ip address, otherwise exactly one of the
+    two will have a value. Follows WHATWG rules rules for parsing, which are
+    intended to match browser behavior.
+    '''
+    def _parse_num(s):
+        if len(s) >= 3 and s[:2] in (b'0x', b'0X', '0x', '0X'):
+            return int(s[2:], base=16)
+        elif len(s) >= 2 and s[:1] == b'0':
+            return int(s[1:], base=8)
+        else:
+            return int(s)
+
+    if host and host[0] == b'[' and host[-1] == b']':
+        try:
+            ip6 = ipaddress.IPv6Address(host.decode('utf-8'))
+            return None, int(ip6)
+        except:
+            return None, None
+    else:
+        try:
+            parts = host.split(b'.')
+            if len(parts) == 1:
+                ip4 = _parse_num(host)
+            elif len(parts) == 2:
+                part1 = _parse_num(parts[1])
+                if part1 >= 2**24:
+                    raise '%s not a valid ipv4 address: last part must be less than 2**24' % host
+                ip4 = _parse_num(parts[0]) * 2**24 + _parse_num(parts[1])
+            elif len(parts) == 3:
+                part1 = _parse_num(parts[1])
+                if part1 >= 2**8:
+                    raise '%s not a valid ipv4 address: middle part must be less than 256' % host
+                part2 = _parse_num(parts[2])
+                if part2 >= 2**16:
+                    raise '%s not a valid ipv4 address: last part must be less than 2**16' % host
+                ip4 = (_parse_num(parts[0]) * 2**24
+                         + part1 * 2**16 + _parse_num(parts[2]))
+            elif len(parts) == 4:
+                part1 = _parse_num(parts[1])
+                part2 = _parse_num(parts[2])
+                part3 = _parse_num(parts[3])
+                if part1 >= 2**8 or part2 >= 2**8 or part3 >= 2**8:
+                    raise '%s not a valid ipv4 address: all parts must be less than 256' % host
+                ip4 = (_parse_num(parts[0]) * 2**24
+                         + part1 * 2**16 + part2 * 2**8 + part3)
+            else: # len(parts) > 4
+                return None, None
+            if ip4 >= 2**32:
+                raise '%s not a valid ipv4 address: value must be less than 2**32' % host
+            return ip4, None
+        except:
+            return None, None
 
 def parse_url(u):
     if not isinstance(u, bytes):
@@ -173,9 +222,8 @@ def parse_url(u):
         url.colon_before_password = m.group('colon_before_password') or b''
         url.password = m.group('password') or b''
         url.at_sign = m.group('at_sign') or b''
-        url.ip6 = m.group('ip6') or b''
-        url.ip4 = m.group('ip4') or b''
-        url.domain = m.group('domain') or b''
+        url.host = m.group('host') or b''
+        url.ip4, url.ip6 = _attempt_ipv4or6(url.host)
         url.colon_before_port = m.group('colon_before_port') or b''
         url.port = m.group('port') or b''
     else:

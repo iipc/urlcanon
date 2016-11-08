@@ -16,6 +16,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 import re
+import ipaddress
 
 class Canonicalizer:
     def __init__(self, steps):
@@ -24,6 +25,7 @@ class Canonicalizer:
     def __call__(self, url):
         for step in self.steps:
             step(url)
+        return url
 
     def remove_leading_trailing_junk(url):
         url.leading_junk = b''
@@ -44,9 +46,7 @@ class Canonicalizer:
         url.password = Canonicalizer.TAB_AND_NEWLINE_REGEX.sub(
                 b'', url.password)
         url.at_sign = Canonicalizer.TAB_AND_NEWLINE_REGEX.sub(b'', url.at_sign)
-        url.ip6 = Canonicalizer.TAB_AND_NEWLINE_REGEX.sub(b'', url.ip6)
-        url.ip4 = Canonicalizer.TAB_AND_NEWLINE_REGEX.sub(b'', url.ip4)
-        url.domain = Canonicalizer.TAB_AND_NEWLINE_REGEX.sub(b'', url.domain)
+        url.host = Canonicalizer.TAB_AND_NEWLINE_REGEX.sub(b'', url.host)
         url.colon_before_port = Canonicalizer.TAB_AND_NEWLINE_REGEX.sub(
                 b'', url.colon_before_port)
         url.port = Canonicalizer.TAB_AND_NEWLINE_REGEX.sub(b'', url.port)
@@ -137,6 +137,16 @@ class Canonicalizer:
         if not url.path and url.authority:
             url.path = b'/'
 
+    def dotted_decimal(num):
+        if num is None:
+            return None
+        return str(ipaddress.IPv4Address(num)).encode('utf-8')
+
+    def normalize_ip_address(url):
+        if url.ip4:
+            url.host = Canonicalizer.dotted_decimal(url.ip4)
+        # XXX ip6?
+
 Canonicalizer.WHATWG = Canonicalizer([
     Canonicalizer.remove_leading_trailing_junk,
     Canonicalizer.remove_tabs_and_newlines,
@@ -146,4 +156,5 @@ Canonicalizer.WHATWG = Canonicalizer([
     Canonicalizer.decode_path_2e,
     Canonicalizer.pct_encode_path,
     Canonicalizer.empty_path_to_slash,
+    Canonicalizer.normalize_ip_address,
 ])

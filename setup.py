@@ -19,9 +19,16 @@ limitations under the License.
 
 import setuptools
 
+dependencies = []
+try:
+    import ipaddress
+except ImportError:
+    dependencies.append('py2-ipaddress')
+
 setuptools.setup(
         name='ssurt',
         version='0.1.dev1',
         packages=['ssurt'],
+        install_requires=dependencies,
         tests_require=['pytest'])
 
