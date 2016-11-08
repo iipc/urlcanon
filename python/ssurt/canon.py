@@ -147,6 +147,16 @@ class Canonicalizer:
             url.host = Canonicalizer.dotted_decimal(url.ip4)
         # XXX ip6?
 
+    def elide_default_port(url):
+        if ((url.scheme == b"ftp" and url.port == b'21')
+                or (url.scheme == b"gopher" and url.port == b'70')
+                or (url.scheme == b"http" and url.port == b'80')
+                or (url.scheme == b"https" and url.port == b'443')
+                or (url.scheme == b"ws" and url.port == b'80')
+                or (url.scheme == b"wss" and url.port == b'443')):
+            url.colon_before_port = b''
+            url.port = b''
+
 Canonicalizer.WHATWG = Canonicalizer([
     Canonicalizer.remove_leading_trailing_junk,
     Canonicalizer.remove_tabs_and_newlines,
@@ -157,4 +167,5 @@ Canonicalizer.WHATWG = Canonicalizer([
     Canonicalizer.pct_encode_path,
     Canonicalizer.empty_path_to_slash,
     Canonicalizer.normalize_ip_address,
+    Canonicalizer.elide_default_port,
 ])
