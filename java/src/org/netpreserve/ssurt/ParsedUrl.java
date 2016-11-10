@@ -76,7 +76,8 @@ public class ParsedUrl {
             ")?" +
             "\\Z").replace(" ", ""), DOTALL);
 
-    private final static Pattern FILE_SCHEME_WITH_SPACES_AND_TABS = Pattern.compile("[ \\t]*f[ \\t]*i[ \\t]*l[ \\t]*e[ \\t]*", CASE_INSENSITIVE);
+    private final static Pattern FILE_SCHEME_WITH_SPACES_AND_TABS = Pattern.compile(
+            "[ \\t]*f[ \\t]*i[ \\t]*l[ \\t]*e[ \\t]*", CASE_INSENSITIVE);
 
     ByteString leadingJunk;
     ByteString trailingJunk;
@@ -99,14 +100,15 @@ public class ParsedUrl {
     ByteString port;
 
     public static ParsedUrl parse(String s) {
-        return parse(s.getBytes(StandardCharsets.UTF_8));
+        return parse(new ByteString(s));
     }
 
     public static ParsedUrl parse(byte[] bytes) {
-        ParsedUrl url = new ParsedUrl();
+        return parse(new ByteString(bytes));
+    }
 
-        // decoding hack: see "IMPORTANT" comment above for why we do this
-        ByteString input = new ByteString(bytes);
+    public static ParsedUrl parse(ByteString input) {
+        ParsedUrl url = new ParsedUrl();
 
         // "leading and trailing C0 controls and space"
         Matcher m = LEADING_JUNK_REGEX.matcher(input);
@@ -216,10 +218,6 @@ public class ParsedUrl {
         }
     }
 
-    private static String orBlank(String s) {
-        return s != null ? s : "";
-    }
-
     boolean hasAuthority() {
         return !(domain.isEmpty() && ip6.isEmpty() && ip4.isEmpty());
     }
@@ -243,7 +241,19 @@ public class ParsedUrl {
         return builder.toByteString();
     }
 
+    public byte[] toByteArray() {
+        return buildUrl().toByteArray();
+    }
+
+    public ByteString toByteString() {
+        return buildUrl().toByteString();
+    }
+
     public String toString() {
+        return buildUrl().toString();
+    }
+
+    private ByteStringBuilder buildUrl() {
         ByteString host = host();
         ByteStringBuilder builder = new ByteStringBuilder(leadingJunk.length() + scheme.length() + colonAfterScheme.length()
                 + slashes.length() + username.length() + colonBeforePassword.length() + password.length()
@@ -264,6 +274,6 @@ public class ParsedUrl {
         builder.append(path);
         builder.append(fragment);
         builder.append(trailingJunk);
-        return builder.toString();
+        return builder;
     }
 }

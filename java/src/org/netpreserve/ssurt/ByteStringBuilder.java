@@ -18,6 +18,7 @@
 
 package org.netpreserve.ssurt;
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -77,5 +78,9 @@ public class ByteStringBuilder {
     public void append(char c) {
         setLength(length + 1);
         data[length - 1] = (byte)c;
+    }
+
+    public byte[] toByteArray() {
+        return Arrays.copyOf(data, length);
     }
 }
