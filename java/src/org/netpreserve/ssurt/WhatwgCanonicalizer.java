@@ -28,6 +28,7 @@ import java.util.regex.Pattern;
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
 
 class WhatwgCanonicalizer implements Canonicalizer {
+    private static final ByteString SLASH = new ByteString("/".getBytes());
     private static final Pattern PATH_SEGMENT_REGEX = Pattern.compile("(?:([.]|%2e)([.]|%2e)?|[^/\\\\]*)(?:[/\\\\]|\\Z)", CASE_INSENSITIVE);
     private static final Pattern PCT2D_REGEX = Pattern.compile("%2e", CASE_INSENSITIVE);
     /*
@@ -39,13 +40,13 @@ class WhatwgCanonicalizer implements Canonicalizer {
     private static final Pattern DEFAULT_ENCODE_REGEX = Pattern.compile("[\\x00-\\x20\\x7f-\\xff\"#<>?`{}]");
     private static final Pattern TAB_AND_NEWLINE_REGEX = Pattern.compile("[\\x09\\x0a\\x0d]");
 
-    void removeLeadingTrailingJunk(ParsedUrl url) {
-        url.leadingJunk = "";
-        url.trailingJunk = "";
+    static ByteString removeTabsAndNewlines(ByteString s) {
+        return s.replaceAll(TAB_AND_NEWLINE_REGEX, ByteString.EMPTY);
     }
 
-    static String removeTabsAndNewlines(String s) {
-        return TAB_AND_NEWLINE_REGEX.matcher(s).replaceAll("");
+    void removeLeadingTrailingJunk(ParsedUrl url) {
+        url.leadingJunk = ByteString.EMPTY;
+        url.trailingJunk = ByteString.EMPTY;
     }
 
     void removeTabsAndNewlines(ParsedUrl url) {
@@ -71,23 +72,24 @@ class WhatwgCanonicalizer implements Canonicalizer {
     }
 
     void lowercaseScheme(ParsedUrl url) {
-        url.scheme = url.scheme.toLowerCase();
+        url.scheme = url.scheme.asciiLowerCase();
     }
 
     void fixBackslashes(ParsedUrl url) {
-        url.slashes = url.slashes.replace('\\', '/');
-        String path = url.path;
+        url.slashes = url.slashes.replace((byte)'\\', (byte)'/');
+        ByteString path = url.path;
         if (!path.isEmpty()) {
             char c = path.charAt(0);
             if (c == '/' || c == '\\') {
-                url.path = path.replace('\\', '/');
+                url.path = path.replace((byte)'\\', (byte)'/');
             }
         }
     }
 
-    String resolvePathDots(String path) {
+    ByteString resolvePathDots(ByteString path) {
         if (!path.isEmpty() && (path.charAt(0) == '/' || path.charAt(0) == '\\')) {
-            StringBuilder buf = new StringBuilder("/");
+            ByteStringBuilder buf = new ByteStringBuilder(path.length());
+            buf.append("/");
             Deque<Integer> segmentOffsets = new ArrayDeque<>();
             Matcher m = PATH_SEGMENT_REGEX.matcher(path);
             m.region(1, path.length());
@@ -107,7 +109,7 @@ class WhatwgCanonicalizer implements Canonicalizer {
                 }
                 m.region(m.end(), path.length());
             }
-            return buf.toString();
+            return buf.toByteString();
         } else {
             return path;
         }
@@ -118,11 +120,11 @@ class WhatwgCanonicalizer implements Canonicalizer {
     }
 
     void decodePath2e(ParsedUrl url) {
-        url.path = PCT2D_REGEX.matcher(url.path).replaceAll(".");
+        url.path = url.path.replaceAll(PCT2D_REGEX, ".");
     }
 
     void pctEncodePath(ParsedUrl url) {
-        StringBuilder buf = new StringBuilder();
+        ByteStringBuilder buf = new ByteStringBuilder(url.path.length());
         Matcher m = DEFAULT_ENCODE_REGEX.matcher(url.path);
         int pos = 0;
         while (m.find()) {
@@ -134,12 +136,12 @@ class WhatwgCanonicalizer implements Canonicalizer {
             pos = m.end();
         }
         buf.append(url.path, pos, url.path.length());
-        url.path = buf.toString();
+        url.path = buf.toByteString();
     }
 
     void emptyPathToSlash(ParsedUrl url) {
         if (url.path.isEmpty() && url.hasAuthority()) {
-            url.path = "/";
+            url.path = SLASH;
         }
     }
 

@@ -35,7 +35,7 @@ import static org.junit.Assert.*;
 
 public class WhatwgCanonicalizerTest {
 
-    static Gson gson = new Gson();
+    private static Gson gson = new Gson();
 
     @Test
     @Ignore("TODO: ip address, protocol-specific edge cases not implemented")
@@ -56,25 +56,21 @@ public class WhatwgCanonicalizerTest {
                     ParsedUrl url = ParsedUrl.parse(testCase.input);
                     Canonicalizer.WHATWG.canonicalize(url);
 
-                    assertEquals(testCase.protocol, bytesToUnicode(url.scheme + url.colonAfterScheme));
-                    assertEquals(testCase.username, bytesToUnicode(url.username));
-                    assertEquals(testCase.password, bytesToUnicode(url.password));
-                    assertEquals(testCase.host, bytesToUnicode(url.hostPort()));
-                    assertEquals(testCase.hostname, bytesToUnicode(url.host()));
-                    assertEquals(testCase.username, bytesToUnicode(url.username));
-                    assertEquals(testCase.password, bytesToUnicode(url.password));
-                    assertEquals(testCase.pathname, bytesToUnicode(url.path));
-                    assertEquals(testCase.search, bytesToUnicode(url.questionMark + url.query));
-                    assertEquals(testCase.hash, bytesToUnicode(url.fragment.isEmpty() ? "" : (url.hashSign + url.fragment)));
-                    assertEquals(testCase.href, bytesToUnicode(url.toString()));
+                    assertEquals(testCase.protocol, url.scheme.toString() + url.colonAfterScheme.toString());
+                    assertEquals(testCase.username, url.username.toString());
+                    assertEquals(testCase.password, url.password.toString());
+                    assertEquals(testCase.host, url.hostPort().toString());
+                    assertEquals(testCase.hostname, url.host().toString());
+                    assertEquals(testCase.username, url.username.toString());
+                    assertEquals(testCase.password, url.password.toString());
+                    assertEquals(testCase.pathname, url.path.toString());
+                    assertEquals(testCase.search, url.questionMark.toString() + url.query.toString());
+                    assertEquals(testCase.hash, url.fragment.isEmpty() ? "" : (url.hashSign.toString() + url.fragment.toString()));
+                    assertEquals(testCase.href, url.toString());
                 }
             }
             reader.endArray();
         }
-    }
-
-    public String bytesToUnicode(String bytes) {
-        return new String(bytes.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8);
     }
 
     public static class W3cTestCase {
