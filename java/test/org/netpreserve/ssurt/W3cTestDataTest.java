@@ -45,7 +45,7 @@ public class W3cTestDataTest {
     @Parameter
     public TestData test;
 
-    @Parameters
+    @Parameters(name = "{index} {0}")
     public static List<TestData> testData() throws IOException {
         List<TestData> tests = new ArrayList<>();
         try (InputStream stream = W3cTestDataTest.class.getResourceAsStream("/urltestdata.json")) {
@@ -104,5 +104,9 @@ public class W3cTestDataTest {
         public String pathname;
         public String search;
         public String hash;
+
+        public String toString() {
+            return input;
+        }
     }
 }
