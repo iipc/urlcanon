@@ -140,19 +140,50 @@ public class ByteString implements CharSequence {
         return new ByteString(dest);
     }
 
+    private byte lowerCaseByte(byte b) {
+        if ('A' <= b && b <= 'Z') {
+            return (byte)(b - 'A' + 'a');
+        } else {
+            return b;
+        }
+    }
+
     /**
      * Return a copy of this byte string with ASCII letters lower cased.
      */
     public ByteString asciiLowerCase() {
         byte[] out = new byte[length()];
         for (int i = 0; i < data.length; i++) {
-            int b = data[i];
-            if ('A' <= b && b <= 'Z') {
-                out[i] = (byte)(b - 'A' + 'a');
-            } else {
-                out[i] = (byte)b;
-            }
+            out[i] = lowerCaseByte(data[i]);
         }
         return new ByteString(out);
+    }
+
+    // unfortunately Integer.parseInt doesn't work on CharSequence in Java 8
+    // so we have to do this ourselves until we upgrade to Java 9
+    public int toInt() {
+        int radix = 10;
+        int x = 0;
+        for (int i = 0; i < data.length; i++) {
+            int digit = Character.digit(data[i], radix);
+            if (digit == -1) {
+                throw new NumberFormatException();
+            }
+            x = x * radix + digit;
+        }
+        return x;
+    }
+
+    public boolean equalsIgnoreCase(CharSequence s) {
+        int len = s.length();
+        if (len != data.length) {
+            return false;
+        }
+        for (int i = 0; i < len; i++) {
+            if (lowerCaseByte(data[i]) != lowerCaseByte((byte)s.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
     }
 }

@@ -145,6 +145,27 @@ class WhatwgCanonicalizer implements Canonicalizer {
         }
     }
 
+    void elideDefaultPort(ParsedUrl url) {
+        if (hasDefaultPort(url)) {
+            url.colonBeforePort = ByteString.EMPTY;
+            url.port = ByteString.EMPTY;
+        }
+    }
+
+    private boolean hasDefaultPort(ParsedUrl url) {
+        switch (url.port.toInt()) {
+            case 21:
+                return url.scheme.equalsIgnoreCase("ftp");
+            case 70:
+                return url.scheme.equalsIgnoreCase("gopher");
+            case 80:
+                return url.scheme.equalsIgnoreCase("http") || url.scheme.equalsIgnoreCase("ws");
+            case 443:
+                return url.scheme.equalsIgnoreCase("https") || url.scheme.equalsIgnoreCase("wss");
+        }
+        return false;
+    }
+
     public void canonicalize(ParsedUrl url) {
         removeLeadingTrailingJunk(url);
         removeTabsAndNewlines(url);
@@ -154,5 +175,6 @@ class WhatwgCanonicalizer implements Canonicalizer {
         decodePath2e(url);
         pctEncodePath(url);
         emptyPathToSlash(url);
+        elideDefaultPort(url);
     }
 }
