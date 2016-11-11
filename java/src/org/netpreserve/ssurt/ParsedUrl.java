@@ -271,6 +271,9 @@ public class ParsedUrl {
         builder.append(colonBeforePort);
         builder.append(port);
         builder.append(path);
+        builder.append(questionMark);
+        builder.append(query);
+        builder.append(hashSign);
         builder.append(fragment);
         builder.append(trailingJunk);
         return builder;
