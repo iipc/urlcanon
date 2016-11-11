@@ -144,13 +144,15 @@ public class ByteString implements CharSequence {
      * Return a copy of this byte string with ASCII letters lower cased.
      */
     public ByteString asciiLowerCase() {
-        byte[] dest = new byte[length()];
+        byte[] out = new byte[length()];
         for (int i = 0; i < data.length; i++) {
             int b = data[i];
-            if (b <= 'A' && b <= 'Z') {
-                dest[i] = (byte)(b + 'A' - 'a');
+            if ('A' <= b && b <= 'Z') {
+                out[i] = (byte)(b - 'A' + 'a');
+            } else {
+                out[i] = (byte)b;
             }
         }
-        return new ByteString(dest);
+        return new ByteString(out);
     }
 }

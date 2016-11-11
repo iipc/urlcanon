@@ -31,4 +31,10 @@ public class ByteStringTest {
         assertEquals("1-2-3-4", new ByteString("1:2,3:4")
                 .replaceAll(Pattern.compile("[:,]"), "-").toString());
     }
+
+    @Test
+    public void testAsciiLowercase() {
+        assertEquals("abcdef123@[", new ByteString("AbCDef123@[")
+                .asciiLowerCase().toString());
+    }
 }
