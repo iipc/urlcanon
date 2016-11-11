@@ -20,7 +20,6 @@
 
 package org.netpreserve.ssurt;
 
-import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -149,9 +148,9 @@ public class ParsedUrl {
                 throw new AssertionError("PATHISH_REGEX didn't match");
             }
 
-            ByteString slashes = group(input, m, "slashes");
-            ByteString authority = group(input, m, "authority");
-            ByteString path = group(input, m, "path");
+            ByteString slashes = group(pathish, m, "slashes");
+            ByteString authority = group(pathish, m, "authority");
+            ByteString path = group(pathish, m, "path");
 
             if (slashes.length() >= 3 && FILE_SCHEME_WITH_SPACES_AND_TABS.matcher(url.scheme).matches()) {
                 // special case file URLs with triple slash and no authority
@@ -171,15 +170,15 @@ public class ParsedUrl {
             // parse the authority
             m = AUTHORITY_REGEX.matcher(authority);
             if (m.matches()) {
-                url.username = group(input, m, "username");
-                url.colonBeforePassword = group(input, m, "colonBeforePassword");
-                url.password = group(input, m, "password");
-                url.atSign = group(input, m, "atSign");
-                url.ip6 = group(input, m, "ip6");
-                url.ip4 = group(input, m, "ip4");
-                url.domain = group(input, m, "domain");
-                url.colonBeforePort = group(input, m, "colonBeforePort");
-                url.port = group(input, m, "port");
+                url.username = group(authority, m, "username");
+                url.colonBeforePassword = group(authority, m, "colonBeforePassword");
+                url.password = group(authority, m, "password");
+                url.atSign = group(authority, m, "atSign");
+                url.ip6 = group(authority, m, "ip6");
+                url.ip4 = group(authority, m, "ip4");
+                url.domain = group(authority, m, "domain");
+                url.colonBeforePort = group(authority, m, "colonBeforePort");
+                url.port = group(authority, m, "port");
             } else {
                 throw new AssertionError("AUTHORITY_REGEX didn't match");
             }
