@@ -20,6 +20,7 @@ limitations under the License.
 import ssurt
 import os
 import json
+import pytest
 
 def load_json_bytes(json_bytes):
     '''
@@ -122,35 +123,39 @@ def test_resolve_path_dots():
         expected = inputs[unresolved]
         assert ssurt.Canonicalizer.resolve_path_dots(unresolved) == expected
 
-def test_w3c_test_data():
-    tests = []
+def load_w3c_test_data():
     path = os.path.join(
-            os.path.dirname(__file__), '..', '..', 'testdata',
-            'urltestdata.json')
+        os.path.dirname(__file__), '..', '..', 'testdata',
+        'urltestdata.json')
     with open(path, 'rb') as f:
         # load_json_bytes doesn't work for urltestdata.json because it contains
         # unicode character escapes beyond \u00ff such as \u0300
         tests = json.loads(f.read().decode('utf-8'))
+        return [test for test in tests if is_absolute_url_test(test)]
+
+def is_absolute_url_test(test):
+    return (isinstance(test, dict) and test.get('base') == 'about:blank'
+            and 'href' in test)
+
+@pytest.mark.parametrize("test", load_w3c_test_data())
+def test_w3c_test_data(test):
     canon = ssurt.Canonicalizer.WHATWG
-    for test in tests:
-        if (isinstance(test, dict) and test.get('base') == 'about:blank'
-                and 'href' in test):
-            url = ssurt.parse_url(test['input'])
-            canon(url)
-            try:
-                assert test['protocol'].encode('utf-8') == (
-                        url.scheme + url.colon_after_scheme)
-                assert test['username'].encode('utf-8') == url.username
-                assert test['password'].encode('utf-8') == url.password
-                assert test['host'].encode('utf-8') == url.host_port
-                assert test['hostname'].encode('utf-8') == url.host
-                assert test['pathname'].encode('utf-8') == url.path
-                assert test['search'].encode('utf-8') == (
-                        url.question_mark + url.query)
-                assert test['hash'].encode('utf-8') == (
-                        url.fragment and (url.hash_sign + url.fragment) or b'')
-                assert test['href'] == str(url)
-            except:
-                print('failed\n   input=%s\n   url=%s\n' % (test, vars(url)))
-                raise
+    url = ssurt.parse_url(test['input'])
+    canon(url)
+    try:
+        assert test['protocol'].encode('utf-8') == (
+                url.scheme + url.colon_after_scheme)
+        assert test['username'].encode('utf-8') == url.username
+        assert test['password'].encode('utf-8') == url.password
+        assert test['host'].encode('utf-8') == url.host_port
+        assert test['hostname'].encode('utf-8') == url.host
+        assert test['pathname'].encode('utf-8') == url.path
+        assert test['search'].encode('utf-8') == (
+                url.question_mark + url.query)
+        assert test['hash'].encode('utf-8') == (
+                url.fragment and (url.hash_sign + url.fragment) or b'')
+        assert test['href'] == str(url)
+    except:
+        print('failed\n   input=%s\n   url=%s\n' % (test, vars(url)))
+        raise
 
