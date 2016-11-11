@@ -52,7 +52,7 @@ public class ParsedUrl {
     private final static Pattern PATHISH_REGEX = Pattern.compile(("" +
             "(?<slashes> [/\\\\]* )" +
             "(?<authority> [^/\\\\]* )" +
-            "(?<path> [/\\\\] .* )"
+            "(?<path> [/\\\\] .* )?"
     ).replace(" ", ""), DOTALL);
 
     private final static Pattern AUTHORITY_REGEX = Pattern.compile(("\\A" +
