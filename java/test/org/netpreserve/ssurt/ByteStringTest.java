@@ -22,9 +22,18 @@ import org.junit.Test;
 
 import java.util.regex.Pattern;
 
+import static java.nio.charset.StandardCharsets.ISO_8859_1;
 import static org.junit.Assert.assertEquals;
 
 public class ByteStringTest {
+
+    @Test
+    public void testCharAt() {
+        ByteString bs = new ByteString("Â©z".getBytes(ISO_8859_1));
+        assertEquals('Â', bs.charAt(0));
+        assertEquals('©', bs.charAt(1));
+        assertEquals('z', bs.charAt(2));
+    }
 
     @Test
     public void testReplaceAll() {

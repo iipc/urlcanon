@@ -67,7 +67,7 @@ public class ByteString implements CharSequence {
      */
     @Override
     public char charAt(int index) {
-        return (char) data[index];
+        return (char) (data[index] & 0xFF);
     }
 
     @Override
