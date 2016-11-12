@@ -86,10 +86,10 @@ class WhatwgCanonicalizer implements Canonicalizer {
         }
     }
 
-    ByteString resolvePathDots(ByteString path) {
+    static ByteString resolvePathDots(ByteString path) {
         if (!path.isEmpty() && (path.charAt(0) == '/' || path.charAt(0) == '\\')) {
             ByteStringBuilder buf = new ByteStringBuilder(path.length());
-            buf.append("/");
+            buf.append(path.charAt(0));
             Deque<Integer> segmentOffsets = new ArrayDeque<>();
             Matcher m = PATH_SEGMENT_REGEX.matcher(path);
             m.region(1, path.length());
