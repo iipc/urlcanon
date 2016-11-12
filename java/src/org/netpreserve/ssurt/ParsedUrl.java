@@ -120,8 +120,8 @@ public class ParsedUrl {
 
         m = TRAILING_JUNK_REGEX.matcher(input);
         if (m.matches()) {
-            input = group(input, m, 1);
             url.trailingJunk = group(input, m, 2);
+            input = group(input, m, 1);
         } else {
             url.trailingJunk = ByteString.EMPTY;
         }
