@@ -28,7 +28,8 @@ import java.util.regex.Pattern;
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
 
 class WhatwgCanonicalizer implements Canonicalizer {
-    private static final ByteString SLASH = new ByteString("/".getBytes());
+    private static final ByteString SLASH = new ByteString("/");
+    private static final ByteString TWO_SLASHES = new ByteString("//");
     private static final Pattern PATH_SEGMENT_REGEX = Pattern.compile("(?:([.]|%2e)([.]|%2e)?|[^/\\\\]*)(?:[/\\\\]|\\Z)", CASE_INSENSITIVE);
     private static final Pattern PCT2D_REGEX = Pattern.compile("%2e", CASE_INSENSITIVE);
     /*
@@ -184,6 +185,12 @@ class WhatwgCanonicalizer implements Canonicalizer {
         }
     }
 
+    public static void twoSlashes(ParsedUrl url) {
+        if (!url.getSlashes().isEmpty()) {
+            url.setSlashes(TWO_SLASHES);
+        }
+    }
+
     public void canonicalize(ParsedUrl url) {
         removeLeadingTrailingJunk(url);
         removeTabsAndNewlines(url);
@@ -196,5 +203,6 @@ class WhatwgCanonicalizer implements Canonicalizer {
         emptyPathToSlash(url);
         elideDefaultPort(url);
         elideAtSignForEmptyUserinfo(url);
+        twoSlashes(url);
     }
 }
