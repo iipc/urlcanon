@@ -58,9 +58,7 @@ class WhatwgCanonicalizer implements Canonicalizer {
         url.setColonBeforePassword(removeTabsAndNewlines(url.getColonBeforePassword()));
         url.setPassword(removeTabsAndNewlines(url.getPassword()));
         url.setAtSign(removeTabsAndNewlines(url.getAtSign()));
-        url.setIp6(removeTabsAndNewlines(url.getIp6()));
-        url.setIp4(removeTabsAndNewlines(url.getIp4()));
-        url.setDomain(removeTabsAndNewlines(url.getDomain()));
+        url.setHost(removeTabsAndNewlines(url.getHost()));
         url.setColonBeforePort(removeTabsAndNewlines(url.getColonBeforePort()));
         url.setPort(removeTabsAndNewlines(url.getPort()));
         url.setPath(removeTabsAndNewlines(url.getPath()));
@@ -140,7 +138,7 @@ class WhatwgCanonicalizer implements Canonicalizer {
     }
 
     void emptyPathToSlash(ParsedUrl url) {
-        if (url.getPath().isEmpty() && !url.host().isEmpty()) {
+        if (url.getPath().isEmpty() && !url.getHost().isEmpty()) {
             url.setPath(SLASH);
         }
     }
@@ -153,7 +151,7 @@ class WhatwgCanonicalizer implements Canonicalizer {
     }
 
     private boolean hasDefaultPort(ParsedUrl url) {
-        switch (url.getPort().toInt()) {
+        switch ((int)CharSequences.parseLong(url.getPort())) {
             case 21:
                 return url.getScheme().equalsIgnoreCase("ftp");
             case 70:
@@ -166,8 +164,16 @@ class WhatwgCanonicalizer implements Canonicalizer {
         return false;
     }
 
-    static ByteString dottedDecimal(ByteString ip4) {
-        return ip4; // TODO
+    static ByteString normalizeIpAddress(ByteString host) {
+        long ipv4 = IpAddresses.parseIpv4(host);
+        if (ipv4 != -1) {
+            return new ByteString(IpAddresses.formatIpv4(ipv4));
+        }
+        return host;
+    }
+
+    public static void normalizeIpAddress(ParsedUrl url) {
+        url.setHost(normalizeIpAddress(url.getHost()));
     }
 
     public void canonicalize(ParsedUrl url) {
@@ -178,6 +184,7 @@ class WhatwgCanonicalizer implements Canonicalizer {
         normalizePathDots(url);
         decodePath2e(url);
         pctEncodePath(url);
+        normalizeIpAddress(url);
         emptyPathToSlash(url);
         elideDefaultPort(url);
     }

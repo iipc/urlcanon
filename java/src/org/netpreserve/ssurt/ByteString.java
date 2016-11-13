@@ -159,21 +159,6 @@ public class ByteString implements CharSequence {
         return new ByteString(out);
     }
 
-    // unfortunately Integer.parseInt doesn't work on CharSequence in Java 8
-    // so we have to do this ourselves until we upgrade to Java 9
-    public int toInt() {
-        int radix = 10;
-        int x = 0;
-        for (int i = 0; i < data.length; i++) {
-            int digit = Character.digit(data[i], radix);
-            if (digit == -1) {
-                throw new NumberFormatException();
-            }
-            x = x * radix + digit;
-        }
-        return x;
-    }
-
     public boolean equalsIgnoreCase(CharSequence s) {
         int len = s.length();
         if (len != data.length) {

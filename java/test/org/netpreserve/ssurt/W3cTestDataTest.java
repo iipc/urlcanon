@@ -1,5 +1,5 @@
 /*
- * WhatwgCanonicalizerTest.java - unit tests for WhatwgCanonicalizer
+ * W3cTestDataTest.java - verify against the w3c's url parser test data
  *
  * Copyright (C) 2016 Internet Archive
  * Copyright (C) 2016 National Library of Australia
@@ -82,7 +82,7 @@ public class W3cTestDataTest {
         assertEquals("username of " + test.input, test.username, url.getUsername().toString());
         assertEquals("password of " + test.input, test.password, url.getPassword().toString());
         assertEquals("hostPort of " + test.input, test.host, url.hostPort().toString());
-        assertEquals("host of " + test.input, test.hostname, url.host().toString());
+        assertEquals("host of " + test.input, test.hostname, url.getHost().toString());
         assertEquals("username of " + test.input, test.username, url.getUsername().toString());
         assertEquals("path of " + test.input, test.pathname, url.getPath().toString());
         assertEquals("query of " + test.input, test.search, url.getQuestionMark().toString() + url.getQuery().toString());
