@@ -137,8 +137,10 @@ def _attempt_ipv4or6(host):
     else:
         try:
             parts = host.split(b'.')
+            if parts[-1] == b"":
+                parts.pop()
             if len(parts) == 1:
-                ip4 = _parse_num(host)
+                ip4 = _parse_num(parts[0])
             elif len(parts) == 2:
                 part1 = _parse_num(parts[1])
                 if part1 >= 2**24:

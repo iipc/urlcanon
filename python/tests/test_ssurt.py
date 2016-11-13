@@ -57,16 +57,19 @@ def test_parser_idempotence():
     for s in inputs:
         assert ssurt.parse_url(s).__bytes__() == s
 
-def test_funky_ipv4():
+def load_funky_ipv4_data():
     path = os.path.join(
-            os.path.dirname(__file__), '..', '..', 'testdata',
-            'funky_ipv4.json')
+        os.path.dirname(__file__), '..', '..', 'testdata',
+        'funky_ipv4.json')
     with open(path, 'rb') as f:
         inputs = load_json_bytes(f.read())
-    for unresolved in inputs:
-        expected = inputs[unresolved]
-        assert ssurt.Canonicalizer.dotted_decimal(
-                ssurt.parse._attempt_ipv4or6(unresolved)[0]) == expected
+        return [(unresolved, inputs[unresolved]) for unresolved in inputs]
+
+@pytest.mark.parametrize("unresolved,expected", load_funky_ipv4_data())
+def test_funky_ipv4(unresolved, expected):
+    ip4 = ssurt.parse._attempt_ipv4or6(unresolved)[0]
+    print('XXX', ip4)
+    assert ssurt.Canonicalizer.dotted_decimal(ip4) == expected
 
 def test_resolve_path_dots():
     # Most of path_dots.json was generated in the browser using this html/js.
