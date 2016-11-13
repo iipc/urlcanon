@@ -20,6 +20,7 @@
 
 package org.netpreserve.ssurt;
 
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -78,25 +79,32 @@ public class ParsedUrl {
     private final static Pattern FILE_SCHEME_WITH_SPACES_AND_TABS = Pattern.compile(
             "[ \\t]*f[ \\t]*i[ \\t]*l[ \\t]*e[ \\t]*", CASE_INSENSITIVE);
 
-    ByteString leadingJunk;
-    ByteString trailingJunk;
-    ByteString scheme;
-    ByteString colonAfterScheme;
-    ByteString questionMark;
-    ByteString query;
-    ByteString hashSign;
-    ByteString fragment;
-    ByteString slashes;
-    ByteString path;
-    ByteString username;
-    ByteString colonBeforePassword;
-    ByteString password;
-    ByteString atSign;
-    ByteString ip6;
-    ByteString ip4;
-    ByteString domain;
-    ByteString colonBeforePort;
-    ByteString port;
+    private ByteString leadingJunk;
+    private ByteString trailingJunk;
+    private ByteString scheme;
+    private ByteString colonAfterScheme;
+    private ByteString questionMark;
+    private ByteString query;
+    private ByteString hashSign;
+    private ByteString fragment;
+    private ByteString slashes;
+    private ByteString path;
+    private ByteString username;
+    private ByteString colonBeforePassword;
+    private ByteString password;
+    private ByteString atSign;
+    private ByteString ip6;
+    private ByteString ip4;
+    private ByteString domain;
+    private ByteString colonBeforePort;
+    private ByteString port;
+
+    //-------------------------------------------------------------------------
+    //region URL Parsing
+    //-------------------------------------------------------------------------
+
+    private ParsedUrl() {
+    }
 
     public static ParsedUrl parse(String s) {
         return parse(new ByteString(s));
@@ -217,28 +225,13 @@ public class ParsedUrl {
         }
     }
 
-    boolean hasAuthority() {
-        return !(domain.isEmpty() && ip6.isEmpty() && ip4.isEmpty());
-    }
+    //-------------------------------------------------------------------------
+    //endregion
+    //-------------------------------------------------------------------------
 
-    public ByteString host() {
-        if (!ip6.isEmpty()) {
-            return ip6;
-        } else if (!ip4.isEmpty()) {
-            return ip4;
-        } else {
-            return domain;
-        }
-    }
-
-    ByteString hostPort() {
-        ByteString host = host();
-        ByteStringBuilder builder = new ByteStringBuilder(host.length() + colonBeforePort.length() + port.length());
-        builder.append(host);
-        builder.append(colonBeforePort);
-        builder.append(port);
-        return builder.toByteString();
-    }
+    //-------------------------------------------------------------------------
+    //region URL Formatting
+    //-------------------------------------------------------------------------
 
     public byte[] toByteArray() {
         return buildUrl().toByteArray();
@@ -278,4 +271,195 @@ public class ParsedUrl {
         builder.append(trailingJunk);
         return builder;
     }
+
+    //-------------------------------------------------------------------------
+    //endregion
+    //-------------------------------------------------------------------------
+
+    //-------------------------------------------------------------------------
+    //region Accessors: Calculated
+    //-------------------------------------------------------------------------
+
+    public ByteString host() {
+        if (!ip6.isEmpty()) {
+            return ip6;
+        } else if (!ip4.isEmpty()) {
+            return ip4;
+        } else {
+            return domain;
+        }
+    }
+
+    ByteString hostPort() {
+        ByteString host = host();
+        ByteStringBuilder builder = new ByteStringBuilder(host.length() + colonBeforePort.length() + port.length());
+        builder.append(host);
+        builder.append(colonBeforePort);
+        builder.append(port);
+        return builder.toByteString();
+    }
+
+    //-------------------------------------------------------------------------
+    //endregion
+    //-------------------------------------------------------------------------
+
+    //-------------------------------------------------------------------------
+    //region Accessors: Simple
+    //-------------------------------------------------------------------------
+
+    public ByteString getLeadingJunk() {
+        return leadingJunk;
+    }
+
+    public void setLeadingJunk(ByteString leadingJunk) {
+        this.leadingJunk = Objects.requireNonNull(leadingJunk);
+    }
+
+    public ByteString getTrailingJunk() {
+        return trailingJunk;
+    }
+
+    public void setTrailingJunk(ByteString trailingJunk) {
+        this.trailingJunk = Objects.requireNonNull(trailingJunk);
+    }
+
+    public ByteString getScheme() {
+        return scheme;
+    }
+
+    public void setScheme(ByteString scheme) {
+        this.scheme = Objects.requireNonNull(scheme);
+    }
+
+    public ByteString getColonAfterScheme() {
+        return colonAfterScheme;
+    }
+
+    public void setColonAfterScheme(ByteString colonAfterScheme) {
+        this.colonAfterScheme = Objects.requireNonNull(colonAfterScheme);
+    }
+
+    public ByteString getQuestionMark() {
+        return questionMark;
+    }
+
+    public void setQuestionMark(ByteString questionMark) {
+        this.questionMark = Objects.requireNonNull(questionMark);
+    }
+
+    public ByteString getQuery() {
+        return query;
+    }
+
+    public void setQuery(ByteString query) {
+        this.query = Objects.requireNonNull(query);
+    }
+
+    public ByteString getHashSign() {
+        return hashSign;
+    }
+
+    public void setHashSign(ByteString hashSign) {
+        this.hashSign = Objects.requireNonNull(hashSign);
+    }
+
+    public ByteString getFragment() {
+        return fragment;
+    }
+
+    public void setFragment(ByteString fragment) {
+        this.fragment = Objects.requireNonNull(fragment);
+    }
+
+    public ByteString getSlashes() {
+        return slashes;
+    }
+
+    public void setSlashes(ByteString slashes) {
+        this.slashes = Objects.requireNonNull(slashes);
+    }
+
+    public ByteString getPath() {
+        return path;
+    }
+
+    public void setPath(ByteString path) {
+        this.path = Objects.requireNonNull(path);
+    }
+
+    public ByteString getUsername() {
+        return username;
+    }
+
+    public void setUsername(ByteString username) {
+        this.username = Objects.requireNonNull(username);
+    }
+
+    public ByteString getColonBeforePassword() {
+        return colonBeforePassword;
+    }
+
+    public void setColonBeforePassword(ByteString colonBeforePassword) {
+        this.colonBeforePassword = Objects.requireNonNull(colonBeforePassword);
+    }
+
+    public ByteString getPassword() {
+        return password;
+    }
+
+    public void setPassword(ByteString password) {
+        this.password = Objects.requireNonNull(password);
+    }
+
+    public ByteString getAtSign() {
+        return atSign;
+    }
+
+    public void setAtSign(ByteString atSign) {
+        this.atSign = Objects.requireNonNull(atSign);
+    }
+
+    public ByteString getIp6() {
+        return ip6;
+    }
+
+    public void setIp6(ByteString ip6) {
+        this.ip6 = Objects.requireNonNull(ip6);
+    }
+
+    public ByteString getIp4() {
+        return ip4;
+    }
+
+    public void setIp4(ByteString ip4) {
+        this.ip4 = Objects.requireNonNull(ip4);
+    }
+
+    public ByteString getDomain() {
+        return domain;
+    }
+
+    public void setDomain(ByteString domain) {
+        this.domain = Objects.requireNonNull(domain);
+    }
+
+    public ByteString getColonBeforePort() {
+        return colonBeforePort;
+    }
+
+    public void setColonBeforePort(ByteString colonBeforePort) {
+        this.colonBeforePort = Objects.requireNonNull(colonBeforePort);
+    }
+
+    public ByteString getPort() {
+        return port;
+    }
+
+    public void setPort(ByteString port) {
+        this.port = Objects.requireNonNull(port);
+    }
+
+    //-------------------------------------------------------------------------
+    //endregion
+    //-------------------------------------------------------------------------
 }

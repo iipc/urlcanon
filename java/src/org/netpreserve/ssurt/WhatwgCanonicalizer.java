@@ -45,43 +45,43 @@ class WhatwgCanonicalizer implements Canonicalizer {
     }
 
     void removeLeadingTrailingJunk(ParsedUrl url) {
-        url.leadingJunk = ByteString.EMPTY;
-        url.trailingJunk = ByteString.EMPTY;
+        url.setLeadingJunk(ByteString.EMPTY);
+        url.setTrailingJunk(ByteString.EMPTY);
     }
 
     void removeTabsAndNewlines(ParsedUrl url) {
-        url.leadingJunk = removeTabsAndNewlines(url.leadingJunk);
-        url.scheme = removeTabsAndNewlines(url.scheme);
-        url.colonAfterScheme = removeTabsAndNewlines(url.colonAfterScheme);
-        url.slashes = removeTabsAndNewlines(url.slashes);
-        url.username = removeTabsAndNewlines(url.username);
-        url.colonBeforePassword = removeTabsAndNewlines(url.colonBeforePassword);
-        url.password = removeTabsAndNewlines(url.password);
-        url.atSign = removeTabsAndNewlines(url.atSign);
-        url.ip6 = removeTabsAndNewlines(url.ip6);
-        url.ip4 = removeTabsAndNewlines(url.ip4);
-        url.domain = removeTabsAndNewlines(url.domain);
-        url.colonBeforePort = removeTabsAndNewlines(url.colonBeforePort);
-        url.port = removeTabsAndNewlines(url.port);
-        url.path = removeTabsAndNewlines(url.path);
-        url.questionMark = removeTabsAndNewlines(url.questionMark);
-        url.query = removeTabsAndNewlines(url.query);
-        url.hashSign = removeTabsAndNewlines(url.hashSign);
-        url.fragment = removeTabsAndNewlines(url.fragment);
-        url.trailingJunk = removeTabsAndNewlines(url.trailingJunk);
+        url.setLeadingJunk(removeTabsAndNewlines(url.getLeadingJunk()));
+        url.setScheme(removeTabsAndNewlines(url.getScheme()));
+        url.setColonAfterScheme(removeTabsAndNewlines(url.getColonAfterScheme()));
+        url.setSlashes(removeTabsAndNewlines(url.getSlashes()));
+        url.setUsername(removeTabsAndNewlines(url.getUsername()));
+        url.setColonBeforePassword(removeTabsAndNewlines(url.getColonBeforePassword()));
+        url.setPassword(removeTabsAndNewlines(url.getPassword()));
+        url.setAtSign(removeTabsAndNewlines(url.getAtSign()));
+        url.setIp6(removeTabsAndNewlines(url.getIp6()));
+        url.setIp4(removeTabsAndNewlines(url.getIp4()));
+        url.setDomain(removeTabsAndNewlines(url.getDomain()));
+        url.setColonBeforePort(removeTabsAndNewlines(url.getColonBeforePort()));
+        url.setPort(removeTabsAndNewlines(url.getPort()));
+        url.setPath(removeTabsAndNewlines(url.getPath()));
+        url.setQuestionMark(removeTabsAndNewlines(url.getQuestionMark()));
+        url.setQuery(removeTabsAndNewlines(url.getQuery()));
+        url.setHashSign(removeTabsAndNewlines(url.getHashSign()));
+        url.setFragment(removeTabsAndNewlines(url.getFragment()));
+        url.setTrailingJunk(removeTabsAndNewlines(url.getTrailingJunk()));
     }
 
     void lowercaseScheme(ParsedUrl url) {
-        url.scheme = url.scheme.asciiLowerCase();
+        url.setScheme(url.getScheme().asciiLowerCase());
     }
 
     void fixBackslashes(ParsedUrl url) {
-        url.slashes = url.slashes.replace((byte)'\\', (byte)'/');
-        ByteString path = url.path;
+        url.setSlashes(url.getSlashes().replace((byte)'\\', (byte)'/'));
+        ByteString path = url.getPath();
         if (!path.isEmpty()) {
             char c = path.charAt(0);
             if (c == '/' || c == '\\') {
-                url.path = path.replace((byte)'\\', (byte)'/');
+                url.setPath(path.replace((byte)'\\', (byte)'/'));
             }
         }
     }
@@ -116,52 +116,52 @@ class WhatwgCanonicalizer implements Canonicalizer {
     }
 
     void normalizePathDots(ParsedUrl url) {
-        url.path = resolvePathDots(url.path);
+        url.setPath(resolvePathDots(url.getPath()));
     }
 
     void decodePath2e(ParsedUrl url) {
-        url.path = url.path.replaceAll(PCT2D_REGEX, ".");
+        url.setPath(url.getPath().replaceAll(PCT2D_REGEX, "."));
     }
 
     void pctEncodePath(ParsedUrl url) {
-        ByteStringBuilder buf = new ByteStringBuilder(url.path.length());
-        Matcher m = DEFAULT_ENCODE_REGEX.matcher(url.path);
+        ByteStringBuilder buf = new ByteStringBuilder(url.getPath().length());
+        Matcher m = DEFAULT_ENCODE_REGEX.matcher(url.getPath());
         int pos = 0;
         while (m.find()) {
-            buf.append(url.path, pos, m.start());
+            buf.append(url.getPath(), pos, m.start());
             buf.append('%');
-            int b = (url.path.charAt(m.start())) & 0xff;
+            int b = (url.getPath().charAt(m.start())) & 0xff;
             buf.append(Character.toUpperCase(Character.forDigit(b >> 4, 16)));
             buf.append(Character.toUpperCase(Character.forDigit(b & 0xf, 16)));
             pos = m.end();
         }
-        buf.append(url.path, pos, url.path.length());
-        url.path = buf.toByteString();
+        buf.append(url.getPath(), pos, url.getPath().length());
+        url.setPath(buf.toByteString());
     }
 
     void emptyPathToSlash(ParsedUrl url) {
-        if (url.path.isEmpty() && url.hasAuthority()) {
-            url.path = SLASH;
+        if (url.getPath().isEmpty() && !url.host().isEmpty()) {
+            url.setPath(SLASH);
         }
     }
 
     void elideDefaultPort(ParsedUrl url) {
         if (hasDefaultPort(url)) {
-            url.colonBeforePort = ByteString.EMPTY;
-            url.port = ByteString.EMPTY;
+            url.setColonBeforePort(ByteString.EMPTY);
+            url.setPort(ByteString.EMPTY);
         }
     }
 
     private boolean hasDefaultPort(ParsedUrl url) {
-        switch (url.port.toInt()) {
+        switch (url.getPort().toInt()) {
             case 21:
-                return url.scheme.equalsIgnoreCase("ftp");
+                return url.getScheme().equalsIgnoreCase("ftp");
             case 70:
-                return url.scheme.equalsIgnoreCase("gopher");
+                return url.getScheme().equalsIgnoreCase("gopher");
             case 80:
-                return url.scheme.equalsIgnoreCase("http") || url.scheme.equalsIgnoreCase("ws");
+                return url.getScheme().equalsIgnoreCase("http") || url.getScheme().equalsIgnoreCase("ws");
             case 443:
-                return url.scheme.equalsIgnoreCase("https") || url.scheme.equalsIgnoreCase("wss");
+                return url.getScheme().equalsIgnoreCase("https") || url.getScheme().equalsIgnoreCase("wss");
         }
         return false;
     }

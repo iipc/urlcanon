@@ -78,15 +78,15 @@ public class W3cTestDataTest {
         ParsedUrl url = ParsedUrl.parse(test.input);
         Canonicalizer.WHATWG.canonicalize(url);
 
-        assertEquals("scheme of " + test.input, test.protocol, url.scheme.toString() + url.colonAfterScheme.toString());
-        assertEquals("username of " + test.input, test.username, url.username.toString());
-        assertEquals("password of " + test.input, test.password, url.password.toString());
+        assertEquals("scheme of " + test.input, test.protocol, url.getScheme().toString() + url.getColonAfterScheme().toString());
+        assertEquals("username of " + test.input, test.username, url.getUsername().toString());
+        assertEquals("password of " + test.input, test.password, url.getPassword().toString());
         assertEquals("hostPort of " + test.input, test.host, url.hostPort().toString());
         assertEquals("host of " + test.input, test.hostname, url.host().toString());
-        assertEquals("username of " + test.input, test.username, url.username.toString());
-        assertEquals("path of " + test.input, test.pathname, url.path.toString());
-        assertEquals("query of " + test.input, test.search, url.questionMark.toString() + url.query.toString());
-        assertEquals("fragment of " + test.input, test.hash, url.fragment.isEmpty() ? "" : (url.hashSign.toString() + url.fragment.toString()));
+        assertEquals("username of " + test.input, test.username, url.getUsername().toString());
+        assertEquals("path of " + test.input, test.pathname, url.getPath().toString());
+        assertEquals("query of " + test.input, test.search, url.getQuestionMark().toString() + url.getQuery().toString());
+        assertEquals("fragment of " + test.input, test.hash, url.getFragment().isEmpty() ? "" : (url.getHashSign().toString() + url.getFragment().toString()));
         assertEquals("href of " + test.input, test.href, url.toString());
     }
 
