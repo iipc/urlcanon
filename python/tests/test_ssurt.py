@@ -68,7 +68,6 @@ def load_funky_ipv4_data():
 @pytest.mark.parametrize("unresolved,expected", load_funky_ipv4_data())
 def test_funky_ipv4(unresolved, expected):
     ip4 = ssurt.parse._attempt_ipv4or6(unresolved)[0]
-    print('XXX', ip4)
     assert ssurt.Canonicalizer.dotted_decimal(ip4) == expected
 
 def test_resolve_path_dots():
