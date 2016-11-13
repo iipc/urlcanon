@@ -166,6 +166,10 @@ class WhatwgCanonicalizer implements Canonicalizer {
         return false;
     }
 
+    static ByteString dottedDecimal(ByteString ip4) {
+        return ip4; // TODO
+    }
+
     public void canonicalize(ParsedUrl url) {
         removeLeadingTrailingJunk(url);
         removeTabsAndNewlines(url);
