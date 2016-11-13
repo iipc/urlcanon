@@ -80,10 +80,10 @@ class IpAddresses {
             if (c == 'x' || c == 'X') {
                 radix = 16;
                 start += 2;
+            } else {
+                radix = 8;
+                start++;
             }
-        } else if (end - start >= 2 && host.charAt(start) == '0') {
-            radix = 8;
-            start++;
         }
         return CharSequences.parseLong(host, start, end, radix);
     }
