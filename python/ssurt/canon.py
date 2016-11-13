@@ -157,6 +157,12 @@ class Canonicalizer:
             url.colon_before_port = b''
             url.port = b''
 
+    def elide_at_sign_for_empty_userinfo(url):
+        if (not url.username
+            and not url.colon_before_password
+            and not url.password):
+            url.at_sign = b''
+
     def two_slashes(url):
         if url.slashes:
             url.slashes = b'//'
@@ -172,5 +178,6 @@ Canonicalizer.WHATWG = Canonicalizer([
     Canonicalizer.empty_path_to_slash,
     Canonicalizer.normalize_ip_address,
     Canonicalizer.elide_default_port,
+    Canonicalizer.elide_at_sign_for_empty_userinfo,
     Canonicalizer.two_slashes,
 ])

@@ -176,6 +176,14 @@ class WhatwgCanonicalizer implements Canonicalizer {
         url.setHost(normalizeIpAddress(url.getHost()));
     }
 
+    public static void elideAtSignForEmptyUserinfo(ParsedUrl url) {
+        if (url.getUsername().isEmpty()
+                && url.getColonBeforePassword().isEmpty()
+                && url.getPassword().isEmpty()) {
+            url.setAtSign(ByteString.EMPTY);
+        }
+    }
+
     public void canonicalize(ParsedUrl url) {
         removeLeadingTrailingJunk(url);
         removeTabsAndNewlines(url);
@@ -187,5 +195,6 @@ class WhatwgCanonicalizer implements Canonicalizer {
         normalizeIpAddress(url);
         emptyPathToSlash(url);
         elideDefaultPort(url);
+        elideAtSignForEmptyUserinfo(url);
     }
 }
