@@ -24,7 +24,6 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static java.util.regex.Pattern.CASE_INSENSITIVE;
 import static java.util.regex.Pattern.DOTALL;
 
 public class ParsedUrl {
@@ -72,8 +71,7 @@ public class ParsedUrl {
             ")?" +
             "\\Z").replace(" ", ""), DOTALL);
 
-    private final static Pattern FILE_SCHEME_WITH_SPACES_AND_TABS = Pattern.compile(
-            "[ \\t]*f[ \\t]*i[ \\t]*l[ \\t]*e[ \\t]*", CASE_INSENSITIVE);
+    private final static Pattern TAB_AND_NEWLINE_REGEX = Pattern.compile("[\\x09\\x0a\\x0d]");
 
     private ByteString leadingJunk;
     private ByteString trailingJunk;
@@ -141,6 +139,8 @@ public class ParsedUrl {
             throw new AssertionError("URL_REGEX didn't match");
         }
 
+        ByteString cleanScheme = url.scheme.replaceAll(TAB_AND_NEWLINE_REGEX, "");
+
         // we parse the authority + path into "pathish" initially so that we can
         // correctly handle file: urls
         ByteString pathish = CharSequences.group(input, m, "pathish");
@@ -154,7 +154,7 @@ public class ParsedUrl {
             ByteString authority = CharSequences.group(pathish, m, "authority");
             ByteString path = CharSequences.group(pathish, m, "path");
 
-            if (slashes.length() >= 3 && FILE_SCHEME_WITH_SPACES_AND_TABS.matcher(url.scheme).matches()) {
+            if (slashes.length() >= 3 && cleanScheme.equalsIgnoreCase("file")) {
                 // special case file URLs with triple slash and no authority
                 // "file:///foo/bar.html" => {slashes: "//", authority: "", path: "/foo/bar.html}
                 url.slashes = slashes.subSequence(0, 2);
