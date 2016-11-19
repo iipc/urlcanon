@@ -137,7 +137,7 @@ def load_w3c_test_data():
 
 def is_absolute_url_test(test):
     return (isinstance(test, dict) and test.get('base') == 'about:blank'
-            and 'href' in test)
+            and 'href' in test and test['input'][0] != '#')
 
 @pytest.mark.parametrize("test", load_w3c_test_data())
 def test_w3c_test_data(test):
@@ -161,3 +161,33 @@ def test_w3c_test_data(test):
         print('failed\n   input=%s\n   url=%s\n' % (test, vars(url)))
         raise
 
+def load_parsing():
+    path = os.path.join(
+            os.path.dirname(__file__), '..', '..', 'testdata',
+            'parsing.json')
+    with open(path, 'rb') as f:
+        inputs = load_json_bytes(f.read())
+        return inputs.items()
+
+@pytest.mark.parametrize("input,parsed_fields", load_parsing())
+def test_parsing(input, parsed_fields):
+    parsed_url = ssurt.parse_url(input)
+    assert parsed_url.leading_junk == parsed_fields[b'leading_junk']
+    assert parsed_url.scheme == parsed_fields[b'scheme']
+    assert parsed_url.colon_after_scheme == parsed_fields[b'colon_after_scheme']
+    assert parsed_url.slashes == parsed_fields[b'slashes']
+    assert parsed_url.username == parsed_fields[b'username']
+    assert parsed_url.colon_before_password == parsed_fields[b'colon_before_password']
+    assert parsed_url.password == parsed_fields[b'password']
+    assert parsed_url.at_sign == parsed_fields[b'at_sign']
+    assert parsed_url.ip6 == parsed_fields[b'ip6']
+    assert parsed_url.ip4 == parsed_fields[b'ip4']
+    assert parsed_url.host == parsed_fields[b'host']
+    assert parsed_url.colon_before_port == parsed_fields[b'colon_before_port']
+    assert parsed_url.port == parsed_fields[b'port']
+    assert parsed_url.path == parsed_fields[b'path']
+    assert parsed_url.question_mark == parsed_fields[b'question_mark']
+    assert parsed_url.query == parsed_fields[b'query']
+    assert parsed_url.hash_sign == parsed_fields[b'hash_sign']
+    assert parsed_url.fragment == parsed_fields[b'fragment']
+    assert parsed_url.trailing_junk == parsed_fields[b'trailing_junk']

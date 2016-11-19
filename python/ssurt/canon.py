@@ -17,6 +17,7 @@ limitations under the License.
 '''
 import re
 import ipaddress
+import ssurt
 
 class Canonicalizer:
     def __init__(self, steps):
@@ -69,8 +70,10 @@ class Canonicalizer:
         if url.path and url.path[0] in b'/\\':
             url.path = url.path.replace(b'\\', b'/')
 
-    PATH_SEPARATORS_REGEX = re.compile(rb'[^/\\]')
-    PATH_SEGMENTS_REGEX = re.compile(rb'[/\\]')
+    SPECIAL_PATH_SEPARATORS_REGEX = re.compile(rb'[^/\\]')
+    SPECIAL_PATH_SEGMENTS_REGEX = re.compile(rb'[/\\]')
+    NONSPECIAL_PATH_SEPARATORS_REGEX = re.compile(rb'[^/]')
+    NONSPECIAL_PATH_SEGMENTS_REGEX = re.compile(rb'/')
     PATH_DOTS_REGEX = re.compile(rb'\A([.]|%2e)([.]|%2e)?\Z', re.IGNORECASE)
     def resolve_path_dots(path):
         '''
@@ -148,12 +151,8 @@ class Canonicalizer:
         # XXX ip6?
 
     def elide_default_port(url):
-        if ((url.scheme == b"ftp" and url.port == b'21')
-                or (url.scheme == b"gopher" and url.port == b'70')
-                or (url.scheme == b"http" and url.port == b'80')
-                or (url.scheme == b"https" and url.port == b'443')
-                or (url.scheme == b"ws" and url.port == b'80')
-                or (url.scheme == b"wss" and url.port == b'443')):
+        if (url.scheme in ssurt.SPECIAL_SCHEMES
+                and url.port == ssurt.SPECIAL_SCHEMES[url.scheme]):
             url.colon_before_port = b''
             url.port = b''
 
@@ -164,8 +163,14 @@ class Canonicalizer:
             url.at_sign = b''
 
     def two_slashes(url):
-        if url.slashes:
+        if url.slashes or url.authority or (
+                url.scheme == b'file' and url.path):
             url.slashes = b'//'
+
+    def punycode(url):
+        # IDNA2008? see https://github.com/kennethreitz/requests/issues/3687#issuecomment-261590419
+        if url.host:
+            url.host = url.host.decode('utf-8').encode('idna')
 
 Canonicalizer.WHATWG = Canonicalizer([
     Canonicalizer.remove_leading_trailing_junk,
@@ -180,4 +185,5 @@ Canonicalizer.WHATWG = Canonicalizer([
     Canonicalizer.elide_default_port,
     Canonicalizer.elide_at_sign_for_empty_userinfo,
     Canonicalizer.two_slashes,
+    Canonicalizer.punycode,
 ])

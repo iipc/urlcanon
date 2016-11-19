@@ -17,3 +17,13 @@ limitations under the License.
 '''
 from .parse import parse_url, ParsedUrl
 from .canon import Canonicalizer
+
+SPECIAL_SCHEMES = {
+    b'ftp': b'21',
+    b'gopher': b'70',
+    b'http': b'80',
+    b'https': b'443',
+    b'ws': b'80',
+    b'wss': b'443',
+    b'file': None,
+}

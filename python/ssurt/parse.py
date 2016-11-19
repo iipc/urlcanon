@@ -22,6 +22,7 @@ limitations under the License.
 import re
 from . import canon
 import ipaddress
+import ssurt
 
 # "leading and trailing C0 controls and space"
 LEADING_JUNK_REGEX = re.compile(rb'\A([\x00-\x20]*)(.*)\Z', re.DOTALL)
@@ -47,9 +48,14 @@ URL_REGEX = re.compile(rb'''
 \Z
 ''', re.VERBOSE | re.DOTALL)
 
-PATHISH_SEGMENT_REGEX = re.compile(rb'''
-(?P<slashes> [/\\]* )
+SPECIAL_PATHISH_SEGMENT_REGEX = re.compile(rb'''
+(?P<slashes> [/\\\n\t]* )
 (?P<segment> [^/\\]* )
+''', re.VERBOSE | re.DOTALL)
+
+NONSPECIAL_PATHISH_SEGMENT_REGEX = re.compile(rb'''
+(?P<slashes> [/\n\t]* )
+(?P<segment> [^/]* )
 ''', re.VERBOSE | re.DOTALL)
 
 AUTHORITY_REGEX = re.compile(rb'''
@@ -123,7 +129,7 @@ def _attempt_ipv4or6(host):
     def _parse_num(s):
         if len(s) >= 3 and s[:2] in (b'0x', b'0X', '0x', '0X'):
             return int(s[2:], base=16)
-        elif len(s) >= 2 and s[:1] == b'0':
+        elif len(s) >= 2 and s[:1] in (b'0', '0'):
             return int(s[1:], base=8)
         else:
             return int(s)
@@ -196,41 +202,55 @@ def parse_url(u):
     url.hash_sign = m.group('hash_sign') or b''
     url.fragment = m.group('fragment') or b''
 
-    # we parse the authority + path into "pathish" initially so that we can
-    # correctly handle file: urls
-    if m.group('pathish') and m.group('pathish')[0] in b'/\\':
-        pathsegpairs = (n.groups() for n in PATHISH_SEGMENT_REGEX.finditer(
-                            m.group('pathish')))
+    scheme = canon.Canonicalizer.TAB_AND_NEWLINE_REGEX.sub(
+            b'', url.scheme).lower()
+    if m.group('pathish'):
+        if scheme in ssurt.SPECIAL_SCHEMES:
+            pathsegpairs = (
+                    n.groups() for n in SPECIAL_PATHISH_SEGMENT_REGEX.finditer(
+                        m.group('pathish')))
+        else:
+            pathsegpairs = (
+                    n.groups() for n in
+                    NONSPECIAL_PATHISH_SEGMENT_REGEX.finditer(
+                        m.group('pathish')))
         # flatten the list
         pathish_components = [
                 slashes_or_segment for pathsegpair in pathsegpairs
                 for slashes_or_segment in pathsegpair]
-        if canon.Canonicalizer.TAB_AND_NEWLINE_REGEX.sub(
-                b'', url.scheme).lower() == b'file' and len(
-                        pathish_components[0]) >= 3:
-            # file: url
-            url.slashes = pathish_components[0][:2]
-            authority = b''
-            url.path = b''.join(
-                    [pathish_components[0][2:]] + pathish_components[1:])
-        else:
+        if scheme == b'file' and re.match(
+                rb'^([\n\t]*[/\\][\n\t]*){2}$', pathish_components[0]):
+            # file://foo/bar -- "foo" is host but not parsed as full authority
             url.slashes = pathish_components[0]
-            authority = pathish_components[1]
+            url.host = pathish_components[1]
             url.path = b''.join(pathish_components[2:])
-
-        # parse the authority
-        m = AUTHORITY_REGEX.match(authority)
-        url.username = m.group('username') or b''
-        url.colon_before_password = m.group('colon_before_password') or b''
-        url.password = m.group('password') or b''
-        url.at_sign = m.group('at_sign') or b''
-        url.host = m.group('host') or b''
-        url.ip4, url.ip6 = _attempt_ipv4or6(url.host)
-        url.colon_before_port = m.group('colon_before_port') or b''
-        url.port = m.group('port') or b''
-    else:
-        # pathish doesn't start with / so it's an opaque thing
-        url.path = m.group('pathish')
+        elif scheme == b'file':
+            m = re.match(
+                    rb'^(([\n\t]*[/\\][\n\t]*){2}).*$', pathish_components[0])
+            if m:
+                # m.group(1) is first 2 slashes plus \n\t junk
+                url.slashes = pathish_components[0][:len(m.group(1))]
+                url.path = b''.join(
+                        [pathish_components[0][len(m.group(1)):]]
+                        + pathish_components[1:])
+            else:
+                url.path = b''.join(pathish_components)
+        elif scheme in ssurt.SPECIAL_SCHEMES or re.match(
+                rb'^([\n\t]*/[\n\t]*){2}$', pathish_components[0]):
+            # http:foo/bar http:/\/\/foo/bar nonspecial://foo/bar
+            url.slashes = pathish_components[0]
+            m = AUTHORITY_REGEX.match(pathish_components[1])
+            url.username = m.group('username') or b''
+            url.colon_before_password = m.group('colon_before_password') or b''
+            url.password = m.group('password') or b''
+            url.at_sign = m.group('at_sign') or b''
+            url.host = m.group('host') or b''
+            url.ip4, url.ip6 = _attempt_ipv4or6(url.host)
+            url.colon_before_port = m.group('colon_before_port') or b''
+            url.port = m.group('port') or b''
+            url.path = b''.join(pathish_components[2:])
+        else: # no authority
+            url.path = m.group('pathish')
 
     return url
 
