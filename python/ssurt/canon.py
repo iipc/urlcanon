@@ -180,6 +180,13 @@ class Canonicalizer:
         if url.host:
             url.host = url.host.decode('utf-8').encode('idna')
 
+    def leading_slash(url):
+        '''
+        b'a/b/c' => b'/a/b/c' if scheme is special
+        '''
+        if url.scheme in ssurt.SPECIAL_SCHEMES and url.path[:1] != b'/':
+            url.path = b'/' + url.path
+
 Canonicalizer.WHATWG = Canonicalizer([
     Canonicalizer.remove_leading_trailing_junk,
     Canonicalizer.remove_tabs_and_newlines,
@@ -192,6 +199,7 @@ Canonicalizer.WHATWG = Canonicalizer([
     Canonicalizer.normalize_ip_address,
     Canonicalizer.elide_default_port,
     Canonicalizer.elide_at_sign_for_empty_userinfo,
+    Canonicalizer.leading_slash,
     Canonicalizer.two_slashes,
     Canonicalizer.punycode,
 ])

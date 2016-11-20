@@ -201,3 +201,18 @@ def test_parsing(input, parsed_fields):
     assert parsed_url.hash_sign == parsed_fields[b'hash_sign']
     assert parsed_url.fragment == parsed_fields[b'fragment']
     assert parsed_url.trailing_junk == parsed_fields[b'trailing_junk']
+
+def load_our_whatwg_test_data():
+    path = os.path.join(
+        os.path.dirname(__file__), '..', '..', 'testdata',
+        'supplemental_whatwg.json')
+    with open(path, 'rb') as f:
+        jb = load_json_bytes(f.read())
+    return jb.items()
+
+@pytest.mark.parametrize(
+        'uncanonicalized,canonicalized', load_our_whatwg_test_data())
+def test_supplemental_whatwg(uncanonicalized, canonicalized):
+    url = ssurt.parse_url(uncanonicalized)
+    ssurt.Canonicalizer.WHATWG(url)
+    assert url.__bytes__() == canonicalized
