@@ -186,8 +186,22 @@ class WhatwgCanonicalizer implements Canonicalizer {
         }
     }
 
+    /**
+     * path "a/b/c" => "/a/b/c" if scheme is special
+     */
+    public static void leadingSlash(ParsedUrl url) {
+        ByteString path = url.getPath();
+        if (ParsedUrl.SPECIAL_SCHEMES.containsKey(url.getScheme().toString())
+                && (path.isEmpty() || path.charAt(0) != '/')) {
+            ByteStringBuilder b = new ByteStringBuilder(path.length() + 1);
+            b.append('/');
+            b.append(path);
+            url.setPath(b.toByteString());
+        }
+    }
+
     public static void twoSlashes(ParsedUrl url) {
-        if (!url.getSlashes().isEmpty()) {
+        if (!url.getSlashes().isEmpty() || ParsedUrl.SPECIAL_SCHEMES.containsKey(url.getScheme().toString())) {
             url.setSlashes(TWO_SLASHES);
         }
     }
@@ -204,6 +218,7 @@ class WhatwgCanonicalizer implements Canonicalizer {
         emptyPathToSlash(url);
         elideDefaultPort(url);
         elideAtSignForEmptyUserinfo(url);
+        leadingSlash(url);
         twoSlashes(url);
     }
 }
