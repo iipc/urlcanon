@@ -76,12 +76,14 @@ class WhatwgCanonicalizer implements Canonicalizer {
     }
 
     void fixBackslashes(ParsedUrl url) {
-        url.setSlashes(url.getSlashes().replace((byte)'\\', (byte)'/'));
-        ByteString path = url.getPath();
-        if (!path.isEmpty()) {
-            char c = path.charAt(0);
-            if (c == '/' || c == '\\') {
-                url.setPath(path.replace((byte)'\\', (byte)'/'));
+        if (ParsedUrl.SPECIAL_SCHEMES.containsKey(url.getScheme().toString())) {
+            url.setSlashes(url.getSlashes().replace((byte) '\\', (byte) '/'));
+            ByteString path = url.getPath();
+            if (!path.isEmpty()) {
+                char c = path.charAt(0);
+                if (c == '/' || c == '\\') {
+                    url.setPath(path.replace((byte) '\\', (byte) '/'));
+                }
             }
         }
     }
@@ -116,7 +118,7 @@ class WhatwgCanonicalizer implements Canonicalizer {
     }
 
     void normalizePathDots(ParsedUrl url) {
-        url.setPath(resolvePathDots(url.getPath(), ParsedUrl.SPECIAL_SCHEMES.containsKey(url.getScheme())));
+        url.setPath(resolvePathDots(url.getPath(), ParsedUrl.SPECIAL_SCHEMES.containsKey(url.getScheme().toString())));
     }
 
     void decodePath2e(ParsedUrl url) {
