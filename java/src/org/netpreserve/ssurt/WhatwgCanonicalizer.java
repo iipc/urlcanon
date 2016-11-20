@@ -20,6 +20,7 @@
 
 package org.netpreserve.ssurt;
 
+import java.net.IDN;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.regex.Matcher;
@@ -208,6 +209,12 @@ class WhatwgCanonicalizer implements Canonicalizer {
         }
     }
 
+    public static void punycode(ParsedUrl url) {
+        // TODO: IDNA2008? https://bugs.openjdk.java.net/browse/JDK-6988055
+        String ascii = IDN.toASCII(url.getHost().toString(), IDN.ALLOW_UNASSIGNED);
+        url.setHost(new ByteString(ascii));
+    }
+
     public void canonicalize(ParsedUrl url) {
         removeLeadingTrailingJunk(url);
         removeTabsAndNewlines(url);
@@ -222,5 +229,6 @@ class WhatwgCanonicalizer implements Canonicalizer {
         elideAtSignForEmptyUserinfo(url);
         leadingSlash(url);
         twoSlashes(url);
+        punycode(url);
     }
 }
