@@ -248,6 +248,80 @@ public class ParsedUrl {
     //-------------------------------------------------------------------------
 
     //-------------------------------------------------------------------------
+    //region SSURT Formatting
+    //-------------------------------------------------------------------------
+
+    /**
+     * Format this URL with a field order suitable for sorting.
+     */
+    public ByteString ssurt() {
+        ByteString ssurtHost = ssurtHost(host);
+        ByteStringBuilder builder = new ByteStringBuilder(leadingJunk.length() + scheme.length() + colonAfterScheme.length()
+                + slashes.length() + username.length() + colonBeforePassword.length() + password.length()
+                + atSign.length() + ssurtHost.length() + colonBeforePort.length() + port.length() + path.length()
+                + questionMark.length() + query.length() + hashSign.length()
+                + fragment.length() + trailingJunk.length());
+        builder.append(leadingJunk);
+        builder.append(ssurtHost);
+        builder.append(slashes);
+        builder.append(colonBeforePort);
+        builder.append(port);
+        builder.append(colonAfterScheme);
+        builder.append(scheme);
+        builder.append(atSign);
+        builder.append(username);
+        builder.append(colonBeforePassword);
+        builder.append(password);
+        builder.append(path);
+        builder.append(questionMark);
+        builder.append(query);
+        builder.append(hashSign);
+        builder.append(fragment);
+        builder.append(trailingJunk);
+        return builder.toByteString();
+    }
+
+    /**
+     * Reverse host unless it's an IPv4 or IPv6 address.
+     */
+    static ByteString ssurtHost(ByteString host) {
+        if (host.isEmpty()) {
+            return host;
+        } else if (host.charAt(0) == '[') {
+            return host;
+        } else if (IpAddresses.parseIpv4(host) != -1) {
+            return host;
+        } else {
+            return reverseHost(host);
+        }
+    }
+
+    /**
+     * Reverse dotted segments. Swap commas and dots. Add a trailing comma.
+     *
+     * "x,y.b.c" => "c,b,x.y,"
+     */
+    static ByteString reverseHost(ByteString host) {
+        ByteStringBuilder buf = new ByteStringBuilder(host.length() + 1);
+        ByteString nocommas = host.replace((byte)',', (byte)'.');
+        int j = host.length();
+        for (int i = host.length() - 1; i >= 0; i--) {
+            if (host.charAt(i) == '.') {
+                buf.append(nocommas, i + 1, j);
+                buf.append(',');
+                j = i;
+            }
+        }
+        buf.append(nocommas, 0, j);
+        buf.append(',');
+        return buf.toByteString();
+    }
+
+    //-------------------------------------------------------------------------
+    //endregion
+    //-------------------------------------------------------------------------
+
+    //-------------------------------------------------------------------------
     //region Accessors: Calculated
     //-------------------------------------------------------------------------
 
