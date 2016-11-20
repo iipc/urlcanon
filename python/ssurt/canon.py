@@ -66,8 +66,8 @@ class Canonicalizer:
         url.scheme = url.scheme.lower()
 
     def fix_backslashes(url):
-        url.slashes = b'/' * len(url.slashes)
-        if url.path and url.path[0] in b'/\\':
+        if url.scheme in ssurt.SPECIAL_SCHEMES:
+            url.slashes = b'/' * len(url.slashes)
             url.path = url.path.replace(b'\\', b'/')
 
     SPECIAL_PATH_SEPARATORS_REGEX = re.compile(rb'[^/\\]')
@@ -75,7 +75,7 @@ class Canonicalizer:
     NONSPECIAL_PATH_SEPARATORS_REGEX = re.compile(rb'[^/]')
     NONSPECIAL_PATH_SEGMENTS_REGEX = re.compile(rb'/')
     PATH_DOTS_REGEX = re.compile(rb'\A([.]|%2e)([.]|%2e)?\Z', re.IGNORECASE)
-    def resolve_path_dots(path):
+    def resolve_path_dots(path, special=False):
         '''
         /./ => /
         /. => /
@@ -93,11 +93,18 @@ class Canonicalizer:
         /././. => /
         /.././../. => /
         '''
-        if path and path[0] in b'/\\':
-            separators_bytes = Canonicalizer.PATH_SEPARATORS_REGEX.sub(b'', path)
+        if special:
+            path_separators_re = Canonicalizer.SPECIAL_PATH_SEPARATORS_REGEX
+            path_segments_re = Canonicalizer.SPECIAL_PATH_SEGMENTS_REGEX
+        else:
+            path_separators_re = Canonicalizer.NONSPECIAL_PATH_SEPARATORS_REGEX
+            path_segments_re = Canonicalizer.NONSPECIAL_PATH_SEGMENTS_REGEX
+
+        if path and (path[0:1] == b'/' or special and path[0:1] == b'\\'):
+            separators_bytes = path_separators_re.sub(b'', path)
             separators = [separators_bytes[i:i+1]
                          for i in range(len(separators_bytes))]
-            segments = Canonicalizer.PATH_SEGMENTS_REGEX.split(path)[1:]
+            segments = path_segments_re.split(path)[1:]
             old_path = [None] * (len(separators) + len(segments))
             old_path[::2] = separators
             old_path[1::2] = segments
@@ -121,7 +128,8 @@ class Canonicalizer:
             return path
 
     def normalize_path_dots(url):
-        url.path = Canonicalizer.resolve_path_dots(url.path)
+        url.path = Canonicalizer.resolve_path_dots(
+                url.path, special=url.scheme in ssurt.SPECIAL_SCHEMES)
 
     PCT2E_REGEX = re.compile(rb'%2e', re.IGNORECASE)
     def decode_path_2e(url):

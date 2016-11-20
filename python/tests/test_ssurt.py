@@ -65,12 +65,13 @@ def load_funky_ipv4_data():
         inputs = load_json_bytes(f.read())
         return [(unresolved, inputs[unresolved]) for unresolved in inputs]
 
-@pytest.mark.parametrize("unresolved,expected", load_funky_ipv4_data())
+@pytest.mark.parametrize('unresolved,expected', load_funky_ipv4_data())
 def test_funky_ipv4(unresolved, expected):
     ip4 = ssurt.parse._attempt_ipv4or6(unresolved)[0]
     assert ssurt.Canonicalizer.dotted_decimal(ip4) == expected
 
-def test_resolve_path_dots():
+
+def load_path_dots_data():
     # Most of path_dots.json was generated in the browser using this html/js.
     #
     # <html>
@@ -121,9 +122,18 @@ def test_resolve_path_dots():
             'path_dots.json')
     with open(path, 'rb') as f:
         inputs = load_json_bytes(f.read())
-    for unresolved in inputs:
-        expected = inputs[unresolved]
-        assert ssurt.Canonicalizer.resolve_path_dots(unresolved) == expected
+    testdata = []
+    for (unresolved, expected) in inputs[b'special'].items():
+        testdata.append((unresolved, True, expected))
+    for (unresolved, expected) in inputs[b'nonspecial'].items():
+        testdata.append((unresolved, False, expected))
+    return testdata
+
+@pytest.mark.parametrize(
+        'unresolved,is_special,expected', load_path_dots_data())
+def test_resolve_path_dots(unresolved, is_special, expected):
+    assert ssurt.Canonicalizer.resolve_path_dots(
+            unresolved, special=is_special) == expected
 
 def load_w3c_test_data():
     path = os.path.join(
