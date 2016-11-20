@@ -156,17 +156,9 @@ class WhatwgCanonicalizer implements Canonicalizer {
     }
 
     private boolean hasDefaultPort(ParsedUrl url) {
-        switch ((int)CharSequences.parseLong(url.getPort())) {
-            case 21:
-                return url.getScheme().equalsIgnoreCase("ftp");
-            case 70:
-                return url.getScheme().equalsIgnoreCase("gopher");
-            case 80:
-                return url.getScheme().equalsIgnoreCase("http") || url.getScheme().equalsIgnoreCase("ws");
-            case 443:
-                return url.getScheme().equalsIgnoreCase("https") || url.getScheme().equalsIgnoreCase("wss");
-        }
-        return false;
+        Integer defaultPort = ParsedUrl.SPECIAL_SCHEMES.get(url.getScheme());
+        int port = (int) CharSequences.parseLong(url.getPort());
+        return defaultPort != null && port == defaultPort.intValue();
     }
 
     static ByteString normalizeIpAddress(ByteString host) {
