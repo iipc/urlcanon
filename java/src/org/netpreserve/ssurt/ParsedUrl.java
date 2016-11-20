@@ -20,6 +20,8 @@
 
 package org.netpreserve.ssurt;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -72,6 +74,20 @@ public class ParsedUrl {
             "\\Z").replace(" ", ""), DOTALL);
 
     private final static Pattern TAB_AND_NEWLINE_REGEX = Pattern.compile("[\\x09\\x0a\\x0d]");
+
+    final static Map<String,Integer> SPECIAL_SCHEMES = initSpecialSchemes();
+
+    private static Map<String, Integer> initSpecialSchemes() {
+        Map<String,Integer> map = new HashMap<>();
+        map.put("ftp", 21);
+        map.put("gopher", 70);
+        map.put("http", 80);
+        map.put("https", 443);
+        map.put("ws", 80);
+        map.put("wss", 443);
+        map.put("file", null);
+        return map;
+    }
 
     private ByteString leadingJunk;
     private ByteString trailingJunk;

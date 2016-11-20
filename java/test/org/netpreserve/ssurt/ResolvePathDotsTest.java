@@ -38,29 +38,47 @@ import static org.junit.Assert.assertEquals;
 public class ResolvePathDotsTest {
 
     @Parameter(value = 0)
-    public String input;
+    public boolean special;
 
     @Parameter(value = 1)
+    public String input;
+
+    @Parameter(value = 2)
     public String expected;
 
-    @Parameters(name = "{index} {0}")
+    @Parameters(name = "{index} special={0} input={1}")
     public static List<Object[]> loadData() throws IOException {
         List<Object[]> tests = new ArrayList<>();
         try (InputStream stream = ResolvePathDotsTest.class.getResourceAsStream("/path_dots.json");
              JsonReader reader = new JsonReader(new InputStreamReader(stream, UTF_8))) {
             reader.beginObject();
             while (reader.hasNext()) {
-                String input = reader.nextName();
-                String expected = reader.nextString();
-                tests.add(new Object[]{input, expected});
+                boolean special = isSpecial(reader.nextName());
+                reader.beginObject();
+                while (reader.hasNext()) {
+                    String input = reader.nextName();
+                    String expected = reader.nextString();
+                    tests.add(new Object[]{special, input, expected});
+                }
+                reader.endObject();
             }
             reader.endObject();
         }
         return tests;
     }
 
+    private static boolean isSpecial(String type) throws IOException {
+        if (type.equals("special")) {
+            return true;
+        } else if (type.equals("nonspecial")) {
+            return false;
+        } else {
+            throw new IllegalArgumentException("unimplemented test type: " + type);
+        }
+    }
+
     @Test
     public void test() {
-        assertEquals(expected, WhatwgCanonicalizer.resolvePathDots(new ByteString(input)).toString());
+        assertEquals(expected, WhatwgCanonicalizer.resolvePathDots(new ByteString(input), special).toString());
     }
 }

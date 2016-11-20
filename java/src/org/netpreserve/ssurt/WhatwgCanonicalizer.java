@@ -30,7 +30,8 @@ import static java.util.regex.Pattern.CASE_INSENSITIVE;
 class WhatwgCanonicalizer implements Canonicalizer {
     private static final ByteString SLASH = new ByteString("/");
     private static final ByteString TWO_SLASHES = new ByteString("//");
-    private static final Pattern PATH_SEGMENT_REGEX = Pattern.compile("(?:([.]|%2e)([.]|%2e)?|[^/\\\\]*)(?:[/\\\\]|\\Z)", CASE_INSENSITIVE);
+    private static final Pattern SPECIAL_PATH_SEGMENT_REGEX = Pattern.compile("(?:([.]|%2e)([.]|%2e)?|[^/\\\\]*)(?:[/\\\\]|\\Z)", CASE_INSENSITIVE);
+    private static final Pattern NONSPECIAL_PATH_SEGMENT_REGEX = Pattern.compile("(?:([.]|%2e)([.]|%2e)?|[^/]*)(?:/|\\Z)", CASE_INSENSITIVE);
     private static final Pattern PCT2D_REGEX = Pattern.compile("%2e", CASE_INSENSITIVE);
     /*
      * > The simple encode set are C0 controls and all code points greater than
@@ -85,12 +86,12 @@ class WhatwgCanonicalizer implements Canonicalizer {
         }
     }
 
-    static ByteString resolvePathDots(ByteString path) {
-        if (!path.isEmpty() && (path.charAt(0) == '/' || path.charAt(0) == '\\')) {
+    static ByteString resolvePathDots(ByteString path, boolean special) {
+        if (!path.isEmpty() && (path.charAt(0) == '/' || (special && path.charAt(0) == '\\'))) {
             ByteStringBuilder buf = new ByteStringBuilder(path.length());
             buf.append(path.charAt(0));
             Deque<Integer> segmentOffsets = new ArrayDeque<>();
-            Matcher m = PATH_SEGMENT_REGEX.matcher(path);
+            Matcher m = (special ? SPECIAL_PATH_SEGMENT_REGEX : NONSPECIAL_PATH_SEGMENT_REGEX).matcher(path);
             m.region(1, path.length());
             while (m.lookingAt()) {
                 if (m.start(2) != -1) {
@@ -115,7 +116,7 @@ class WhatwgCanonicalizer implements Canonicalizer {
     }
 
     void normalizePathDots(ParsedUrl url) {
-        url.setPath(resolvePathDots(url.getPath()));
+        url.setPath(resolvePathDots(url.getPath(), ParsedUrl.SPECIAL_SCHEMES.containsKey(url.getScheme())));
     }
 
     void decodePath2e(ParsedUrl url) {
