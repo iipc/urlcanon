@@ -51,10 +51,16 @@ public class ParsedUrl {
             ")?" +
             "\\Z").replace(" ", ""), DOTALL);
 
-    private final static Pattern PATHISH_REGEX = Pattern.compile(("" +
-            "(?<slashes> [/\\\\]* )" +
+    private final static Pattern SPECIAL_PATHISH_REGEX = Pattern.compile(("" +
+            "(?<slashes> [/\\\\\\r\\n\\t]* )" +
             "(?<authority> [^/\\\\]* )" +
             "(?<path> [/\\\\] .* )?"
+    ).replace(" ", ""), DOTALL);
+
+    private final static Pattern NONSPECIAL_PATHISH_REGEX = Pattern.compile(("" +
+            "(?<slashes> [\\r\\n\\t]* (?:/[\\r\\n\\t]*){2} )" +
+            "(?<authority> /* [^/]* )" +
+            "(?<path> / .* )?"
     ).replace(" ", ""), DOTALL);
 
     private final static Pattern AUTHORITY_REGEX = Pattern.compile(("\\A" +
@@ -155,17 +161,14 @@ public class ParsedUrl {
             throw new AssertionError("URL_REGEX didn't match");
         }
 
-        ByteString cleanScheme = url.scheme.replaceAll(TAB_AND_NEWLINE_REGEX, "");
+        ByteString cleanScheme = url.scheme.replaceAll(TAB_AND_NEWLINE_REGEX, "").asciiLowerCase();
+        boolean special = SPECIAL_SCHEMES.containsKey(cleanScheme.toString());
 
         // we parse the authority + path into "pathish" initially so that we can
         // correctly handle file: urls
         ByteString pathish = CharSequences.group(input, m, "pathish");
-        if (!pathish.isEmpty() && (pathish.charAt(0) == '/' || pathish.charAt(0) == '\\')) {
-            m = PATHISH_REGEX.matcher(pathish);
-            if (!m.matches()) {
-                throw new AssertionError("PATHISH_REGEX didn't match");
-            }
-
+        m = (special ? SPECIAL_PATHISH_REGEX : NONSPECIAL_PATHISH_REGEX).matcher(pathish);
+        if (m.matches()) {
             ByteString slashes = CharSequences.group(pathish, m, "slashes");
             ByteString authority = CharSequences.group(pathish, m, "authority");
             ByteString path = CharSequences.group(pathish, m, "path");
@@ -199,7 +202,7 @@ public class ParsedUrl {
                 throw new AssertionError("AUTHORITY_REGEX didn't match");
             }
         } else {
-            // pathish doesn't start with / so it's an opaque thing
+            // scheme not special and pathish doesn't start with // so it's an opaque thing
             url.path = pathish;
             url.slashes = ByteString.EMPTY;
             url.username = ByteString.EMPTY;

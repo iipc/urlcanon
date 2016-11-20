@@ -70,6 +70,7 @@ public class ParsingTest {
         assertEquals("colon_before_port", expected.colon_before_port, url.getColonBeforePort().toString());
         assertEquals("fragment", expected.fragment, url.getFragment().toString());
         assertEquals("hash_sign", expected.hash_sign, url.getHashSign().toString());
+        assertEquals("slashes", expected.slashes, url.getSlashes().toString());
         assertEquals("host", expected.host, url.getHost().toString());
         //assertEquals("ip4", expected.ip4, url.getIp4().toString());
         //assertEquals("ip6", expected.ip6, url.getIp6().toString());
@@ -80,7 +81,6 @@ public class ParsingTest {
         assertEquals("query", expected.query, url.getQuery().toString());
         assertEquals("question_mark", expected.question_mark, url.getQuestionMark().toString());
         assertEquals("scheme", expected.scheme, url.getScheme().toString());
-        assertEquals("slashes", expected.slashes, url.getSlashes().toString());
         assertEquals("trailing_junk", expected.trailing_junk, url.getTrailingJunk().toString());
         assertEquals("username", expected.username, url.getUsername().toString());
     }
