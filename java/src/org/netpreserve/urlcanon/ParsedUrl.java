@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package org.netpreserve.ssurt;
+package org.netpreserve.urlcanon;
 
 import java.util.HashMap;
 import java.util.Map;

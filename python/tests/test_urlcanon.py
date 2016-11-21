@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
-test_ssurt.py - unit tests for the ssurt package
+test_urlcanon.py - unit tests for the urlcanon package
 
 Copyright (C) 2016 Internet Archive
 
@@ -17,7 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import ssurt
+import urlcanon
 import os
 import json
 import pytest
@@ -55,7 +55,7 @@ def test_parser_idempotence():
     with open(path, 'rb') as f:
         inputs = load_json_bytes(f.read())
     for s in inputs:
-        assert ssurt.parse_url(s).__bytes__() == s
+        assert urlcanon.parse_url(s).__bytes__() == s
 
 def load_funky_ipv4_data():
     path = os.path.join(
@@ -67,8 +67,8 @@ def load_funky_ipv4_data():
 
 @pytest.mark.parametrize('unresolved,expected', load_funky_ipv4_data())
 def test_funky_ipv4(unresolved, expected):
-    ip4 = ssurt.parse._attempt_ipv4or6(unresolved)[0]
-    assert ssurt.Canonicalizer.dotted_decimal(ip4) == expected
+    ip4 = urlcanon.parse._attempt_ipv4or6(unresolved)[0]
+    assert urlcanon.Canonicalizer.dotted_decimal(ip4) == expected
 
 
 def load_path_dots_data():
@@ -91,7 +91,7 @@ def load_path_dots_data():
     #         var p = path.join('')
     #         e.setAttribute('href', 'http://example.com' + p);
     #         // console.log(p + ' => ' + e.pathname);
-    #         console.log("assert ssurt.Canonicalizer.resolve_path_dots(b'" + p + "') == b'" + e.pathname + "'");
+    #         console.log("assert urlcanon.Canonicalizer.resolve_path_dots(b'" + p + "') == b'" + e.pathname + "'");
     #         return
     #     }
     #     path.push('');
@@ -132,7 +132,7 @@ def load_path_dots_data():
 @pytest.mark.parametrize(
         'unresolved,is_special,expected', load_path_dots_data())
 def test_resolve_path_dots(unresolved, is_special, expected):
-    assert ssurt.Canonicalizer.resolve_path_dots(
+    assert urlcanon.Canonicalizer.resolve_path_dots(
             unresolved, special=is_special) == expected
 
 def load_w3c_test_data():
@@ -151,8 +151,8 @@ def is_absolute_url_test(test):
 
 @pytest.mark.parametrize("test", load_w3c_test_data())
 def test_w3c_test_data(test):
-    canon = ssurt.Canonicalizer.WHATWG
-    url = ssurt.parse_url(test['input'])
+    canon = urlcanon.Canonicalizer.WHATWG
+    url = urlcanon.parse_url(test['input'])
     canon(url)
     try:
         assert test['protocol'].encode('utf-8') == (
@@ -181,7 +181,7 @@ def load_parsing():
 
 @pytest.mark.parametrize("input,parsed_fields", load_parsing())
 def test_parsing(input, parsed_fields):
-    parsed_url = ssurt.parse_url(input)
+    parsed_url = urlcanon.parse_url(input)
     assert parsed_url.leading_junk == parsed_fields[b'leading_junk']
     assert parsed_url.scheme == parsed_fields[b'scheme']
     assert parsed_url.colon_after_scheme == parsed_fields[b'colon_after_scheme']
@@ -213,6 +213,6 @@ def load_our_whatwg_test_data():
 @pytest.mark.parametrize(
         'uncanonicalized,canonicalized', load_our_whatwg_test_data())
 def test_supplemental_whatwg(uncanonicalized, canonicalized):
-    url = ssurt.parse_url(uncanonicalized)
-    ssurt.Canonicalizer.WHATWG(url)
+    url = urlcanon.parse_url(uncanonicalized)
+    urlcanon.Canonicalizer.WHATWG(url)
     assert url.__bytes__() == canonicalized

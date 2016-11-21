@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 '''
-setup.py - setuptools installation configuration for ssurt
+setup.py - setuptools installation configuration for urlcanon
 
 Copyright (C) 2016 Internet Archive
 
@@ -26,9 +26,9 @@ except ImportError:
     dependencies.append('py2-ipaddress')
 
 setuptools.setup(
-        name='ssurt',
+        name='urlcanon',
         version='0.1.dev1',
-        packages=['ssurt'],
+        packages=['urlcanon'],
         install_requires=dependencies,
         tests_require=['pytest'])
 

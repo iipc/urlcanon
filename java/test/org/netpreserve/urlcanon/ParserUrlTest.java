@@ -1,4 +1,4 @@
-package org.netpreserve.ssurt;
+package org.netpreserve.urlcanon;
 
 import org.junit.Test;
 

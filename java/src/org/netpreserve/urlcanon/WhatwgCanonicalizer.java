@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package org.netpreserve.ssurt;
+package org.netpreserve.urlcanon;
 
 import java.net.IDN;
 import java.util.ArrayDeque;

@@ -1,5 +1,5 @@
 '''
-ssurt/canon.py - url canonicalization
+urlcanon/canon.py - url canonicalization
 
 Copyright (C) 2016 Internet Archive
 
@@ -17,7 +17,7 @@ limitations under the License.
 '''
 import re
 import ipaddress
-import ssurt
+import urlcanon
 
 class Canonicalizer:
     def __init__(self, steps):
@@ -66,7 +66,7 @@ class Canonicalizer:
         url.scheme = url.scheme.lower()
 
     def fix_backslashes(url):
-        if url.scheme in ssurt.SPECIAL_SCHEMES:
+        if url.scheme in urlcanon.SPECIAL_SCHEMES:
             url.slashes = b'/' * len(url.slashes)
             url.path = url.path.replace(b'\\', b'/')
 
@@ -129,7 +129,7 @@ class Canonicalizer:
 
     def normalize_path_dots(url):
         url.path = Canonicalizer.resolve_path_dots(
-                url.path, special=url.scheme in ssurt.SPECIAL_SCHEMES)
+                url.path, special=url.scheme in urlcanon.SPECIAL_SCHEMES)
 
     PCT2E_REGEX = re.compile(rb'%2e', re.IGNORECASE)
     def decode_path_2e(url):
@@ -159,8 +159,8 @@ class Canonicalizer:
         # XXX ip6?
 
     def elide_default_port(url):
-        if (url.scheme in ssurt.SPECIAL_SCHEMES
-                and url.port == ssurt.SPECIAL_SCHEMES[url.scheme]):
+        if (url.scheme in urlcanon.SPECIAL_SCHEMES
+                and url.port == urlcanon.SPECIAL_SCHEMES[url.scheme]):
             url.colon_before_port = b''
             url.port = b''
 
@@ -184,7 +184,7 @@ class Canonicalizer:
         '''
         b'a/b/c' => b'/a/b/c' if scheme is special
         '''
-        if url.scheme in ssurt.SPECIAL_SCHEMES and url.path[:1] != b'/':
+        if url.scheme in urlcanon.SPECIAL_SCHEMES and url.path[:1] != b'/':
             url.path = b'/' + url.path
 
 Canonicalizer.WHATWG = Canonicalizer([

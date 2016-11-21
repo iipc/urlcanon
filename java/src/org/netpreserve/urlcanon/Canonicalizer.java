@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-package org.netpreserve.ssurt;
+package org.netpreserve.urlcanon;
 
 public interface Canonicalizer {
 

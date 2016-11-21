@@ -1,5 +1,5 @@
 '''
-ssurt/__init__.py
+urlcanon/__init__.py
 
 Copyright (C) 2016 Internet Archive
 

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.netpreserve.ssurt;
+package org.netpreserve.urlcanon;
 
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;

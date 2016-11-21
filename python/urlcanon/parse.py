@@ -1,5 +1,5 @@
 '''
-ssurt/parse.py - url parser
+urlcanon/parse.py - url parser
 
 based on https://gist.github.com/ato/b9875c45171d082ca6c6738640347ecb and
 https://github.com/iipc/webarchive-commons/blob/master/src/main/java/org/archive/url/URLParser.java
@@ -22,7 +22,7 @@ limitations under the License.
 import re
 from . import canon
 import ipaddress
-import ssurt
+import urlcanon
 
 # "leading and trailing C0 controls and space"
 LEADING_JUNK_REGEX = re.compile(rb'\A([\x00-\x20]*)(.*)\Z', re.DOTALL)
@@ -205,7 +205,7 @@ def parse_url(u):
     scheme = canon.Canonicalizer.TAB_AND_NEWLINE_REGEX.sub(
             b'', url.scheme).lower()
     if m.group('pathish'):
-        if scheme in ssurt.SPECIAL_SCHEMES:
+        if scheme in urlcanon.SPECIAL_SCHEMES:
             pathsegpairs = (
                     n.groups() for n in SPECIAL_PATHISH_SEGMENT_REGEX.finditer(
                         m.group('pathish')))
@@ -235,7 +235,7 @@ def parse_url(u):
                         + pathish_components[1:])
             else:
                 url.path = b''.join(pathish_components)
-        elif scheme in ssurt.SPECIAL_SCHEMES or re.match(
+        elif scheme in urlcanon.SPECIAL_SCHEMES or re.match(
                 rb'^([\n\t]*/[\n\t]*){2}$', pathish_components[0]):
             # http:foo/bar http:/\/\/foo/bar nonspecial://foo/bar
             url.slashes = pathish_components[0]
