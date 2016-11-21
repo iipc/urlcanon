@@ -63,6 +63,12 @@ public class ParsedUrl {
             "(?<path> / .* )?"
     ).replace(" ", ""), DOTALL);
 
+    private final static Pattern FILE_PATHISH_REGEX = Pattern.compile(("" +
+            "(?<slashes> [\\r\\n\\t]* (?:[/\\\\][\\r\\n\\t]*){2} )" +
+            "(?<host> [^/\\\\]* )" +
+            "(?<path> [/\\\\] .* )?"
+    ).replace(" ", ""), DOTALL);
+
     private final static Pattern AUTHORITY_REGEX = Pattern.compile(("\\A" +
             "(?:" +
             "   (?<username> [^:@]* )" +
@@ -167,52 +173,65 @@ public class ParsedUrl {
         // we parse the authority + path into "pathish" initially so that we can
         // correctly handle file: urls
         ByteString pathish = CharSequences.group(input, m, "pathish");
-        m = (special ? SPECIAL_PATHISH_REGEX : NONSPECIAL_PATHISH_REGEX).matcher(pathish);
-        if (m.matches()) {
-            ByteString slashes = CharSequences.group(pathish, m, "slashes");
-            ByteString authority = CharSequences.group(pathish, m, "authority");
-            ByteString path = CharSequences.group(pathish, m, "path");
 
-            if (slashes.length() >= 3 && cleanScheme.equalsIgnoreCase("file")) {
-                // special case file URLs with triple slash and no authority
-                // "file:///foo/bar.html" => {slashes: "//", authority: "", path: "/foo/bar.html}
-                url.slashes = slashes.subSequence(0, 2);
-                url.path = new ByteStringBuilder((slashes.length() - 2) + authority.length() + path.length())
-                        .append(slashes, 2, slashes.length())
-                        .append(authority)
-                        .append(path)
-                        .toByteString();
-                authority = ByteString.EMPTY;
-            } else {
-                url.slashes = slashes;
-                url.path = path;
+        if (cleanScheme.equalsIgnoreCase("file")) {
+            m = FILE_PATHISH_REGEX.matcher(pathish);
+            if (m.matches()) { // file: with host
+                url.slashes = CharSequences.group(pathish, m, "slashes");
+                url.host = CharSequences.group(pathish, m, "host");
+                url.path = CharSequences.group(pathish, m, "path");
+
+            } else { // file: without host
+                url.slashes = ByteString.EMPTY;
+                url.path = pathish;
+                url.host = ByteString.EMPTY;
             }
 
-            // parse the authority
-            m = AUTHORITY_REGEX.matcher(authority);
-            if (m.matches()) {
-                url.username = CharSequences.group(authority, m, "username");
-                url.colonBeforePassword = CharSequences.group(authority, m, "colonBeforePassword");
-                url.password = CharSequences.group(authority, m, "password");
-                url.atSign = CharSequences.group(authority, m, "atSign");
-                url.host = CharSequences.group(authority, m, "host");
-                url.colonBeforePort = CharSequences.group(authority, m, "colonBeforePort");
-                url.port = CharSequences.group(authority, m, "port");
-            } else {
-                throw new AssertionError("AUTHORITY_REGEX didn't match");
-            }
-        } else {
-            // scheme not special and pathish doesn't start with // so it's an opaque thing
-            url.path = pathish;
-            url.slashes = ByteString.EMPTY;
+            // these are always empty for file: URLs
             url.username = ByteString.EMPTY;
             url.colonBeforePassword = ByteString.EMPTY;
             url.password = ByteString.EMPTY;
             url.atSign = ByteString.EMPTY;
-            url.host = ByteString.EMPTY;
             url.colonBeforePort = ByteString.EMPTY;
             url.port = ByteString.EMPTY;
+        } else {
+            // not file:
+            m = (special ? SPECIAL_PATHISH_REGEX : NONSPECIAL_PATHISH_REGEX).matcher(pathish);
+            if (m.matches()) {
+                ByteString slashes = CharSequences.group(pathish, m, "slashes");
+                ByteString authority = CharSequences.group(pathish, m, "authority");
+                ByteString path = CharSequences.group(pathish, m, "path");
+
+                url.slashes = slashes;
+                url.path = path;
+
+                // parse the authority
+                m = AUTHORITY_REGEX.matcher(authority);
+                if (m.matches()) {
+                    url.username = CharSequences.group(authority, m, "username");
+                    url.colonBeforePassword = CharSequences.group(authority, m, "colonBeforePassword");
+                    url.password = CharSequences.group(authority, m, "password");
+                    url.atSign = CharSequences.group(authority, m, "atSign");
+                    url.host = CharSequences.group(authority, m, "host");
+                    url.colonBeforePort = CharSequences.group(authority, m, "colonBeforePort");
+                    url.port = CharSequences.group(authority, m, "port");
+                } else {
+                    throw new AssertionError("AUTHORITY_REGEX didn't match");
+                }
+            } else {
+                // scheme not special and pathish doesn't start with // so it's an opaque thing
+                url.path = pathish;
+                url.slashes = ByteString.EMPTY;
+                url.username = ByteString.EMPTY;
+                url.colonBeforePassword = ByteString.EMPTY;
+                url.password = ByteString.EMPTY;
+                url.atSign = ByteString.EMPTY;
+                url.host = ByteString.EMPTY;
+                url.colonBeforePort = ByteString.EMPTY;
+                url.port = ByteString.EMPTY;
+            }
         }
+
         return url;
     }
 
