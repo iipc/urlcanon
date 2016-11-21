@@ -156,7 +156,7 @@ class WhatwgCanonicalizer implements Canonicalizer {
     }
 
     private boolean hasDefaultPort(ParsedUrl url) {
-        Integer defaultPort = ParsedUrl.SPECIAL_SCHEMES.get(url.getScheme());
+        Integer defaultPort = ParsedUrl.SPECIAL_SCHEMES.get(url.getScheme().toString());
         int port = (int) CharSequences.parseLong(url.getPort());
         return defaultPort != null && port == defaultPort.intValue();
     }
