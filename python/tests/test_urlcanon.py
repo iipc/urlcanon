@@ -228,17 +228,17 @@ def load_ssurt_test_data(section):
     return jb[section].items()
 
 @pytest.mark.parametrize(
-        'host,host_reversed', load_ssurt_test_data("reverseHost"))
+        'host,host_reversed', load_ssurt_test_data(b'reverseHost'))
 def test_reverse_host(host, host_reversed):
     assert urlcanon.reverse_host(host) == host_reversed
 
 @pytest.mark.parametrize(
-        'host,ssurt_host', load_ssurt_test_data("ssurtHost"))
+        'host,ssurt_host', load_ssurt_test_data(b'ssurtHost'))
 def test_ssurt_host(host, ssurt_host):
     assert urlcanon.ssurt_host(host) == ssurt_host
 
 @pytest.mark.parametrize(
-        'url,ssurt', load_ssurt_test_data("ssurt"))
+        'url,ssurt', load_ssurt_test_data(b'ssurt'))
 def test_ssurt_host(url, ssurt):
     assert urlcanon.parse_url(url).ssurt() == ssurt
 
