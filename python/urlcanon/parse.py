@@ -25,10 +25,10 @@ import ipaddress
 import urlcanon
 
 # "leading and trailing C0 controls and space"
-LEADING_JUNK_REGEX = re.compile(rb'\A([\x00-\x20]*)(.*)\Z', re.DOTALL)
-TRAILING_JUNK_REGEX = re.compile(rb'\A(.*?)([\x00-\x20]*)\Z', re.DOTALL)
+LEADING_JUNK_REGEX = re.compile(br'\A([\x00-\x20]*)(.*)\Z', re.DOTALL)
+TRAILING_JUNK_REGEX = re.compile(br'\A(.*?)([\x00-\x20]*)\Z', re.DOTALL)
 
-URL_REGEX = re.compile(rb'''
+URL_REGEX = re.compile(br'''
 \A
 (?:
    (?P<scheme> [a-zA-Z] [^:]* )
@@ -48,17 +48,17 @@ URL_REGEX = re.compile(rb'''
 \Z
 ''', re.VERBOSE | re.DOTALL)
 
-SPECIAL_PATHISH_SEGMENT_REGEX = re.compile(rb'''
+SPECIAL_PATHISH_SEGMENT_REGEX = re.compile(br'''
 (?P<slashes> [/\\\n\t]* )
 (?P<segment> [^/\\]* )
 ''', re.VERBOSE | re.DOTALL)
 
-NONSPECIAL_PATHISH_SEGMENT_REGEX = re.compile(rb'''
+NONSPECIAL_PATHISH_SEGMENT_REGEX = re.compile(br'''
 (?P<slashes> [/\n\t]* )
 (?P<segment> [^/]* )
 ''', re.VERBOSE | re.DOTALL)
 
-AUTHORITY_REGEX = re.compile(rb'''
+AUTHORITY_REGEX = re.compile(br'''
 \A
 (?:
    (?P<username> [^:@]* )
@@ -219,14 +219,14 @@ def parse_url(u):
                 slashes_or_segment for pathsegpair in pathsegpairs
                 for slashes_or_segment in pathsegpair]
         if scheme == b'file' and re.match(
-                rb'^([\n\t]*[/\\][\n\t]*){2}$', pathish_components[0]):
+                br'^([\n\t]*[/\\][\n\t]*){2}$', pathish_components[0]):
             # file://foo/bar -- "foo" is host but not parsed as full authority
             url.slashes = pathish_components[0]
             url.host = pathish_components[1]
             url.path = b''.join(pathish_components[2:])
         elif scheme == b'file':
             m = re.match(
-                    rb'^(([\n\t]*[/\\][\n\t]*){2}).*$', pathish_components[0])
+                    br'^(([\n\t]*[/\\][\n\t]*){2}).*$', pathish_components[0])
             if m:
                 # m.group(1) is first 2 slashes plus \n\t junk
                 url.slashes = pathish_components[0][:len(m.group(1))]
@@ -236,7 +236,7 @@ def parse_url(u):
             else:
                 url.path = b''.join(pathish_components)
         elif scheme in urlcanon.SPECIAL_SCHEMES or re.match(
-                rb'^([\n\t]*/[\n\t]*){2}$', pathish_components[0]):
+                br'^([\n\t]*/[\n\t]*){2}$', pathish_components[0]):
             # http:foo/bar http:/\/\/foo/bar nonspecial://foo/bar
             url.slashes = pathish_components[0]
             m = AUTHORITY_REGEX.match(pathish_components[1])

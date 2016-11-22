@@ -21,6 +21,10 @@ import urlcanon
 import os
 import json
 import pytest
+try:
+    unicode
+except NameError:  # py3
+    unicode = str
 
 def load_json_bytes(json_bytes):
     '''
@@ -41,7 +45,7 @@ def load_json_bytes(json_bytes):
             for i in range(len(obj)):
                 obj[i] = rebytify_data_structure(obj[i])
             return obj
-        elif isinstance(obj, str):
+        elif isinstance(obj, unicode):
             return obj.encode('latin1')
         else: # a number or None
             return obj
@@ -166,7 +170,7 @@ def test_w3c_test_data(test):
                 url.question_mark + url.query)
         assert test['hash'].encode('utf-8') == (
                 url.fragment and (url.hash_sign + url.fragment) or b'')
-        assert test['href'] == str(url)
+        assert test['href'] == unicode(url)
     except:
         print('failed\n   input=%s\n   url=%s\n' % (test, vars(url)))
         raise
