@@ -4,6 +4,7 @@ matrix:
   allow_failures:
   - python: nightly
   - python: 3.6-dev
+  - python: pypy3
   include:
   - python: 3.5
   - python: 3.4
