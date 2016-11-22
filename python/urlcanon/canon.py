@@ -150,9 +150,9 @@ class Canonicalizer:
     @staticmethod
     def pct_encode_path(url):
         def pct_encode_byte(m):
-            return b'%%%02X' % ord(m.group())
+            # return b'%%%02X' % ord(m.group()) # doesn't work in python 3.4
+            return ('%%%02X' % ord(m.group())).encode('ascii')
         url.path = Canonicalizer.DEFAULT_ENCODE_REGEX.sub(
-                # lambda m: b'%%%02X' % m.group()[0], url.path)
                 pct_encode_byte, url.path)
 
     @staticmethod
