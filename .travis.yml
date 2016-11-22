@@ -29,7 +29,7 @@ before_script:
 
 script:
 - if [ "$TESTLANG" == java ]; then
-    mvn test
+    mvn test;
   else
-    py.test -v -s python/tests
+    py.test -v -s python/tests;
   fi
