@@ -1,25 +1,35 @@
 language: python
-python:
-- 3.5
-- 3.4
-- 2.7
-- pypy
-- pypy3
-- 3.6-dev
-- nightly
-
-jdk:
-- oraclejdk8
+#python:
+#- 3.5
+#- 3.4
+#- 2.7
+#- pypy
+#- pypy3
+#- 3.6-dev
+#- nightly
 
 matrix:
   allow_failures:
   - python: nightly
   - python: 3.6-dev
+  include:
+  - python: 3.5
+  - python: 3.4
+  - python: 2.7
+  - python: pypy
+  - python: pypy3
+  - python: 3.6-dev
+  - python: nightly
+  - python: 3.5
+    env: TESTLANG=java
+
 
 before_script:
 - pip install . pytest
 
 script:
-- py.test -v -s python/tests
-- mvn test
-
+- if [ "$TESTLANG" == java ]; then
+    mvn test
+  else
+    py.test -v -s python/tests
+  fi
