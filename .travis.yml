@@ -29,7 +29,7 @@ matrix:
 
 
 before_script:
-- '[ "$TESTLANG" != java ] && pip install . pytest'
+- if [ "$TESTLANG" != java ]; then pip install . pytest; fi
 
 script:
 - if [ "$TESTLANG" == java ]; then
