@@ -21,9 +21,11 @@ matrix:
 
 
 before_script:
+- env
 - if [ "$TESTLANG" != java ]; then pip install . pytest; fi
 
 script:
+- env
 - if [ "$TESTLANG" == java ]; then
     mvn test;
   else
