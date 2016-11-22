@@ -23,6 +23,9 @@ matrix:
   - language: java
     jdk: oraclejdk8
     env: TESTLANG=java
+  - language: java
+    jdk: oraclejdk7
+    env: TESTLANG=java
 
 
 before_script:
