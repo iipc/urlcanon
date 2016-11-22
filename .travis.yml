@@ -20,7 +20,7 @@ matrix:
   - python: pypy3
   - python: 3.6-dev
   - python: nightly
-  - python: 3.5
+  - jdk: oraclejdk8
     env: TESTLANG=java
 
 
