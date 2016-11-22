@@ -14,20 +14,15 @@ matrix:
   - python: nightly
   - language: java
     jdk: oraclejdk8
-    env: TESTLANG=java
   - language: java
     jdk: oraclejdk7
-    env: TESTLANG=java
 
 
 before_script:
-- env
-- if [ "$TESTLANG" != java ]; then pip install . pytest; fi
+- if [ $TRAVIS_LANGUAGE == python ]; then pip install . pytest; fi
 
 script:
-- env
-- if [ "$TESTLANG" == java ]; then
-    mvn test;
-  else
-    py.test -v -s python/tests;
-  fi
+- case $TRAVIS_LANGUAGE in
+  java) mvn test ;;
+  python) py.test -v -s python/tests ;; 
+  esac
