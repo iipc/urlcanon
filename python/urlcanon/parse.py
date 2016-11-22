@@ -119,13 +119,19 @@ class ParsedUrl:
     def __str__(self):
         return self.__bytes__().decode('utf-8')
 
-def _attempt_ipv4or6(host):
-    '''
-    Returns tuple (ip4, ip6). Values are integers or None. Both values will be
-    None if host does not parse as an ip address, otherwise exactly one of the
-    two will have a value. Follows WHATWG rules rules for parsing, which are
-    intended to match browser behavior.
-    '''
+    def ssurt(self):
+        '''
+        Format this URL with a field order suitable for sorting.
+        '''
+        ssurt_host = urlcanon.ssurt_host(self.host)
+        return (self.leading_junk + ssurt_host + self.slashes +
+                self.colon_before_port + self.port + self.colon_after_scheme +
+                self.scheme + self.at_sign + self.username +
+                self.colon_before_password + self.password + self.path +
+                self.question_mark + self.query + self.hash_sign +
+                self.fragment + self.trailing_junk)
+
+def parse_ipv4(host):
     def _parse_num(s):
         if len(s) >= 3 and s[:2] in (b'0x', b'0X', '0x', '0X'):
             return int(s[2:], base=16)
@@ -134,6 +140,49 @@ def _attempt_ipv4or6(host):
         else:
             return int(s)
 
+    try:
+        parts = host.split(b'.')
+        if parts[-1] == b"":
+            parts.pop()
+        if len(parts) == 1:
+            ip4 = _parse_num(parts[0])
+        elif len(parts) == 2:
+            part1 = _parse_num(parts[1])
+            if part1 >= 2**24:
+                raise '%s not a valid ipv4 address: last part must be less than 2**24' % host
+            ip4 = _parse_num(parts[0]) * 2**24 + _parse_num(parts[1])
+        elif len(parts) == 3:
+            part1 = _parse_num(parts[1])
+            if part1 >= 2**8:
+                raise '%s not a valid ipv4 address: middle part must be less than 256' % host
+            part2 = _parse_num(parts[2])
+            if part2 >= 2**16:
+                raise '%s not a valid ipv4 address: last part must be less than 2**16' % host
+            ip4 = (_parse_num(parts[0]) * 2**24
+                     + part1 * 2**16 + _parse_num(parts[2]))
+        elif len(parts) == 4:
+            part1 = _parse_num(parts[1])
+            part2 = _parse_num(parts[2])
+            part3 = _parse_num(parts[3])
+            if part1 >= 2**8 or part2 >= 2**8 or part3 >= 2**8:
+                raise '%s not a valid ipv4 address: all parts must be less than 256' % host
+            ip4 = (_parse_num(parts[0]) * 2**24
+                     + part1 * 2**16 + part2 * 2**8 + part3)
+        else: # len(parts) > 4
+            return None
+        if ip4 >= 2**32:
+            raise '%s not a valid ipv4 address: value must be less than 2**32' % host
+        return ip4
+    except:
+        return None
+
+def parse_ipv4or6(host):
+    '''
+    Returns tuple (ip4, ip6). Values are integers or None. Both values will be
+    None if host does not parse as an ip address, otherwise exactly one of the
+    two will have a value. Follows WHATWG rules rules for parsing, which are
+    intended to match browser behavior.
+    '''
     if host and host[0] == b'[' and host[-1] == b']':
         try:
             ip6 = ipaddress.IPv6Address(host.decode('utf-8'))
@@ -141,41 +190,7 @@ def _attempt_ipv4or6(host):
         except:
             return None, None
     else:
-        try:
-            parts = host.split(b'.')
-            if parts[-1] == b"":
-                parts.pop()
-            if len(parts) == 1:
-                ip4 = _parse_num(parts[0])
-            elif len(parts) == 2:
-                part1 = _parse_num(parts[1])
-                if part1 >= 2**24:
-                    raise '%s not a valid ipv4 address: last part must be less than 2**24' % host
-                ip4 = _parse_num(parts[0]) * 2**24 + _parse_num(parts[1])
-            elif len(parts) == 3:
-                part1 = _parse_num(parts[1])
-                if part1 >= 2**8:
-                    raise '%s not a valid ipv4 address: middle part must be less than 256' % host
-                part2 = _parse_num(parts[2])
-                if part2 >= 2**16:
-                    raise '%s not a valid ipv4 address: last part must be less than 2**16' % host
-                ip4 = (_parse_num(parts[0]) * 2**24
-                         + part1 * 2**16 + _parse_num(parts[2]))
-            elif len(parts) == 4:
-                part1 = _parse_num(parts[1])
-                part2 = _parse_num(parts[2])
-                part3 = _parse_num(parts[3])
-                if part1 >= 2**8 or part2 >= 2**8 or part3 >= 2**8:
-                    raise '%s not a valid ipv4 address: all parts must be less than 256' % host
-                ip4 = (_parse_num(parts[0]) * 2**24
-                         + part1 * 2**16 + part2 * 2**8 + part3)
-            else: # len(parts) > 4
-                return None, None
-            if ip4 >= 2**32:
-                raise '%s not a valid ipv4 address: value must be less than 2**32' % host
-            return ip4, None
-        except:
-            return None, None
+        return parse_ipv4(host), None
 
 def parse_url(u):
     if not isinstance(u, bytes):
@@ -245,7 +260,7 @@ def parse_url(u):
             url.password = m.group('password') or b''
             url.at_sign = m.group('at_sign') or b''
             url.host = m.group('host') or b''
-            url.ip4, url.ip6 = _attempt_ipv4or6(url.host)
+            url.ip4, url.ip6 = parse_ipv4or6(url.host)
             url.colon_before_port = m.group('colon_before_port') or b''
             url.port = m.group('port') or b''
             url.path = b''.join(pathish_components[2:])

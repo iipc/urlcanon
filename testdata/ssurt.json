@@ -1,0 +1,17 @@
+{
+    "ssurtHost": {
+        "1.2.3.4": "1.2.3.4",
+        "0x80": "0x80",
+        "x.y.z": "z,y,x,"
+    },
+    "reverseHost": {
+      "": ",",
+      "x": "x,",
+      "x.y.z": "z,y,x,",
+      "x.y.z.": ",z,y,x,",
+      "a,b.y.z.": ",z,y,a.b,"
+    },
+    "ssurt": {
+        "http://user:pass@foo.example.org:81/path?query#frag": "org,example,foo,//:81:http@user:pass/path?query#frag"
+    }
+}

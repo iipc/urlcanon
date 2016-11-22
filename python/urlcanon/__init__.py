@@ -15,7 +15,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-from .parse import parse_url, ParsedUrl
+from .parse import parse_url, ParsedUrl, parse_ipv4, parse_ipv4or6
 from .canon import Canonicalizer
 
 SPECIAL_SCHEMES = {
@@ -27,3 +27,21 @@ SPECIAL_SCHEMES = {
     b'wss': b'443',
     b'file': None,
 }
+
+def reverse_host(host):
+    '''
+    Reverse dotted segments. Swap commas and dots. Add a trailing comma.
+    b"x,y.b.c" => b"c,b,x.y,"
+    '''
+    parts_reversed = []
+    for part in reversed(host.split(b'.')):
+        parts_reversed.append(part.replace(b',', b'.'))
+    parts_reversed.append(b'') # trailing comma
+    return b','.join(parts_reversed)
+
+def ssurt_host(host):
+    '''Reverse host unless it's an IPv4 or IPv6 address.'''
+    if not host or host[:1] == b'[' or parse_ipv4(host):
+        return host
+    else:
+        return reverse_host(host)

@@ -71,9 +71,8 @@ def load_funky_ipv4_data():
 
 @pytest.mark.parametrize('unresolved,expected', load_funky_ipv4_data())
 def test_funky_ipv4(unresolved, expected):
-    ip4 = urlcanon.parse._attempt_ipv4or6(unresolved)[0]
+    ip4 = urlcanon.parse.parse_ipv4or6(unresolved)[0]
     assert urlcanon.Canonicalizer.dotted_decimal(ip4) == expected
-
 
 def load_path_dots_data():
     # Most of path_dots.json was generated in the browser using this html/js.
@@ -220,3 +219,26 @@ def test_supplemental_whatwg(uncanonicalized, canonicalized):
     url = urlcanon.parse_url(uncanonicalized)
     urlcanon.Canonicalizer.WHATWG(url)
     assert url.__bytes__() == canonicalized
+
+def load_ssurt_test_data(section):
+    path = os.path.join(
+        os.path.dirname(__file__), '..', '..', 'testdata', 'ssurt.json')
+    with open(path, 'rb') as f:
+        jb = load_json_bytes(f.read())
+    return jb[section].items()
+
+@pytest.mark.parametrize(
+        'host,host_reversed', load_ssurt_test_data("reverseHost"))
+def test_reverse_host(host, host_reversed):
+    assert urlcanon.reverse_host(host) == host_reversed
+
+@pytest.mark.parametrize(
+        'host,ssurt_host', load_ssurt_test_data("ssurtHost"))
+def test_ssurt_host(host, ssurt_host):
+    assert urlcanon.ssurt_host(host) == ssurt_host
+
+@pytest.mark.parametrize(
+        'url,ssurt', load_ssurt_test_data("ssurt"))
+def test_ssurt_host(url, ssurt):
+    assert urlcanon.parse_url(url).ssurt() == ssurt
+
