@@ -18,12 +18,21 @@ limitations under the License.
 import re
 import ipaddress
 import urlcanon
+import urlcanon.parse
+try:
+    from urllib.parse import unquote_to_bytes as urllib_pct_decode
+except ImportError:
+    import urllib.unquote as urllib_pct_decode
+import idna
 
 class Canonicalizer:
     def __init__(self, steps):
         self.steps = steps
 
     def __call__(self, url):
+        return self.canonicalize(url)
+
+    def canonicalize(self, url):
         for step in self.steps:
             step(url)
         return url
@@ -194,9 +203,13 @@ class Canonicalizer:
 
     @staticmethod
     def punycode(url):
-        # IDNA2008? see https://github.com/kennethreitz/requests/issues/3687#issuecomment-261590419
         if url.host:
-            url.host = url.host.decode('utf-8').encode('idna')
+            try:
+                # IDNA2008
+                url.host = idna.encode(url.host.decode('utf-8'), uts46=True)
+            except (idna.IDNAError, UnicodeDecodeError):
+                # try IDNA2003? with this we'll end up pct-encoding
+                url.host = url.host.lower()
 
     @staticmethod
     def leading_slash(url):
@@ -205,6 +218,73 @@ class Canonicalizer:
         '''
         if url.scheme in urlcanon.SPECIAL_SCHEMES and url.path[:1] != b'/':
             url.path = b'/' + url.path
+
+    @staticmethod
+    def remove_fragment(url):
+        url.hash_sign = b''
+        url.fragment = b''
+
+    @staticmethod
+    def pct_decode_repeatedly(url):
+        def _pct_decode_repeatedly(orig):
+            if not orig:
+                return orig
+            val = orig
+            while val:
+                new_val = urllib_pct_decode(val)
+                if new_val == val:
+                    return val
+                val = new_val
+        url.scheme = _pct_decode_repeatedly(url.scheme)
+        url.username = _pct_decode_repeatedly(url.username)
+        url.password = _pct_decode_repeatedly(url.password)
+        url.host = _pct_decode_repeatedly(url.host)
+        url.port = _pct_decode_repeatedly(url.port)
+        url.path = _pct_decode_repeatedly(url.path)
+        url.query = _pct_decode_repeatedly(url.query)
+
+    # https://developers.google.com/safe-browsing/v4/urls-hashing
+    # > In the URL, percent-escape all characters that are <= ASCII 32, >= 127,
+    # > "#", or "%". The escapes should use uppercase hex characters.
+    GOOGLE_PCT_ENCODE_BYTES = re.compile(br'[\x00-\x20\x7f-\xff#%]')
+    def pct_encode(url):
+        def _pct_encode(unencoded):
+            return Canonicalizer.GOOGLE_PCT_ENCODE_BYTES.sub(
+                    lambda m: ('%%%02X' % ord(m.group())).encode('ascii'),
+                    unencoded)
+        url.scheme = _pct_encode(url.scheme)
+        url.username = _pct_encode(url.username)
+        url.password = _pct_encode(url.password)
+        url.host = _pct_encode(url.host)
+        url.port = _pct_encode(url.port)
+        url.path = _pct_encode(url.path)
+        url.query = _pct_encode(url.query)
+
+    @staticmethod
+    def reparse_host(url):
+        url.ip4, url.ip6 = urlcanon.parse_ipv4or6(url.host)
+
+    @staticmethod
+    def default_scheme_http(url):
+        if not url.scheme:
+            url.scheme = b'http'
+            url.colon_after_scheme = b':'
+            if url.path:
+                urlcanon.parse.parse_pathish(url, url.path)
+
+    @staticmethod
+    def collapse_consecutive_slashes(url):
+        url.path = re.sub(b'//+', b'/', url.path)
+
+    @staticmethod
+    # https://developers.google.com/safe-browsing/v4/urls-hashing
+    # 1. Remove all leading and trailing dots.
+    # 2. Replace consecutive dots with a single dot.
+    def fix_host_dots(url):
+        if url.host:
+            url.host = re.sub(br'^\.+', b'', url.host)
+            url.host = re.sub(br'\.+$', b'', url.host)
+            url.host = re.sub(br'\.{2,}', b'.', url.host)
 
 Canonicalizer.WHATWG = Canonicalizer([
     Canonicalizer.remove_leading_trailing_junk,
@@ -222,3 +302,31 @@ Canonicalizer.WHATWG = Canonicalizer([
     Canonicalizer.two_slashes,
     Canonicalizer.punycode,
 ])
+
+# http://web.archive.org/web/20130116211349/https://developers.google.com/safe-browsing/developers_guide_v2#Canonicalization
+# differs from google, does not remove port, matching surt library
+Canonicalizer.Google = Canonicalizer([
+    Canonicalizer.remove_leading_trailing_junk,
+    Canonicalizer.default_scheme_http,
+    Canonicalizer.remove_tabs_and_newlines,
+    Canonicalizer.lowercase_scheme,
+    Canonicalizer.fix_backslashes,
+    Canonicalizer.pct_encode_path,
+    Canonicalizer.empty_path_to_slash,
+    Canonicalizer.elide_default_port,
+    Canonicalizer.elide_at_sign_for_empty_userinfo,
+    Canonicalizer.leading_slash,
+    Canonicalizer.two_slashes,
+    Canonicalizer.punycode,
+    Canonicalizer.remove_fragment,
+    Canonicalizer.pct_decode_repeatedly,
+    Canonicalizer.normalize_path_dots,
+    Canonicalizer.fix_host_dots,
+    Canonicalizer.collapse_consecutive_slashes,
+    Canonicalizer.punycode,
+    Canonicalizer.pct_encode,
+    Canonicalizer.reparse_host,
+    Canonicalizer.normalize_ip_address,
+    # Canonicalizer.remove_port,
+])
+

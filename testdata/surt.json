@@ -1,0 +1,116 @@
+{
+    "Canonicalizer.DefaultIA": {
+        "http://www.alexa.com/": "http://alexa.com/",
+        "http://archive.org/index.html": "http://archive.org/index.html",
+        "http://archive.org/index.html?": "http://archive.org/index.html",
+        "http://archive.org/index.html?a=b": "http://archive.org/index.html?a=b",
+        "http://archive.org/index.html?b=b&a=b": "http://archive.org/index.html?a=b&b=b",
+        "http://archive.org/index.html?b=a&b=b&a=b": "http://archive.org/index.html?a=b&b=a&b=b",
+        "http://www34.archive.org/index.html?b=a&b=b&a=b": "http://archive.org/index.html?a=b&b=a&b=b"
+    },
+    "Canonicalizer.Google": {
+        "http://host/%25%32%35": "http://host/%25",
+        "http://host/%25%32%35%25%32%35": "http://host/%25%25",
+        "http://host/%2525252525252525": "http://host/%25",
+        "http://host/asdf%25%32%35asd": "http://host/asdf%25asd",
+        "http://host/%%%25%32%35asd%%": "http://host/%25%25%25asd%25%25",
+        "http://www.google.com/": "http://www.google.com/",
+        "http://%31%36%38%2e%31%38%38%2e%39%39%2e%32%36/%2E%73%65%63%75%72%65/%77%77%77%2E%65%62%61%79%2E%63%6F%6D/": "http://168.188.99.26/.secure/www.ebay.com/",
+        "http://195.127.0.11/uploads/%20%20%20%20/.verify/.eBaysecure=updateuserdataxplimnbqmn-xplmvalidateinfoswqpcmlx=hgplmcx/": "http://195.127.0.11/uploads/%20%20%20%20/.verify/.eBaysecure=updateuserdataxplimnbqmn-xplmvalidateinfoswqpcmlx=hgplmcx/",
+        "http://host%23.com/%257Ea%2521b%2540c%2523d%2524e%25f%255E00%252611%252A22%252833%252944_55%252B": "http://host%23.com/~a!b@c%23d$e%25f^00&11*22(33)44_55+",
+        "http://3279880203/blah": "http://195.127.0.11/blah",
+        "http://www.google.com/blah/..": "http://www.google.com/",
+        "www.google.com/": "http://www.google.com/",
+        "www.google.com": "http://www.google.com/",
+        "http://www.evil.com/blah#frag": "http://www.evil.com/blah",
+        "http://www.GOOgle.com/": "http://www.google.com/",
+        "http://www.google.com.../": "http://www.google.com/",
+        "http://www.google.com/foo\tbar\rbaz\n2":"http://www.google.com/foobarbaz2",
+        "http://www.google.com/q?": "http://www.google.com/q?",
+        "http://www.google.com/q?r?": "http://www.google.com/q?r?",
+        "http://www.google.com/q?r?s": "http://www.google.com/q?r?s",
+        "http://evil.com/foo#bar#baz": "http://evil.com/foo",
+        "http://evil.com/foo;": "http://evil.com/foo;",
+        "http://evil.com/foo?bar;": "http://evil.com/foo?bar;",
+        "http://\u0001\u0080.com/": "http://%01%80.com/",
+        "http://notrailingslash.com": "http://notrailingslash.com/",
+        "  http://www.google.com/  ": "http://www.google.com/",
+        "http:// leadingspace.com/": "http://%20leadingspace.com/",
+        "http://%20leadingspace.com/": "http://%20leadingspace.com/",
+        "%20leadingspace.com/": "http://%20leadingspace.com/",
+        "https://www.securesite.com/": "https://www.securesite.com/",
+        "http://host.com/ab%23cd": "http://host.com/ab%23cd",
+        "http://host.com//twoslashes?more//slashes": "http://host.com/twoslashes?more//slashes"
+    },
+    "googleSupplementalFromSurt": {
+        "B\u00fccher.ch:8080": "http://xn--bcher-kva.ch:8080/",
+        "\u00e2\u0098\u0083.com": "http://xn--n3h.com/",
+        "http://www.t%EF%BF%BD%04.82.net/": "http://www.t%EF%BF%BD%04.82.net/",
+        "mailto:foo@example.com": "mailto:foo@example.com"
+    },
+    "unescapeRepeatedly": {
+        "%!A%21%21%25": "%!A!!%",
+        "%": "%",
+        "%2": "%2",
+        "%25": "%",
+        "%25%": "%%",
+        "%2525": "%",
+        "%252525": "%",
+        "%25%32%35": "%"
+    },
+    "Canonicalizer.IA": {
+        "http://ARCHIVE.ORG/": "http://archive.org/",
+        "http://www.archive.org:80/": "http://archive.org/",
+        "https://www.archive.org:80/": "https://archive.org:80/",
+        "http://www.archive.org:443/": "http://archive.org:443/",
+        "https://www.archive.org:443/": "https://archive.org/",
+        "http://www.archive.org/big/": "http://archive.org/big",
+        "dns:www.archive.org": "dns:www.archive.org"
+    },
+    "alphaRorderQuery": {
+        "": "",
+        "": "",
+        "a": "a",
+        "ab": "ab",
+        "a=1": "a=1",
+        "ab=1": "ab=1",
+        "a=1&": "&a=1",
+        "a=1&b=1": "a=1&b=1",
+        "b=1&a=1": "a=1&b=1",
+        "a=a&a=a": "a=a&a=a",
+        "a=b&a=a": "a=a&a=b",
+        "b=b&a=b&b=a&a=a": "a=a&a=b&b=a&b=b"
+    },
+    "massageHost": {
+        "foo.com": "foo.com",
+        "www.foo.com": "foo.com",
+        "www12.foo.com": "foo.com",
+        "www2foo.com": "www2foo.com",
+        "www2.www2foo.com": "www2foo.com"
+    },
+    "stripPathSessionId": {
+        "/(S(4hqa0555fwsecu455xqckv45))/mileg.aspx": "/mileg.aspx",
+        "/(4hqa0555fwsecu455xqckv45)/mileg.aspx": "/mileg.aspx",
+        "/(a(4hqa0555fwsecu455xqckv45)S(4hqa0555fwsecu455xqckv45)f(4hqa0555fwsecu455xqckv45))/mileg.aspx?page=sessionschedules": "/mileg.aspx?page=sessionschedules",
+        "/photos/36050182@N05/": "/photos/36050182@N05/"
+    },
+    "defaultIASurt": {
+        "": "-",
+        "filedesc:foo.arc.gz": "filedesc:foo.arc.gz",
+        "filedesc:/foo.arc.gz": "filedesc:/foo.arc.gz",
+        "filedesc://foo.arc.gz": "filedesc://foo.arc.gz",
+        "warcinfo:foo.warc.gz": "warcinfo:foo.warc.gz",
+        "dns:alexa.com": "dns:alexa.com",
+        "dns:archive.org": "dns:archive.org",
+        "http://www.archive.org/": "org,archive)/",
+        "http://archive.org/": "org,archive)/",
+        "http://archive.org/goo/": "org,archive)/goo",
+        "http://archive.org/goo/?": "org,archive)/goo",
+        "http://archive.org/goo/?b&a": "org,archive)/goo?a&b",
+        "http://archive.org/goo/?a=2&b&a=1": "org,archive)/goo?a=1&a=2&b",
+        "http://archive.org/index.php?PHPSESSID=0123456789abcdefghijklemopqrstuv&action=profile;u=4221": "org,archive)/index.php?action=profile;u=4221",
+        "whois://whois.isoc.org.il/shaveh.co.il": "il,org,isoc,whois)/shaveh.co.il",
+        "http://visit.webhosting.yahoo.com/visit.gif?&r=http%3A//web.archive.org/web/20090517140029/http%3A//anthonystewarthead.electric-chi.com/&b=Netscape%205.0%20%28Windows%3B%20en-US%29&s=1366x768&o=Win32&c=24&j=true&v=1.2": "com,yahoo,webhosting,visit)/visit.gif?&b=netscape%205.0%20(windows;%20en-us)&c=24&j=true&o=win32&r=http://web.archive.org/web/20090517140029/http://anthonystewarthead.electric-chi.com/&s=1366x768&v=1.2"
+    }
+}
+

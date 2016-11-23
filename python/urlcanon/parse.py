@@ -192,6 +192,59 @@ def parse_ipv4or6(host):
     else:
         return parse_ipv4(host), None
 
+def parse_pathish(url, pathish):
+    '''
+    Parses "pathish", which is the section of the url after the scheme,
+    including the authority, if any, and populates fields of "url".
+    '''
+    scheme = canon.Canonicalizer.TAB_AND_NEWLINE_REGEX.sub(
+            b'', url.scheme).lower()
+    if scheme in urlcanon.SPECIAL_SCHEMES:
+        pathsegpairs = (
+            n.groups() for n in SPECIAL_PATHISH_SEGMENT_REGEX.finditer(pathish))
+    else:
+        pathsegpairs = (n.groups() for n in
+                        NONSPECIAL_PATHISH_SEGMENT_REGEX.finditer(pathish))
+    # flatten the list
+    pathish_components = [
+            slashes_or_segment for pathsegpair in pathsegpairs
+            for slashes_or_segment in pathsegpair]
+    if scheme == b'file' and re.match(
+            br'^([\n\t]*[/\\][\n\t]*){2}$', pathish_components[0]):
+        # file://foo/bar -- "foo" is host but not parsed as full authority
+        url.slashes = pathish_components[0]
+        url.host = pathish_components[1]
+        url.path = b''.join(pathish_components[2:])
+    elif scheme == b'file':
+        m = re.match(
+                br'^(([\n\t]*[/\\][\n\t]*){2}).*$', pathish_components[0])
+        if m:
+            # m.group(1) is first 2 slashes plus \n\t junk
+            url.slashes = pathish_components[0][:len(m.group(1))]
+            url.path = b''.join(
+                    [pathish_components[0][len(m.group(1)):]]
+                    + pathish_components[1:])
+        else:
+            url.path = b''.join(pathish_components)
+    elif scheme in urlcanon.SPECIAL_SCHEMES or re.match(
+            br'^([\n\t]*/[\n\t]*){2}$', pathish_components[0]):
+        # http:foo/bar http:/\/\/foo/bar nonspecial://foo/bar
+        url.slashes = pathish_components[0]
+        m = AUTHORITY_REGEX.match(pathish_components[1])
+        url.username = m.group('username') or b''
+        url.colon_before_password = m.group('colon_before_password') or b''
+        url.password = m.group('password') or b''
+        url.at_sign = m.group('at_sign') or b''
+        url.host = m.group('host') or b''
+        url.ip4, url.ip6 = parse_ipv4or6(url.host)
+        url.colon_before_port = m.group('colon_before_port') or b''
+        url.port = m.group('port') or b''
+        url.path = b''.join(pathish_components[2:])
+    else: # no authority
+        url.path = pathish
+
+    return url
+
 def parse_url(u):
     if not isinstance(u, bytes):
         parse_me = u.encode('utf-8')
@@ -217,55 +270,7 @@ def parse_url(u):
     url.hash_sign = m.group('hash_sign') or b''
     url.fragment = m.group('fragment') or b''
 
-    scheme = canon.Canonicalizer.TAB_AND_NEWLINE_REGEX.sub(
-            b'', url.scheme).lower()
     if m.group('pathish'):
-        if scheme in urlcanon.SPECIAL_SCHEMES:
-            pathsegpairs = (
-                    n.groups() for n in SPECIAL_PATHISH_SEGMENT_REGEX.finditer(
-                        m.group('pathish')))
-        else:
-            pathsegpairs = (
-                    n.groups() for n in
-                    NONSPECIAL_PATHISH_SEGMENT_REGEX.finditer(
-                        m.group('pathish')))
-        # flatten the list
-        pathish_components = [
-                slashes_or_segment for pathsegpair in pathsegpairs
-                for slashes_or_segment in pathsegpair]
-        if scheme == b'file' and re.match(
-                br'^([\n\t]*[/\\][\n\t]*){2}$', pathish_components[0]):
-            # file://foo/bar -- "foo" is host but not parsed as full authority
-            url.slashes = pathish_components[0]
-            url.host = pathish_components[1]
-            url.path = b''.join(pathish_components[2:])
-        elif scheme == b'file':
-            m = re.match(
-                    br'^(([\n\t]*[/\\][\n\t]*){2}).*$', pathish_components[0])
-            if m:
-                # m.group(1) is first 2 slashes plus \n\t junk
-                url.slashes = pathish_components[0][:len(m.group(1))]
-                url.path = b''.join(
-                        [pathish_components[0][len(m.group(1)):]]
-                        + pathish_components[1:])
-            else:
-                url.path = b''.join(pathish_components)
-        elif scheme in urlcanon.SPECIAL_SCHEMES or re.match(
-                br'^([\n\t]*/[\n\t]*){2}$', pathish_components[0]):
-            # http:foo/bar http:/\/\/foo/bar nonspecial://foo/bar
-            url.slashes = pathish_components[0]
-            m = AUTHORITY_REGEX.match(pathish_components[1])
-            url.username = m.group('username') or b''
-            url.colon_before_password = m.group('colon_before_password') or b''
-            url.password = m.group('password') or b''
-            url.at_sign = m.group('at_sign') or b''
-            url.host = m.group('host') or b''
-            url.ip4, url.ip6 = parse_ipv4or6(url.host)
-            url.colon_before_port = m.group('colon_before_port') or b''
-            url.port = m.group('port') or b''
-            url.path = b''.join(pathish_components[2:])
-        else: # no authority
-            url.path = m.group('pathish')
+        parse_pathish(url, m.group('pathish'))
 
     return url
-

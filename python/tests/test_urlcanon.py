@@ -239,6 +239,30 @@ def test_ssurt_host(host, ssurt_host):
 
 @pytest.mark.parametrize(
         'url,ssurt', load_ssurt_test_data(b'ssurt'))
-def test_ssurt_host(url, ssurt):
+def test_ssurt(url, ssurt):
     assert urlcanon.parse_url(url).ssurt() == ssurt
 
+def load_surt_test_data(section):
+    '''
+    Tests copied from
+    https://github.com/internetarchive/surt/blob/master/tests/test_surt.py
+    '''
+    path = os.path.join(
+        os.path.dirname(__file__), '..', '..', 'testdata', 'surt.json')
+    with open(path, 'rb') as f:
+        jb = load_json_bytes(f.read())
+    return sorted(jb[section].items())
+
+@pytest.mark.parametrize(
+        'uncanonicalized,canonicalized',
+        load_surt_test_data(b'Canonicalizer.Google'))
+def test_google_canonicalizer(uncanonicalized, canonicalized):
+    url = urlcanon.parse_url(uncanonicalized)
+    urlcanon.Canonicalizer.Google(url)
+    assert url.__bytes__() == canonicalized
+
+## # XXX these are "parsing" tests from the surt library, change to
+## # canonicalization tests, which canonicalizer?
+## assert handyurl.parse("http:////////////////www.vikings.com").geturl() == 'http://www.vikings.com/'
+## assert handyurl.parse("http://https://order.1and1.com").geturl() == 'https://order.1and1.com'
+## assert handyurl.parse("http://mineral.galleries.com:/minerals/silicate/chabazit/chabazit.htm").geturl() == 'http://mineral.galleries.com/minerals/silicate/chabazit/chabazit.htm'

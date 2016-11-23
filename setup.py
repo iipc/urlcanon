@@ -19,7 +19,7 @@ limitations under the License.
 
 import setuptools
 
-dependencies = []
+dependencies = ['idna']
 try:
     import ipaddress
 except ImportError:
@@ -27,7 +27,7 @@ except ImportError:
 
 setuptools.setup(
         name='urlcanon',
-        description='URL Canonicalization Library for Python and Java',
+        description='url canonicalization library for python and java',
         version='0.1.dev1',
         packages=['urlcanon'],
         install_requires=dependencies,
