@@ -22,7 +22,7 @@ import urlcanon.parse
 try:
     from urllib.parse import unquote_to_bytes as urllib_pct_decode
 except ImportError:
-    import urllib.unquote as urllib_pct_decode
+    from urllib import unquote as urllib_pct_decode
 import idna
 
 class Canonicalizer:
