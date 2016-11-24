@@ -46,7 +46,8 @@
         "B\u00fccher.ch:8080": "http://xn--bcher-kva.ch:8080/",
         "\u00e2\u0098\u0083.com": "http://xn--n3h.com/",
         "http://www.t%EF%BF%BD%04.82.net/": "http://www.t%EF%BF%BD%04.82.net/",
-        "mailto:foo@example.com": "mailto:foo@example.com"
+        "mailto:foo@example.com": "mailto:foo@example.com",
+        "http://www.gotaport.com:1234/": "http://www.gotaport.com:1234/"
     },
     "unescapeRepeatedly": {
         "%!A%21%21%25": "%!A!!%",

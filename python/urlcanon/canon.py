@@ -324,9 +324,9 @@ Canonicalizer.Google = Canonicalizer([
     Canonicalizer.fix_host_dots,
     Canonicalizer.collapse_consecutive_slashes,
     Canonicalizer.punycode,
-    Canonicalizer.pct_encode,
     Canonicalizer.reparse_host,
     Canonicalizer.normalize_ip_address,
+    Canonicalizer.pct_encode,
     # Canonicalizer.remove_port,
 ])
 

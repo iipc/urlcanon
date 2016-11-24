@@ -146,33 +146,30 @@ def load_w3c_test_data():
         # load_json_bytes doesn't work for urltestdata.json because it contains
         # unicode character escapes beyond \u00ff such as \u0300
         tests = json.loads(f.read().decode('utf-8'))
-        return [test for test in tests if is_absolute_url_test(test)]
+        return sorted([(test['input'], test['href'], test) for test in tests
+                       if is_absolute_url_test(test)])
 
 def is_absolute_url_test(test):
     return (isinstance(test, dict) and test.get('base') == 'about:blank'
             and 'href' in test and test['input'][0] != '#')
 
-@pytest.mark.parametrize("test", load_w3c_test_data())
-def test_w3c_test_data(test):
+@pytest.mark.parametrize("input,href,test", load_w3c_test_data())
+def test_w3c_test_data(input, href, test):
     canon = urlcanon.Canonicalizer.WHATWG
-    url = urlcanon.parse_url(test['input'])
+    url = urlcanon.parse_url(input)
     canon(url)
-    try:
-        assert test['protocol'].encode('utf-8') == (
-                url.scheme + url.colon_after_scheme)
-        assert test['username'].encode('utf-8') == url.username
-        assert test['password'].encode('utf-8') == url.password
-        assert test['host'].encode('utf-8') == url.host_port
-        assert test['hostname'].encode('utf-8') == url.host
-        assert test['pathname'].encode('utf-8') == url.path
-        assert test['search'].encode('utf-8') == (
-                url.question_mark + url.query)
-        assert test['hash'].encode('utf-8') == (
-                url.fragment and (url.hash_sign + url.fragment) or b'')
-        assert test['href'] == unicode(url)
-    except:
-        print('failed\n   input=%s\n   url=%s\n' % (test, vars(url)))
-        raise
+    assert test['protocol'].encode('utf-8') == (
+            url.scheme + url.colon_after_scheme)
+    assert test['username'].encode('utf-8') == url.username
+    assert test['password'].encode('utf-8') == url.password
+    assert test['host'].encode('utf-8') == url.host_port
+    assert test['hostname'].encode('utf-8') == url.host
+    assert test['pathname'].encode('utf-8') == url.path
+    assert test['search'].encode('utf-8') == (
+            url.question_mark + url.query)
+    assert test['hash'].encode('utf-8') == (
+            url.fragment and (url.hash_sign + url.fragment) or b'')
+    assert test['href'] == unicode(url)
 
 def load_parsing():
     path = os.path.join(
