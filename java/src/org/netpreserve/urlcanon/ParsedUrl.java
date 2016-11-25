@@ -59,7 +59,7 @@ public class ParsedUrl {
 
     private final static Pattern NONSPECIAL_PATHISH_REGEX = Pattern.compile(("" +
             "(?<slashes> [\\r\\n\\t]* (?:/[\\r\\n\\t]*){2} )" +
-            "(?<authority> /* [^/]* )" +
+            "(?<authority> [^/]* )" +
             "(?<path> / .* )?"
     ).replace(" ", ""), DOTALL);
 
