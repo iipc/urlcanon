@@ -48,14 +48,28 @@ URL_REGEX = re.compile(br'''
 \Z
 ''', re.VERBOSE | re.DOTALL)
 
-SPECIAL_PATHISH_SEGMENT_REGEX = re.compile(br'''
-(?P<slashes> [/\\\n\t]* )
-(?P<segment> [^/\\]* )
+SPECIAL_PATHISH_REGEX = re.compile(br'''
+\A
+(?P<slashes> [/\\\r\n\t]* )
+(?P<authority> [^/\\]* )
+(?P<path> [/\\] .* )
+\Z
 ''', re.VERBOSE | re.DOTALL)
 
-NONSPECIAL_PATHISH_SEGMENT_REGEX = re.compile(br'''
-(?P<slashes> [/\n\t]* )
-(?P<segment> [^/]* )
+NONSPECIAL_PATHISH_REGEX = re.compile(br'''
+\A
+(?P<slashes> [\r\n\t]* (?:/[\r\n\t]*){2} )
+(?P<authority> [^/]* )
+(?P<path> / .* )?
+\Z
+''', re.VERBOSE | re.DOTALL)
+
+FILE_PATHISH_REGEX = re.compile(br'''
+\A
+(?P<slashes> [\r\n\t]* (?:[/\\][\r\n\t]*){2} )
+(?P<host> [^/\\]* )
+(?P<path> [/\\] .* )?
+\Z
 ''', re.VERBOSE | re.DOTALL)
 
 AUTHORITY_REGEX = re.compile(br'''
@@ -197,51 +211,36 @@ def parse_pathish(url, pathish):
     Parses "pathish", which is the section of the url after the scheme,
     including the authority, if any, and populates fields of "url".
     '''
-    scheme = canon.Canonicalizer.TAB_AND_NEWLINE_REGEX.sub(
+    clean_scheme = canon.Canonicalizer.TAB_AND_NEWLINE_REGEX.sub(
             b'', url.scheme).lower()
-    if scheme in urlcanon.SPECIAL_SCHEMES:
-        pathsegpairs = (
-            n.groups() for n in SPECIAL_PATHISH_SEGMENT_REGEX.finditer(pathish))
-    else:
-        pathsegpairs = (n.groups() for n in
-                        NONSPECIAL_PATHISH_SEGMENT_REGEX.finditer(pathish))
-    # flatten the list
-    pathish_components = [
-            slashes_or_segment for pathsegpair in pathsegpairs
-            for slashes_or_segment in pathsegpair]
-    if scheme == b'file' and re.match(
-            br'^([\n\t]*[/\\][\n\t]*){2}$', pathish_components[0]):
-        # file://foo/bar -- "foo" is host but not parsed as full authority
-        url.slashes = pathish_components[0]
-        url.host = pathish_components[1]
-        url.path = b''.join(pathish_components[2:])
-    elif scheme == b'file':
-        m = re.match(
-                br'^(([\n\t]*[/\\][\n\t]*){2}).*$', pathish_components[0])
-        if m:
-            # m.group(1) is first 2 slashes plus \n\t junk
-            url.slashes = pathish_components[0][:len(m.group(1))]
-            url.path = b''.join(
-                    [pathish_components[0][len(m.group(1)):]]
-                    + pathish_components[1:])
+    if clean_scheme == b'file':
+        m = FILE_PATHISH_REGEX.match(pathish)
+        if m:  # file://host/path...
+            url.slashes = m.group('slashes')
+            url.host = m.group('host')
+            url.path = m.group('path')
         else:
-            url.path = b''.join(pathish_components)
-    elif scheme in urlcanon.SPECIAL_SCHEMES or re.match(
-            br'^([\n\t]*/[\n\t]*){2}$', pathish_components[0]):
-        # http:foo/bar http:/\/\/foo/bar nonspecial://foo/bar
-        url.slashes = pathish_components[0]
-        m = AUTHORITY_REGEX.match(pathish_components[1])
-        url.username = m.group('username') or b''
-        url.colon_before_password = m.group('colon_before_password') or b''
-        url.password = m.group('password') or b''
-        url.at_sign = m.group('at_sign') or b''
-        url.host = m.group('host') or b''
-        url.ip4, url.ip6 = parse_ipv4or6(url.host)
-        url.colon_before_port = m.group('colon_before_port') or b''
-        url.port = m.group('port') or b''
-        url.path = b''.join(pathish_components[2:])
-    else: # no authority
-        url.path = pathish
+            url.path = pathish
+    else:
+        if clean_scheme in urlcanon.SPECIAL_SCHEMES:
+            m = SPECIAL_PATHISH_REGEX.match(pathish)
+        else:
+            m = NONSPECIAL_PATHISH_REGEX.match(pathish)
+
+        if m:
+            url.slashes = m.group('slashes')
+            url.path = m.group('path')
+            m = AUTHORITY_REGEX.match(m.group('authority'))
+            url.username = m.group('username') or b''
+            url.colon_before_password = m.group('colon_before_password') or b''
+            url.password = m.group('password') or b''
+            url.at_sign = m.group('at_sign') or b''
+            url.host = m.group('host') or b''
+            url.ip4, url.ip6 = parse_ipv4or6(url.host)
+            url.colon_before_port = m.group('colon_before_port') or b''
+            url.port = m.group('port') or b''
+        else: # no authority
+            url.path = pathish
 
     return url
 
