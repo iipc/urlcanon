@@ -204,7 +204,7 @@ class WhatwgCanonicalizer implements Canonicalizer {
     public static void punycode(ParsedUrl url) {
         // TODO: IDNA2008? https://bugs.openjdk.java.net/browse/JDK-6988055
         String ascii = IDN.toASCII(url.getHost().toString(), IDN.ALLOW_UNASSIGNED);
-        url.setHost(new ByteString(ascii));
+        url.setHost(new ByteString(ascii.toLowerCase()));
     }
 
     public void canonicalize(ParsedUrl url) {
