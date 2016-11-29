@@ -56,7 +56,7 @@
     "https://www.securesite.com/": "https://www.securesite.com/",
     "www.google.com": "www.google.com",
     "www.google.com/": "www.google.com/",
-    "file://%": "file://%",
+    "file://%": "file://%/",
     "file://%/a/b": "file://%/a/b",
     "file:///%": "file:///%",
     "foo://%": "foo://%",
@@ -70,7 +70,6 @@
     "http://abc/": "http://abc/",
     "file:/%": "file://%",
     "file:/%/a/b": "file:///%/a/b",
-    "file://%": "file:///%",
     "foo:/%": "foo://%",
     "foo:/%///": "foo://%///",
     "foo://%": "foo:///%",
@@ -80,8 +79,8 @@
     "http:/%2561%2562%2563/": "http://%2561%2562%2563/",
     "http:/%61%62%63/": "http://abc/",
     "http:/abc/": "http://abc/",
-    "file:%": "file://%",
-    "file:%/a/b": "file://%/a/b",
+    "file:%": "file:///%",
+    "file:%/a/b": "file:///%/a/b",
     "file:/%": "file:///%",
     "foo:%": "foo://%",
     "foo:%///": "foo://%///",
@@ -127,5 +126,9 @@
     "nonspecial://%2e%2e%2e/a/b": "nonspecial://0.0.0.0/a/b",
     "nonspecial:///%2e/a/b": "nonspecial:///a/b",
     "nonspecial:///%2e%2e/a/b": "nonspecial:///a/b",
-    "nonspecial:///%2e%2e%2e/a/b": "nonspecial:///.../a/b"
+    "nonspecial:///%2e%2e%2e/a/b": "nonspecial:///.../a/b",
+    "http://@host/a/b": "http://@host/a/b",
+    "http://@@host/a/b": "http://%40@host/a/b",
+    "http://@:@@host/a/b": "http://%40:%40@host/a/b",
+    "http://@ho@st/a/b": "http://@ho%40st/a/b"
 }

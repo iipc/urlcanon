@@ -208,7 +208,7 @@ def load_our_whatwg_test_data():
         'supplemental_whatwg.json')
     with open(path, 'rb') as f:
         jb = load_json_bytes(f.read())
-    return jb.items()
+    return sorted(jb.items())
 
 @pytest.mark.parametrize(
         'uncanonicalized,canonicalized', load_our_whatwg_test_data())
