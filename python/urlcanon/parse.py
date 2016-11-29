@@ -52,7 +52,7 @@ SPECIAL_PATHISH_REGEX = re.compile(br'''
 \A
 (?P<slashes> [/\\\r\n\t]* )
 (?P<authority> [^/\\]* )
-(?P<path> [/\\] .* )
+(?P<path> [/\\] .* )?
 \Z
 ''', re.VERBOSE | re.DOTALL)
 
@@ -216,9 +216,9 @@ def parse_pathish(url, pathish):
     if clean_scheme == b'file':
         m = FILE_PATHISH_REGEX.match(pathish)
         if m:  # file://host/path...
-            url.slashes = m.group('slashes')
-            url.host = m.group('host')
-            url.path = m.group('path')
+            url.slashes = m.group('slashes') or b''
+            url.host = m.group('host') or b''
+            url.path = m.group('path') or b''
         else:
             url.path = pathish
     else:
@@ -228,8 +228,8 @@ def parse_pathish(url, pathish):
             m = NONSPECIAL_PATHISH_REGEX.match(pathish)
 
         if m:
-            url.slashes = m.group('slashes')
-            url.path = m.group('path')
+            url.slashes = m.group('slashes') or b''
+            url.path = m.group('path') or b''
             m = AUTHORITY_REGEX.match(m.group('authority'))
             url.username = m.group('username') or b''
             url.colon_before_password = m.group('colon_before_password') or b''

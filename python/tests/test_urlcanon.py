@@ -177,7 +177,7 @@ def load_parsing():
             'parsing.json')
     with open(path, 'rb') as f:
         inputs = load_json_bytes(f.read())
-        return inputs.items()
+        return sorted(inputs.items())
 
 @pytest.mark.parametrize("input,parsed_fields", load_parsing())
 def test_parsing(input, parsed_fields):
