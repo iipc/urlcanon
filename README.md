@@ -1,6 +1,8 @@
 urlcanon
 ========
 
+[![Build Status](https://travis-ci.org/iipc/urlcanon.svg?branch=master)](https://travis-ci.org/iipc/urlcanon)
+
 A URL canonicalization (normalization) library for Python and Java.
 
 It currently provides:
