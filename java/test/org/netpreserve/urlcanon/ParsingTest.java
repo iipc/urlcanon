@@ -63,7 +63,7 @@ public class ParsingTest {
 
     @Test
     public void test() throws IOException {
-        ParsedUrl url = ParsedUrl.parse(input);
+        ParsedUrl url = ParsedUrl.parseUrl(input);
         assertEquals("at_sign", expected.at_sign, url.getAtSign().toString());
         assertEquals("colon_after_scheme", expected.colon_after_scheme, url.getColonAfterScheme().toString());
         assertEquals("colon_before_password", expected.colon_before_password, url.getColonBeforePassword().toString());

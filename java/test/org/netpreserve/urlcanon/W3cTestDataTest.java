@@ -75,7 +75,7 @@ public class W3cTestDataTest {
 
     @Test
     public void test() throws IOException {
-        ParsedUrl url = ParsedUrl.parse(test.input);
+        ParsedUrl url = ParsedUrl.parseUrl(test.input);
         Canonicalizer.WHATWG.canonicalize(url);
 
         assertEquals("scheme of " + test.input, test.protocol, url.getScheme().toString() + url.getColonAfterScheme().toString());

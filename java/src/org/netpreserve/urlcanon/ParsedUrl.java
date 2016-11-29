@@ -126,15 +126,15 @@ public class ParsedUrl {
     private ParsedUrl() {
     }
 
-    public static ParsedUrl parse(String s) {
-        return parse(new ByteString(s));
+    public static ParsedUrl parseUrl(String s) {
+        return parseUrl(new ByteString(s));
     }
 
-    public static ParsedUrl parse(byte[] bytes) {
-        return parse(new ByteString(bytes));
+    public static ParsedUrl parseUrl(byte[] bytes) {
+        return parseUrl(new ByteString(bytes));
     }
 
-    public static ParsedUrl parse(ByteString input) {
+    public static ParsedUrl parseUrl(ByteString input) {
         ParsedUrl url = new ParsedUrl();
 
         // "leading and trailing C0 controls and space"
