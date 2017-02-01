@@ -29,7 +29,7 @@ public class ByteStringBuilder {
     byte[] data;
     int length;
 
-    ByteStringBuilder(int capacity) {
+    public ByteStringBuilder(int capacity) {
         data = new byte[capacity];
         length = 0;
     }
