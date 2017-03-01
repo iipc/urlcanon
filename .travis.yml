@@ -6,7 +6,6 @@ matrix:
   - python: 3.6-dev
   - python: pypy3
   - language: java
-    jdk: oraclejdk7
   include:
   - python: 3.5
   - python: 3.4
