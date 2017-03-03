@@ -56,13 +56,4 @@ class CharSequences {
             return input.subSequence(start, matcher.end(group));
         }
     }
-
-    static ByteString group(ByteString input, Matcher matcher, String group) {
-        int start = matcher.start(group);
-        if (start == -1) {
-            return ByteString.EMPTY;
-        } else {
-            return input.subSequence(start, matcher.end(group));
-        }
-    }
 }

@@ -35,55 +35,79 @@ public class ParsedUrl {
 
     private final static Pattern URL_REGEX = Pattern.compile(("\\A" +
             "(?:" +
-            "   (?<scheme> [a-zA-Z] [^:]* )" +
-            "   (?<colonAfterScheme> : )" +
+            "   ( [a-zA-Z] [^:]* )" + // SCHEME
+            "   ( : )" + // COLON_AFTER_SCHEME
             ")?" +
-            "(?<pathish>" +
-            "  ( [/\\\\]* [^/\\\\?#]* )*" +
+            "(" + // PATHISH
+            "  (?: [/\\\\]* [^/\\\\?#]* )*" +
             ")" +
             "(?:" +
-            "  (?<questionMark> [?] )" +
-            "  (?<query> [^#]* )" +
+            "  ( [?] )" + // QUESTION_MARK
+            "  ( [^#]* )" + // QUERY
             ")?" +
             "(?:" +
-            "  (?<hashSign> [#] )" +
-            "  (?<fragment> .* )" +
+            "  ( [#] )" + // HASH_SIGN
+            "  ( .* )" + // FRAGMENT
             ")?" +
             "\\Z").replace(" ", ""), DOTALL);
 
+    // capturing group indices for URL_REGEX
+    private final static int URL_GROUP_SCHEME = 1;
+    private final static int URL_GROUP_COLON_AFTER_SCHEME = 2;
+    private final static int URL_GROUP_PATHISH = 3;
+    private final static int URL_GROUP_QUESTION_MARK = 4;
+    private final static int URL_GROUP_QUERY = 5;
+    private final static int URL_GROUP_HASH_SIGN = 6;
+    private final static int URL_GROUP_FRAGMENT = 7;
+
     private final static Pattern SPECIAL_PATHISH_REGEX = Pattern.compile(("" +
-            "(?<slashes> [/\\\\\\r\\n\\t]* )" +
-            "(?<authority> [^/\\\\]* )" +
-            "(?<path> [/\\\\] .* )?"
+            "( [/\\\\\\r\\n\\t]* )" + // SLASHES
+            "( [^/\\\\]* )" + // AUTHORITY
+            "( [/\\\\] .* )?" // PATH
     ).replace(" ", ""), DOTALL);
 
     private final static Pattern NONSPECIAL_PATHISH_REGEX = Pattern.compile(("" +
-            "(?<slashes> [\\r\\n\\t]* (?:/[\\r\\n\\t]*){2} )" +
-            "(?<authority> [^/]* )" +
-            "(?<path> / .* )?"
+            "( [\\r\\n\\t]* (?:/[\\r\\n\\t]*){2} )" + // SLASHES
+            "( [^/]* )" + // AUTHORITY
+            "( / .* )?" // PATH
     ).replace(" ", ""), DOTALL);
 
     private final static Pattern FILE_PATHISH_REGEX = Pattern.compile(("" +
-            "(?<slashes> [\\r\\n\\t]* (?:[/\\\\][\\r\\n\\t]*){2} )" +
-            "(?<host> [^/\\\\]* )" +
-            "(?<path> [/\\\\] .* )?"
+            "( [\\r\\n\\t]* (?:[/\\\\][\\r\\n\\t]*){2} )" + // SLASHES
+            "( [^/\\\\]* )" + // HOST
+            "( [/\\\\] .* )?" // PATH
     ).replace(" ", ""), DOTALL);
+
+    // capturing group indices for {SPECIAL,NONSPECIAL,FILE}_PATHISH_REGEX
+    private final static int PATHISH_GROUP_SLASHES = 1;
+    private final static int PATHISH_GROUP_HOST = 2;
+    private final static int PATHISH_GROUP_AUTHORITY = 2;
+    private final static int PATHISH_GROUP_PATH = 3;
 
     private final static Pattern AUTHORITY_REGEX = Pattern.compile(("\\A" +
             "(?:" +
-            "   (?<username> [^:@]* )" +
-            "   (" +
-            "     (?<colonBeforePassword> : )" +
-            "     (?<password> [^@]* )" +
+            "   ( [^:@]* )" + // USERNAME
+            "   (?:" +
+            "     ( : )" + // COLON_BEFORE_PASSWORD
+            "     ( [^@]* )" + // PASSWORD
             "   )?" +
-            "   (?<atSign> @ )" +
+            "   ( @ )" + // AT_SIGN
             ")?" +
-            "(?<host> [^:]* )" +
+            "( [^:]* )" + // HOST
             "(?:" +
-            "  (?<colonBeforePort> : )" +
-            "  (?<port> .* )" +
+            "  ( : )" + // COLON_BEFORE_PORT
+            "  ( .* )" + // PORT
             ")?" +
             "\\Z").replace(" ", ""), DOTALL);
+
+    // capturing group indices for AUTHORITY_REGEX
+    private final static int AUTHORITY_GROUP_USERNAME = 1;
+    private final static int AUTHORITY_GROUP_COLON_BEFORE_PASSWORD = 2;
+    private final static int AUTHORITY_GROUP_PASSWORD = 3;
+    private final static int AUTHORITY_GROUP_AT_SIGN = 4;
+    private final static int AUTHORITY_GROUP_HOST = 5;
+    private final static int AUTHORITY_GROUP_COLON_BEFORE_PORT = 6;
+    private final static int AUTHORITY_GROUP_PORT = 7;
 
     private final static Pattern TAB_AND_NEWLINE_REGEX = Pattern.compile("[\\x09\\x0a\\x0d]");
 
@@ -157,12 +181,12 @@ public class ParsedUrl {
         // parse url
         m = URL_REGEX.matcher(input);
         if (m.matches()) {
-            url.scheme = CharSequences.group(input, m, "scheme");
-            url.colonAfterScheme = CharSequences.group(input, m, "colonAfterScheme");
-            url.questionMark = CharSequences.group(input, m, "questionMark");
-            url.query = CharSequences.group(input, m, "query");
-            url.hashSign = CharSequences.group(input, m, "hashSign");
-            url.fragment = CharSequences.group(input, m, "fragment");
+            url.scheme = CharSequences.group(input, m, URL_GROUP_SCHEME);
+            url.colonAfterScheme = CharSequences.group(input, m, URL_GROUP_COLON_AFTER_SCHEME);
+            url.questionMark = CharSequences.group(input, m, URL_GROUP_QUESTION_MARK);
+            url.query = CharSequences.group(input, m, URL_GROUP_QUERY);
+            url.hashSign = CharSequences.group(input, m, URL_GROUP_HASH_SIGN);
+            url.fragment = CharSequences.group(input, m, URL_GROUP_FRAGMENT);
         } else {
             throw new AssertionError("URL_REGEX didn't match");
         }
@@ -172,14 +196,14 @@ public class ParsedUrl {
 
         // we parse the authority + path into "pathish" initially so that we can
         // correctly handle file: urls
-        ByteString pathish = CharSequences.group(input, m, "pathish");
+        ByteString pathish = CharSequences.group(input, m, URL_GROUP_PATHISH);
 
         if (cleanScheme.equalsIgnoreCase("file")) {
             m = FILE_PATHISH_REGEX.matcher(pathish);
             if (m.matches()) { // file: with host
-                url.slashes = CharSequences.group(pathish, m, "slashes");
-                url.host = CharSequences.group(pathish, m, "host");
-                url.path = CharSequences.group(pathish, m, "path");
+                url.slashes = CharSequences.group(pathish, m, PATHISH_GROUP_SLASHES);
+                url.host = CharSequences.group(pathish, m, PATHISH_GROUP_HOST);
+                url.path = CharSequences.group(pathish, m, PATHISH_GROUP_PATH);
 
             } else { // file: without host
                 url.slashes = ByteString.EMPTY;
@@ -198,9 +222,9 @@ public class ParsedUrl {
             // not file:
             m = (special ? SPECIAL_PATHISH_REGEX : NONSPECIAL_PATHISH_REGEX).matcher(pathish);
             if (m.matches()) {
-                ByteString slashes = CharSequences.group(pathish, m, "slashes");
-                ByteString authority = CharSequences.group(pathish, m, "authority");
-                ByteString path = CharSequences.group(pathish, m, "path");
+                ByteString slashes = CharSequences.group(pathish, m, PATHISH_GROUP_SLASHES);
+                ByteString authority = CharSequences.group(pathish, m, PATHISH_GROUP_AUTHORITY);
+                ByteString path = CharSequences.group(pathish, m, PATHISH_GROUP_PATH);
 
                 url.slashes = slashes;
                 url.path = path;
@@ -208,13 +232,13 @@ public class ParsedUrl {
                 // parse the authority
                 m = AUTHORITY_REGEX.matcher(authority);
                 if (m.matches()) {
-                    url.username = CharSequences.group(authority, m, "username");
-                    url.colonBeforePassword = CharSequences.group(authority, m, "colonBeforePassword");
-                    url.password = CharSequences.group(authority, m, "password");
-                    url.atSign = CharSequences.group(authority, m, "atSign");
-                    url.host = CharSequences.group(authority, m, "host");
-                    url.colonBeforePort = CharSequences.group(authority, m, "colonBeforePort");
-                    url.port = CharSequences.group(authority, m, "port");
+                    url.username = CharSequences.group(authority, m, AUTHORITY_GROUP_USERNAME);
+                    url.colonBeforePassword = CharSequences.group(authority, m, AUTHORITY_GROUP_COLON_BEFORE_PASSWORD);
+                    url.password = CharSequences.group(authority, m, AUTHORITY_GROUP_PASSWORD);
+                    url.atSign = CharSequences.group(authority, m, AUTHORITY_GROUP_AT_SIGN);
+                    url.host = CharSequences.group(authority, m, AUTHORITY_GROUP_HOST);
+                    url.colonBeforePort = CharSequences.group(authority, m, AUTHORITY_GROUP_COLON_BEFORE_PORT);
+                    url.port = CharSequences.group(authority, m, AUTHORITY_GROUP_PORT);
                 } else {
                     throw new AssertionError("AUTHORITY_REGEX didn't match");
                 }
