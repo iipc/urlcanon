@@ -111,7 +111,7 @@
     "file:/%2e%2e%2e/a/b": "file:///.../a/b",
     "file://%2e/a/b": "file://0.0.0.0/a/b",
     "file://%2e%2e/a/b": "file://0.0.0.0/a/b",
-    "file://%2e%2e%2e/a/b": "file://0.0.0.0/a/b",
+    "file://%2e%2e%2e/a/b": "file://.../a/b",
     "file:///%2e/a/b": "file:///a/b",
     "file:///%2e%2e/a/b": "file:///a/b",
     "file:///%2e%2e%2e/a/b": "file:///.../a/b",
@@ -130,5 +130,8 @@
     "http://@host/a/b": "http://@host/a/b",
     "http://@@host/a/b": "http://%40@host/a/b",
     "http://@:@@host/a/b": "http://%40:%40@host/a/b",
-    "http://@ho@st/a/b": "http://@ho%40st/a/b"
+    "http://@ho@st/a/b": "http://@ho%40st/a/b",
+    "http://x:3000.cu": "http://x:3000.cu",
+    "lolscheme:x x#x x": "lolscheme:x x#x x",
+    "lolscheme:/x x#x x": "lolscheme:/x%20x#x x"
 }

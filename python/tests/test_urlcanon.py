@@ -2,7 +2,7 @@
 '''
 test_urlcanon.py - unit tests for the urlcanon package
 
-Copyright (C) 2016 Internet Archive
+Copyright (C) 2016-2017 Internet Archive
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -140,8 +140,7 @@ def test_resolve_path_dots(unresolved, is_special, expected):
 
 def load_w3c_test_data():
     path = os.path.join(
-        os.path.dirname(__file__), '..', '..', 'testdata',
-        'urltestdata.json')
+        os.path.dirname(__file__), '..', '..', 'testdata', 'urltestdata.json')
     with open(path, 'rb') as f:
         # load_json_bytes doesn't work for urltestdata.json because it contains
         # unicode character escapes beyond \u00ff such as \u0300
@@ -166,7 +165,7 @@ def test_w3c_test_data(input, href, test):
     assert test['hostname'].encode('utf-8') == url.host
     assert test['pathname'].encode('utf-8') == url.path
     assert test['search'].encode('utf-8') == (
-            url.question_mark + url.query)
+            url.query and (url.question_mark + url.query) or b'')
     assert test['hash'].encode('utf-8') == (
             url.fragment and (url.hash_sign + url.fragment) or b'')
     assert test['href'] == unicode(url)

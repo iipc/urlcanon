@@ -82,7 +82,7 @@ AUTHORITY_REGEX = re.compile(br'''
    )?
    (?P<at_sign> @ )
 )?
-(?P<host> [^:]* )
+(?P<host> \[[^]]*\] | [^:]* )
 (?:
   (?P<colon_before_port> : )
   (?P<port> .* )
@@ -147,8 +147,11 @@ class ParsedUrl:
 
 def parse_ipv4(host):
     def _parse_num(s):
-        if len(s) >= 3 and s[:2] in (b'0x', b'0X', '0x', '0X'):
-            return int(s[2:], base=16)
+        if len(s) >= 2 and s[:2] in (b'0x', b'0X', '0x', '0X'):
+            if len(s) >= 3:
+                return int(s[2:], base=16)
+            else:
+                return 0
         elif len(s) >= 2 and s[:1] in (b'0', '0'):
             return int(s[1:], base=8)
         else:
@@ -197,9 +200,9 @@ def parse_ipv4or6(host):
     two will have a value. Follows WHATWG rules rules for parsing, which are
     intended to match browser behavior.
     '''
-    if host and host[0] == b'[' and host[-1] == b']':
+    if host and host[:1] == b'[' and host[-1:] == b']':
         try:
-            ip6 = ipaddress.IPv6Address(host.decode('utf-8'))
+            ip6 = ipaddress.IPv6Address(host.decode('utf-8')[1:-1])
             return None, int(ip6)
         except:
             return None, None
@@ -230,7 +233,8 @@ def parse_pathish(url, pathish):
         if m:
             url.slashes = m.group('slashes') or b''
             url.path = m.group('path') or b''
-            m = AUTHORITY_REGEX.match(m.group('authority'))
+            authority = m.group('authority')
+            m = AUTHORITY_REGEX.match(authority)
             url.username = m.group('username') or b''
             url.colon_before_password = m.group('colon_before_password') or b''
             url.password = m.group('password') or b''

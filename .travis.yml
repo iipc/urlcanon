@@ -3,22 +3,21 @@ language: python
 matrix:
   allow_failures:
   - python: nightly
-  - python: 3.6-dev
   - python: pypy3
   - language: java
   include:
+  - python: 3.6
   - python: 3.5
   - python: 3.4
   - python: 2.7
   - python: pypy
   - python: pypy3
-  - python: 3.6-dev
+  - python: 3.7-dev
   - python: nightly
   - language: java
     jdk: oraclejdk8
   - language: java
     jdk: oraclejdk7
-
 
 before_script:
 - if [ $TRAVIS_LANGUAGE == python ]; then pip install . pytest; fi
@@ -26,5 +25,5 @@ before_script:
 script:
 - case $TRAVIS_LANGUAGE in
   java) mvn test ;;
-  python) py.test -v -s python/tests ;; 
+  python) py.test -v -s python/tests ;;
   esac
