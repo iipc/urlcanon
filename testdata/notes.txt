@@ -1,0 +1,18 @@
+This library handles accepts all input, but WHATWG returns "failure" for some.
+Here are some examples. It's not clear what the desired WHATWG canonicalization
+should be. Add unit tests for these if/when we figure that out.
+
+http://%%300/
+http:%%300/
+http:%00%01
+http:%2561%2562%2563/
+http:/%%300/
+http:/%00%01
+http:/%2561%2562%2563
+http://\x01\x80.com/
+http:// leadingspace.com/
+http://%00%01
+http://%20leadingspace.com/
+http://%2561%2562%2563/
+http://host%23.com/%257Ea%2521b%2540c%2523d%2524e%25f%255E00%252611%252A22%252833%252944_55%252B
+http://x:3000.cu

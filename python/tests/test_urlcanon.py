@@ -63,8 +63,7 @@ def test_parser_idempotence():
 
 def load_funky_ipv4_data():
     path = os.path.join(
-        os.path.dirname(__file__), '..', '..', 'testdata',
-        'funky_ipv4.json')
+        os.path.dirname(__file__), '..', '..', 'testdata', 'funky_ipv4.json')
     with open(path, 'rb') as f:
         inputs = load_json_bytes(f.read())
         return [(unresolved, inputs[unresolved]) for unresolved in inputs]
@@ -154,9 +153,8 @@ def is_absolute_url_test(test):
 
 @pytest.mark.parametrize("input,href,test", load_w3c_test_data())
 def test_w3c_test_data(input, href, test):
-    canon = urlcanon.Canonicalizer.WHATWG
     url = urlcanon.parse_url(input)
-    canon(url)
+    urlcanon.Canonicalizer.WHATWG(url)
     assert test['protocol'].encode('utf-8') == (
             url.scheme + url.colon_after_scheme)
     assert test['username'].encode('utf-8') == url.username

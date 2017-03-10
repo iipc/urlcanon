@@ -75,10 +75,10 @@ FILE_PATHISH_REGEX = re.compile(br'''
 AUTHORITY_REGEX = re.compile(br'''
 \A
 (?:
-   (?P<username> [^:@]* )
+   (?P<username> [^:]* )
    (
      (?P<colon_before_password> : )
-     (?P<password> [^@]* )
+     (?P<password> .* )
    )?
    (?P<at_sign> @ )
 )?
@@ -154,6 +154,8 @@ def parse_ipv4(host):
                 return 0
         elif len(s) >= 2 and s[:1] in (b'0', '0'):
             return int(s[1:], base=8)
+        elif len(s) == 0:
+            return 0
         else:
             return int(s)
 

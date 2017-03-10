@@ -24,6 +24,7 @@ try:
 except ImportError:
     from urllib import unquote as urllib_pct_decode
 import idna
+import encodings.idna as idna2003
 
 class Canonicalizer:
     def __init__(self, steps):
@@ -146,20 +147,19 @@ class Canonicalizer:
         url.path = Canonicalizer.resolve_path_dots(
                 url.path, special=url.scheme in urlcanon.SPECIAL_SCHEMES)
 
-    PCT2E_REGEX = re.compile(br'%2e', re.IGNORECASE)
-    @staticmethod
-    def decode_path_2e(url):
-        url.path = Canonicalizer.PCT2E_REGEX.sub(b'.', url.path)
-
     # > The C0 control percent-encode set are C0 controls and all code points
     # > greater than U+007E.
-    C0_ENCODE_REGEX = re.compile(br'[\x00-\x1f\x7f-\xff]')
+    C0_ENCODE_RE = re.compile(br'[\x00-\x1f\x7f-\xff]')
     # > The path percent-encode set is the C0 control percent-encode set and
     # > code points U+0020, '"', "#", "<", ">", "?", "`", "{", and "}".
-    DEFAULT_ENCODE_REGEX = re.compile(br'[\x00-\x20\x7f-\xff"#<>?`{}]')
+    PATH_ENCODE_RE = re.compile(br'[\x00-\x20\x7f-\xff"#<>?`{}]')
     # > If byte is less than 0x21, greater than 0x7E, or is 0x22, 0x23, 0x3C,
     # > or 0x3E, append byte, percent encoded, to url's query.
-    QUERY_ENCODE_REGEX = re.compile(br'[\x00-\x20\x22\x23\x3c\x3e\x7f-\xff]')
+    QUERY_ENCODE_RE = re.compile(br'[\x00-\x20\x22\x23\x3c\x3e\x7f-\xff]')
+    # > The userinfo percent-encode set is the path percent-encode set and code
+    # > points "/", ":", ";", "=", "@", "[", "\", "]", "^", and "|".
+    USERINFO_ENCODE_RE = re.compile(
+            br'[\x00-\x20\x7f-\xff"#<>?`{}/:;=@\[\\\]\^\|]')
 
     @staticmethod
     def pct_encode(bs, encode_re):
@@ -176,26 +176,33 @@ class Canonicalizer:
     def pct_encode_path(url):
         # "cannot-be-a-base-URL path state" vs "path state" encodings differ
         if url.path[:1] == b'/' or url.scheme in urlcanon.SPECIAL_SCHEMES:
-            encode_re = Canonicalizer.DEFAULT_ENCODE_REGEX
+            encode_re = Canonicalizer.PATH_ENCODE_RE
         else:
-            encode_re = Canonicalizer.C0_ENCODE_REGEX
+            encode_re = Canonicalizer.C0_ENCODE_RE
         url.path = Canonicalizer.pct_encode(url.path, encode_re)
+
+    @staticmethod
+    def pct_encode_userinfo(url):
+        url.username = Canonicalizer.pct_encode(
+                url.username, Canonicalizer.USERINFO_ENCODE_RE)
+        url.password = Canonicalizer.pct_encode(
+                url.password, Canonicalizer.USERINFO_ENCODE_RE)
 
     @staticmethod
     def pct_encode_fragment(url):
         url.fragment = Canonicalizer.pct_encode(
-                url.fragment, Canonicalizer.C0_ENCODE_REGEX)
+                url.fragment, Canonicalizer.C0_ENCODE_RE)
 
     @staticmethod
     def pct_encode_query(url):
         url.query = Canonicalizer.pct_encode(
-                url.query, Canonicalizer.QUERY_ENCODE_REGEX)
+                url.query, Canonicalizer.QUERY_ENCODE_RE)
 
     @staticmethod
     def pct_encode_nonspecial_host(url):
         if url.host and not url.scheme in urlcanon.SPECIAL_SCHEMES:
             url.host = Canonicalizer.pct_encode(
-                    url.host, Canonicalizer.C0_ENCODE_REGEX)
+                    url.host, Canonicalizer.C0_ENCODE_RE)
 
     @staticmethod
     def empty_path_to_slash(url):
@@ -239,12 +246,20 @@ class Canonicalizer:
     @staticmethod
     def punycode_special_host(url):
         if url.host and url.scheme in urlcanon.SPECIAL_SCHEMES:
+            # https://github.com/kjd/idna/issues/40#issuecomment-285496926
             try:
-                # IDNA2008
                 url.host = idna.encode(url.host.decode('utf-8'), uts46=True)
-            except (idna.IDNAError, UnicodeDecodeError):
-                # try IDNA2003
-                url.host = url.host.decode('utf-8').encode('idna')
+            except:
+                try:
+                    remapped = idna.uts46_remap(url.host.decode('utf-8'))
+                    labels = remapped.split('.')
+                    punycode_labels = [
+                            idna2003.ToASCII(label) for label in labels]
+                    url.host = b'.'.join(punycode_labels)
+                except:
+                    # if all idn stuff fails fall back on pct-encoding
+                    url.host = Canonicalizer.pct_encode(
+                            url.host, Canonicalizer.C0_ENCODE_RE)
 
     @staticmethod
     def leading_slash(url):
@@ -344,6 +359,7 @@ Canonicalizer.WHATWG = Canonicalizer([
     Canonicalizer.leading_slash,
     Canonicalizer.normalize_path_dots,
     Canonicalizer.empty_path_to_slash,
+    Canonicalizer.pct_encode_userinfo,
     Canonicalizer.pct_encode_query,
     Canonicalizer.pct_encode_fragment,
 ])
