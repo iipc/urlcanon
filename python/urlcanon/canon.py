@@ -34,6 +34,8 @@ class Canonicalizer:
         return self.canonicalize(url)
 
     def canonicalize(self, url):
+        if not isinstance(url, urlcanon.ParsedUrl):
+            url = urlcanon.parse_url(url)
         for step in self.steps:
             step(url)
         return url
@@ -194,11 +196,6 @@ class Canonicalizer:
                 url.fragment, Canonicalizer.C0_ENCODE_RE)
 
     @staticmethod
-    def pct_encode_query(url):
-        url.query = Canonicalizer.pct_encode(
-                url.query, Canonicalizer.QUERY_ENCODE_RE)
-
-    @staticmethod
     def pct_encode_host(url):
         url.host = Canonicalizer.pct_encode(
                 url.host, Canonicalizer.C0_ENCODE_RE)
@@ -272,41 +269,111 @@ class Canonicalizer:
         url.fragment = b''
 
     @staticmethod
-    def pct_decode_repeatedly(url):
-        def _pct_decode_repeatedly(orig):
-            if not orig:
-                return orig
-            val = orig
-            while val:
-                new_val = urllib_pct_decode(val)
-                if new_val == val:
-                    return val
-                val = new_val
-        url.scheme = _pct_decode_repeatedly(url.scheme)
-        url.username = _pct_decode_repeatedly(url.username)
-        url.password = _pct_decode_repeatedly(url.password)
-        url.host = _pct_decode_repeatedly(url.host)
-        url.port = _pct_decode_repeatedly(url.port)
-        url.path = _pct_decode_repeatedly(url.path)
-        url.query = _pct_decode_repeatedly(url.query)
+    def remove_userinfo(url):
+        url.username = b''
+        url.colon_before_password = b''
+        url.password = b''
+        url.at_sign = b''
+
+    @staticmethod
+    def _pct_decode_repeatedly(orig):
+        if not orig:
+            return orig
+        val = orig
+        while val:
+            new_val = urllib_pct_decode(val)
+            if new_val == val:
+                return val
+            val = new_val
+
+    @staticmethod
+    def pct_decode_repeatedly(url, skip_query=False):
+        url.scheme = Canonicalizer._pct_decode_repeatedly(url.scheme)
+        url.username = Canonicalizer._pct_decode_repeatedly(url.username)
+        url.password = Canonicalizer._pct_decode_repeatedly(url.password)
+        url.host = Canonicalizer._pct_decode_repeatedly(url.host)
+        url.port = Canonicalizer._pct_decode_repeatedly(url.port)
+        url.path = Canonicalizer._pct_decode_repeatedly(url.path)
+        if not skip_query:
+            url.query = Canonicalizer._pct_decode_repeatedly(url.query)
+        url.fragment = Canonicalizer._pct_decode_repeatedly(url.fragment)
+
+    @staticmethod
+    def pct_decode_repeatedly_except_query(url):
+        Canonicalizer.pct_decode_repeatedly(url, True)
+
+    @staticmethod
+    def pct_encode_query(url, encode_re=QUERY_ENCODE_RE):
+        orig_parts = url.query.split(b'&')
+        canon_parts = []
+        for part in orig_parts:
+            orig_key_value = part.split(b'=', 1)
+            new_key_value = []
+            for token in orig_key_value:
+                new_key_value.append(
+                        Canonicalizer.pct_encode(token, encode_re))
+            canon_parts.append(b'='.join(new_key_value))
+        url.query = b'&'.join(canon_parts)
 
     # https://developers.google.com/safe-browsing/v4/urls-hashing
     # > In the URL, percent-escape all characters that are <= ASCII 32, >= 127,
     # > "#", or "%". The escapes should use uppercase hex characters.
-    GOOGLE_PCT_ENCODE_BYTES = re.compile(br'[\x00-\x20\x7f-\xff#%]')
+    GOOGLE_PCT_ENCODE_RE = re.compile(br'[\x00-\x20\x7f-\xff#%]')
     @staticmethod
     def google_pct_encode(url):
-        def _pct_encode(unencoded):
-            return Canonicalizer.GOOGLE_PCT_ENCODE_BYTES.sub(
-                    lambda m: ('%%%02X' % ord(m.group())).encode('ascii'),
-                    unencoded)
-        url.scheme = _pct_encode(url.scheme)
-        url.username = _pct_encode(url.username)
-        url.password = _pct_encode(url.password)
-        url.host = _pct_encode(url.host)
-        url.port = _pct_encode(url.port)
-        url.path = _pct_encode(url.path)
-        url.query = _pct_encode(url.query)
+        url.scheme = Canonicalizer.pct_encode(
+                url.scheme, Canonicalizer.GOOGLE_PCT_ENCODE_RE)
+        url.username = Canonicalizer.pct_encode(
+                url.username, Canonicalizer.GOOGLE_PCT_ENCODE_RE)
+        url.password = Canonicalizer.pct_encode(
+                url.password, Canonicalizer.GOOGLE_PCT_ENCODE_RE)
+        url.host = Canonicalizer.pct_encode(
+                url.host, Canonicalizer.GOOGLE_PCT_ENCODE_RE)
+        url.port = Canonicalizer.pct_encode(
+                url.port, Canonicalizer.GOOGLE_PCT_ENCODE_RE)
+        url.path = Canonicalizer.pct_encode(
+                url.path, Canonicalizer.GOOGLE_PCT_ENCODE_RE)
+        Canonicalizer.pct_encode_query(url, Canonicalizer.GOOGLE_PCT_ENCODE_RE)
+        url.fragment = Canonicalizer.pct_encode(
+                url.fragment, Canonicalizer.GOOGLE_PCT_ENCODE_RE)
+
+    LESS_DUMB_USERINFO_ENCODE_RE = re.compile(br'[\x00-\x20\x7f-\xff#%:@]')
+    LESS_DUMB_PATH_ENCODE_RE = re.compile(br'[\x00-\x20\x7f-\xff#%?]')
+    @staticmethod
+    def less_dumb_pct_encode(url):
+        url.scheme = Canonicalizer.pct_encode(
+                url.scheme, Canonicalizer.GOOGLE_PCT_ENCODE_RE)
+        url.username = Canonicalizer.pct_encode(
+                url.username, Canonicalizer.LESS_DUMB_USERINFO_ENCODE_RE)
+        url.password = Canonicalizer.pct_encode(
+                url.password, Canonicalizer.LESS_DUMB_USERINFO_ENCODE_RE)
+        url.host = Canonicalizer.pct_encode(
+                url.host, Canonicalizer.GOOGLE_PCT_ENCODE_RE)
+        url.port = Canonicalizer.pct_encode(
+                url.port, Canonicalizer.GOOGLE_PCT_ENCODE_RE)
+        url.path = Canonicalizer.pct_encode(
+                url.path, Canonicalizer.LESS_DUMB_PATH_ENCODE_RE)
+        url.fragment = Canonicalizer.pct_encode(
+                url.fragment, Canonicalizer.GOOGLE_PCT_ENCODE_RE)
+
+    LESS_DUMB_QUERY_ENCODE_RE = re.compile(br'[\x00-\x20\x7f-\xff#%&=]')
+    @staticmethod
+    def less_dumb_pct_recode_query(url):
+        if not url.query:
+            return
+        # if b'%26' in url.query:
+        #     import pdb; pdb.set_trace()
+        orig_parts = url.query.split(b'&')
+        canon_parts = []
+        for part in orig_parts:
+            orig_key_value = part.split(b'=', 1)
+            new_key_value = []
+            for token in orig_key_value:
+                unescaped_token = Canonicalizer._pct_decode_repeatedly(token)
+                new_key_value.append(Canonicalizer.pct_encode(
+                    unescaped_token, Canonicalizer.LESS_DUMB_QUERY_ENCODE_RE))
+            canon_parts.append(b'='.join(new_key_value))
+        url.query = b'&'.join(canon_parts)
 
     @staticmethod
     def reparse_host(url):
@@ -322,7 +389,8 @@ class Canonicalizer:
 
     @staticmethod
     def collapse_consecutive_slashes(url):
-        url.path = re.sub(b'//+', b'/', url.path)
+        if url.scheme in urlcanon.SPECIAL_SCHEMES:
+            url.path = re.sub(b'//+', b'/', url.path)
 
     @staticmethod
     # https://developers.google.com/safe-browsing/v4/urls-hashing
@@ -338,6 +406,11 @@ class Canonicalizer:
     def pct_decode_host(url):
         if url.host and url.scheme in urlcanon.SPECIAL_SCHEMES:
             url.host = urllib_pct_decode(url.host)
+
+    @staticmethod
+    def alpha_reorder_query(url):
+        if url.query:
+            url.query = b'&'.join(sorted(url.query.split(b'&')))
 
 Canonicalizer.WHATWG = Canonicalizer([
     Canonicalizer.remove_leading_trailing_junk,
@@ -387,3 +460,39 @@ Canonicalizer.Google = Canonicalizer([
     # Canonicalizer.remove_port,
 ])
 
+# A canonicalizer meant for testing urls for equivalence. Does everything
+# WHATWG does and also some cleanup:
+# - sets default scheme http: if scheme is missing
+# - removes extraneous dots in the host
+# And these additional steps:
+# - collapses consecutive slashes in the path
+# - standardizes percent encodings so that different encodings of the same-ish
+#   thing match
+# - sorts query params
+# - removes userinfo
+Canonicalizer.UrlEquivalence = Canonicalizer([
+    Canonicalizer.remove_leading_trailing_junk,
+    Canonicalizer.default_scheme_http,
+    Canonicalizer.remove_tabs_and_newlines,
+    Canonicalizer.lowercase_scheme,
+    Canonicalizer.elide_default_port,
+    Canonicalizer.clean_up_userinfo,
+    Canonicalizer.two_slashes,
+    Canonicalizer.pct_decode_repeatedly_except_query,
+    Canonicalizer.reparse_host,
+    Canonicalizer.normalize_ip_address,
+    Canonicalizer.fix_host_dots,
+    Canonicalizer.punycode_special_host,
+    Canonicalizer.remove_userinfo,
+    Canonicalizer.less_dumb_pct_encode,
+    Canonicalizer.less_dumb_pct_recode_query,
+    Canonicalizer.fix_backslashes,
+    Canonicalizer.leading_slash,
+    Canonicalizer.normalize_path_dots,
+    Canonicalizer.collapse_consecutive_slashes,
+    Canonicalizer.empty_path_to_slash,
+    Canonicalizer.alpha_reorder_query,
+])
+
+# Canonicalizer.UrlEquivalenceNoFragment = Canonicalizer(
+#         Canonicalizer.UrlEquivalence + [Canonicalizer.remove_fragment])

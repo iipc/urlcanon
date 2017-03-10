@@ -46,7 +46,10 @@ def load_json_bytes(json_bytes):
                 obj[i] = rebytify_data_structure(obj[i])
             return obj
         elif isinstance(obj, unicode):
-            return obj.encode('latin1')
+            try:
+                return obj.encode('latin1')
+            except Exception as e:
+                raise Exception('%s: %s' % (repr(obj), e))
         else: # a number or None
             return obj
     obj = json.loads(json_bytes.decode('latin1'))
@@ -199,7 +202,7 @@ def test_parsing(input, parsed_fields):
     assert parsed_url.fragment == parsed_fields[b'fragment']
     assert parsed_url.trailing_junk == parsed_fields[b'trailing_junk']
 
-def load_our_whatwg_test_data():
+def load_supplemental_whatwg_test_data():
     path = os.path.join(
         os.path.dirname(__file__), '..', '..', 'testdata',
         'supplemental_whatwg.json')
@@ -208,7 +211,7 @@ def load_our_whatwg_test_data():
     return sorted(jb.items())
 
 @pytest.mark.parametrize(
-        'uncanonicalized,canonicalized', load_our_whatwg_test_data())
+        'uncanonicalized,canonicalized', load_supplemental_whatwg_test_data())
 def test_supplemental_whatwg(uncanonicalized, canonicalized):
     url = urlcanon.parse_url(uncanonicalized)
     urlcanon.Canonicalizer.WHATWG(url)
@@ -253,6 +256,22 @@ def load_surt_test_data(section):
 def test_google_canonicalizer(uncanonicalized, canonicalized):
     url = urlcanon.parse_url(uncanonicalized)
     urlcanon.Canonicalizer.Google(url)
+    assert url.__bytes__() == canonicalized
+
+def load_url_equiv_test_data():
+    path = os.path.join(
+        os.path.dirname(__file__), '..', '..', 'testdata', 'url_equiv.json')
+    with open(path, 'rb') as f:
+        jb = load_json_bytes(f.read())
+    return sorted(jb.items())
+
+@pytest.mark.parametrize(
+        'uncanonicalized,canonicalized', load_url_equiv_test_data())
+def test_url_equiv(uncanonicalized, canonicalized):
+    # if uncanonicalized == b"http://evil.com/foo#bar#baz":
+    #     import pdb; pdb.set_trace()
+    url = urlcanon.parse_url(uncanonicalized)
+    urlcanon.Canonicalizer.UrlEquivalence(url)
     assert url.__bytes__() == canonicalized
 
 ## # XXX these are "parsing" tests from the surt library, change to
