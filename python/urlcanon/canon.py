@@ -199,10 +199,9 @@ class Canonicalizer:
                 url.query, Canonicalizer.QUERY_ENCODE_RE)
 
     @staticmethod
-    def pct_encode_nonspecial_host(url):
-        if url.host and not url.scheme in urlcanon.SPECIAL_SCHEMES:
-            url.host = Canonicalizer.pct_encode(
-                    url.host, Canonicalizer.C0_ENCODE_RE)
+    def pct_encode_host(url):
+        url.host = Canonicalizer.pct_encode(
+                url.host, Canonicalizer.C0_ENCODE_RE)
 
     @staticmethod
     def empty_path_to_slash(url):
@@ -257,9 +256,7 @@ class Canonicalizer:
                             idna2003.ToASCII(label) for label in labels]
                     url.host = b'.'.join(punycode_labels)
                 except:
-                    # if all idn stuff fails fall back on pct-encoding
-                    url.host = Canonicalizer.pct_encode(
-                            url.host, Canonicalizer.C0_ENCODE_RE)
+                    pass
 
     @staticmethod
     def leading_slash(url):
@@ -353,7 +350,7 @@ Canonicalizer.WHATWG = Canonicalizer([
     Canonicalizer.reparse_host,
     Canonicalizer.normalize_ip_address,
     Canonicalizer.punycode_special_host,
-    Canonicalizer.pct_encode_nonspecial_host,
+    Canonicalizer.pct_encode_host,
     Canonicalizer.fix_backslashes,
     Canonicalizer.pct_encode_path,
     Canonicalizer.leading_slash,
