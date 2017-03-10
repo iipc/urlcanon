@@ -76,8 +76,12 @@ public class ByteStringBuilder {
     }
 
     public void append(char c) {
+        append((byte) (c & 0xff));
+    }
+
+    public void append(byte b) {
         setLength(length + 1);
-        data[length - 1] = (byte)c;
+        data[length - 1] = b;
     }
 
     public byte[] toByteArray() {

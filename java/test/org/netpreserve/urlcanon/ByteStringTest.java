@@ -46,4 +46,10 @@ public class ByteStringTest {
         assertEquals("abcdef123@[", new ByteString("AbCDef123@[")
                 .asciiLowerCase().toString());
     }
+
+    @Test
+    public void testPctDecode() {
+        assertEquals("1 2\u007f3\uD83D\uDE2C4",
+                new ByteString("1%202%7f3%f0%9f%98%Ac4").pctDecode().toString());
+    }
 }

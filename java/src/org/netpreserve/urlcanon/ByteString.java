@@ -70,6 +70,10 @@ public class ByteString implements CharSequence {
         return (char) (data[index] & 0xFF);
     }
 
+    public byte byteAt(int index) {
+        return (byte) (data[index] & 0xFF);
+    }
+
     @Override
     public ByteString subSequence(int start, int end) {
         return new ByteString(data, start, end - start);
@@ -118,6 +122,20 @@ public class ByteString implements CharSequence {
         while (m.find()) {
             buf.append(this, pos, m.start());
             buf.append(replacement);
+            pos = m.end();
+        }
+        buf.append(this, pos, length());
+        return buf.toByteString();
+    }
+
+    protected static Pattern PCT_DECODE_REGEX = Pattern.compile("%([0-9a-fA-F]{2})");
+    public ByteString pctDecode() {
+        ByteStringBuilder buf = new ByteStringBuilder(length());
+        int pos = 0;
+        Matcher m = PCT_DECODE_REGEX.matcher(this);
+        while (m.find()) {
+            buf.append(this, pos, m.start());
+            buf.append((byte) (Integer.parseInt(m.group(1), 16) & 0xff));
             pos = m.end();
         }
         buf.append(this, pos, length());

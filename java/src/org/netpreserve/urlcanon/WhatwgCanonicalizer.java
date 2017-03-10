@@ -2,8 +2,8 @@
  * WhatwgCanonicalizer.java - WHATWG-compatible url canonicalizer
  * Java port of canon.py
  *
- * Copyright (C) 2016 Internet Archive
  * Copyright (C) 2016 National Library of Australia
+ * Copyright (C) 2016-2017 Internet Archive
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,27 +20,34 @@
 
 package org.netpreserve.urlcanon;
 
+import static java.util.regex.Pattern.CASE_INSENSITIVE;
+
 import java.net.IDN;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static java.util.regex.Pattern.CASE_INSENSITIVE;
-
 class WhatwgCanonicalizer implements Canonicalizer {
     private static final ByteString SLASH = new ByteString("/");
     private static final ByteString TWO_SLASHES = new ByteString("//");
     private static final Pattern SPECIAL_PATH_SEGMENT_REGEX = Pattern.compile("(?:([.]|%2e)([.]|%2e)?|[^/\\\\]*)(?:[/\\\\]|\\Z)", CASE_INSENSITIVE);
     private static final Pattern NONSPECIAL_PATH_SEGMENT_REGEX = Pattern.compile("(?:([.]|%2e)([.]|%2e)?|[^/]*)(?:/|\\Z)", CASE_INSENSITIVE);
-    private static final Pattern PCT2D_REGEX = Pattern.compile("%2e", CASE_INSENSITIVE);
     /*
-     * > The simple encode set are C0 controls and all code points greater than
-     * > U+007E."
-     * > The default encode set is the simple encode set and code points U+0020,
-     * > '"', "#", "<", ">", "?", "`", "{", and "}".
+     * > The C0 control percent-encode set are C0 controls and all code points
+     * > greater than U+007E.
+     * > The path percent-encode set is the C0 control percent-encode set and
+     * > code points U+0020, '"', "#", "<", ">", "?", "`", "{", and "}".
+     * > If byte is less than 0x21, greater than 0x7E, or is 0x22, 0x23, 0x3C,
+     * > or 0x3E, append byte, percent encoded, to url's query.
+     * > The userinfo percent-encode set is the path percent-encode set and code
+     * > points "/", ":", ";", "=", "@", "[", "\", "]", "^", and "|".
      */
-    private static final Pattern DEFAULT_ENCODE_REGEX = Pattern.compile("[\\x00-\\x20\\x7f-\\xff\"#<>?`{}]");
+    private static final Pattern C0_ENCODE_REGEX = Pattern.compile("[\\x00-\\x1f\\x7f-\\xff]");
+    private static final Pattern PATH_ENCODE_REGEX = Pattern.compile("[\\x00-\\x20\\x7f-\\xff\"#<>?`{}]");
+    private static final Pattern QUERY_ENCODE_REGEX = Pattern.compile("[\\x00-\\x20\\x22\\x23\\x3c\\x3e\\x7f-\\xff]");
+    private static final Pattern USERINFO_ENCODE_REGEX = Pattern.compile("[\\x00-\\x20\\x7f-\\xff\"#<>?`{}/:;=@\\x5b\\x5c\\x5d\\x5e\\x7c]");
+
     private static final Pattern TAB_AND_NEWLINE_REGEX = Pattern.compile("[\\x09\\x0a\\x0d]");
 
     static ByteString removeTabsAndNewlines(ByteString s) {
@@ -122,28 +129,44 @@ class WhatwgCanonicalizer implements Canonicalizer {
         url.setPath(resolvePathDots(url.getPath(), ParsedUrl.SPECIAL_SCHEMES.containsKey(url.getScheme().toString())));
     }
 
-    void decodePath2e(ParsedUrl url) {
-        url.setPath(url.getPath().replaceAll(PCT2D_REGEX, "."));
-    }
-
-    void pctEncodePath(ParsedUrl url) {
-        ByteStringBuilder buf = new ByteStringBuilder(url.getPath().length());
-        Matcher m = DEFAULT_ENCODE_REGEX.matcher(url.getPath());
+    static ByteString pctEncode(ByteString str, Pattern encodeSetRegex) {
+        ByteStringBuilder buf = new ByteStringBuilder(str.length());
+        Matcher m = encodeSetRegex.matcher(str);
         int pos = 0;
         while (m.find()) {
-            buf.append(url.getPath(), pos, m.start());
+            buf.append(str, pos, m.start());
             buf.append('%');
-            int b = (url.getPath().charAt(m.start())) & 0xff;
+            int b = (str.charAt(m.start())) & 0xff;
             buf.append(Character.toUpperCase(Character.forDigit(b >> 4, 16)));
             buf.append(Character.toUpperCase(Character.forDigit(b & 0xf, 16)));
             pos = m.end();
         }
-        buf.append(url.getPath(), pos, url.getPath().length());
-        url.setPath(buf.toByteString());
+        buf.append(str, pos, str.length());
+        return buf.toByteString();
+    }
+
+    void pctEncodePath(ParsedUrl url) {
+        Pattern encodeSetRegex;
+        if (!url.getPath().isEmpty() && url.getPath().charAt(0) == '/'
+                || ParsedUrl.SPECIAL_SCHEMES.containsKey(url.getScheme().toString())) {
+            encodeSetRegex = PATH_ENCODE_REGEX;
+        } else {
+            encodeSetRegex = C0_ENCODE_REGEX;
+        }
+        url.setPath(pctEncode(url.getPath(), encodeSetRegex));
+    }
+
+    void pctEncodeFragment(ParsedUrl url) {
+        url.setFragment(pctEncode(url.getFragment(), C0_ENCODE_REGEX));
+    }
+
+    void pctEncodeQuery(ParsedUrl url) {
+        url.setQuery(pctEncode(url.getQuery(), QUERY_ENCODE_REGEX));
     }
 
     void emptyPathToSlash(ParsedUrl url) {
-        if (url.getPath().isEmpty() && !url.getHost().isEmpty()) {
+        if (url.getPath().isEmpty() && !url.getHost().isEmpty()
+                && ParsedUrl.SPECIAL_SCHEMES.containsKey(url.getScheme().toString())) {
             url.setPath(SLASH);
         }
     }
@@ -173,7 +196,13 @@ class WhatwgCanonicalizer implements Canonicalizer {
         url.setHost(normalizeIpAddress(url.getHost()));
     }
 
-    public static void elideAtSignForEmptyUserinfo(ParsedUrl url) {
+    public static void cleanUpUserinfo(ParsedUrl url) {
+        if (url.getPassword().isEmpty()) {
+            url.setColonBeforePassword(ByteString.EMPTY);
+            if (url.getUsername().isEmpty()) {
+                url.setAtSign(ByteString.EMPTY);
+            }
+        }
         if (url.getUsername().isEmpty()
                 && url.getColonBeforePassword().isEmpty()
                 && url.getPassword().isEmpty()) {
@@ -201,26 +230,48 @@ class WhatwgCanonicalizer implements Canonicalizer {
         }
     }
 
-    public static void punycode(ParsedUrl url) {
-        // TODO: IDNA2008? https://bugs.openjdk.java.net/browse/JDK-6988055
-        String ascii = IDN.toASCII(url.getHost().toString(), IDN.ALLOW_UNASSIGNED);
-        url.setHost(new ByteString(ascii.toLowerCase()));
+    public static void punycodeSpecialHost(ParsedUrl url) {
+        if (ParsedUrl.SPECIAL_SCHEMES.containsKey(url.getScheme().toString())) {
+            // TODO: IDNA2008? https://bugs.openjdk.java.net/browse/JDK-6988055
+            String ascii = IDN.toASCII(url.getHost().toString(), IDN.ALLOW_UNASSIGNED);
+            url.setHost(new ByteString(ascii.toLowerCase()));
+        }
+    }
+
+    void pctEncodeHost(ParsedUrl url) {
+        url.setHost(pctEncode(url.getHost(), C0_ENCODE_REGEX));
+    }
+
+    void pctDecodeHost(ParsedUrl url) {
+        if (ParsedUrl.SPECIAL_SCHEMES.containsKey(url.getScheme().toString())) {
+            url.setHost(url.getHost().pctDecode());
+        }
+    }
+
+    void pctEncodeUserinfo(ParsedUrl url) {
+        url.setUsername(pctEncode(url.getUsername(), USERINFO_ENCODE_REGEX));
+        url.setPassword(pctEncode(url.getPassword(), USERINFO_ENCODE_REGEX));
     }
 
     public void canonicalize(ParsedUrl url) {
         removeLeadingTrailingJunk(url);
         removeTabsAndNewlines(url);
         lowercaseScheme(url);
-        fixBackslashes(url);
-        normalizePathDots(url);
-        decodePath2e(url);
-        pctEncodePath(url);
-        normalizeIpAddress(url);
-        emptyPathToSlash(url);
         elideDefaultPort(url);
-        elideAtSignForEmptyUserinfo(url);
-        leadingSlash(url);
+        cleanUpUserinfo(url);
         twoSlashes(url);
-        punycode(url);
+        pctDecodeHost(url);
+        normalizeIpAddress(url);
+        punycodeSpecialHost(url);
+        pctEncodeHost(url);
+        fixBackslashes(url);
+        pctEncodePath(url);
+        elideDefaultPort(url);
+        leadingSlash(url);
+        normalizePathDots(url);
+        emptyPathToSlash(url);
+        pctEncodeUserinfo(url);
+        pctEncodeQuery(url);
+        pctEncodeFragment(url);
     }
 }

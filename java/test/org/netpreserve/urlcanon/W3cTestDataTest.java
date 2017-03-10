@@ -85,7 +85,8 @@ public class W3cTestDataTest {
         assertEquals("host of " + test.input, test.hostname, url.getHost().toString());
         assertEquals("username of " + test.input, test.username, url.getUsername().toString());
         assertEquals("path of " + test.input, test.pathname, url.getPath().toString());
-        assertEquals("query of " + test.input, test.search, url.getQuestionMark().toString() + url.getQuery().toString());
+        assertEquals("query of " + test.input, test.search,
+                url.getQuery().isEmpty() ? "" : url.getQuestionMark().toString() + url.getQuery().toString());
         assertEquals("fragment of " + test.input, test.hash, url.getFragment().isEmpty() ? "" : (url.getHashSign().toString() + url.getFragment().toString()));
         assertEquals("href of " + test.input, test.href, url.toString());
     }
