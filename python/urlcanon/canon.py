@@ -304,6 +304,8 @@ class Canonicalizer:
 
     @staticmethod
     def pct_encode_query(url, encode_re=QUERY_ENCODE_RE):
+        if not url.query:
+            return
         orig_parts = url.query.split(b'&')
         canon_parts = []
         for part in orig_parts:
@@ -361,8 +363,6 @@ class Canonicalizer:
     def less_dumb_pct_recode_query(url):
         if not url.query:
             return
-        # if b'%26' in url.query:
-        #     import pdb; pdb.set_trace()
         orig_parts = url.query.split(b'&')
         canon_parts = []
         for part in orig_parts:

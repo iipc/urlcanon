@@ -239,6 +239,21 @@ def test_ssurt_host(host, ssurt_host):
 def test_ssurt(url, ssurt):
     assert urlcanon.parse_url(url).ssurt() == ssurt
 
+@pytest.mark.parametrize(
+        'url,surt', load_ssurt_test_data(b'surt'))
+def test_surt(url, surt):
+    assert urlcanon.parse_url(url).surt() == surt
+
+@pytest.mark.parametrize(
+        'url,surt', load_ssurt_test_data(b'surtWithoutScheme'))
+def test_surt_without_scheme(url, surt):
+    assert urlcanon.parse_url(url).surt(with_scheme=False) == surt
+
+@pytest.mark.parametrize(
+        'url,surt', load_ssurt_test_data(b'surtWithoutTrailingComma'))
+def test_surt_without_trailing_comma(url, surt):
+    assert urlcanon.parse_url(url).surt(trailing_comma=False) == surt
+
 def load_surt_test_data(section):
     '''
     Tests copied from

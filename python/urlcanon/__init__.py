@@ -1,7 +1,8 @@
 '''
 urlcanon/__init__.py
 
-Copyright (C) 2016 Internet Archive
+Copyright (C) 2016 National Library of Australia
+Copyright (C) 2016-2017 Internet Archive
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -28,7 +29,7 @@ SPECIAL_SCHEMES = {
     b'file': None,
 }
 
-def reverse_host(host):
+def reverse_host(host, trailing_comma=True):
     '''
     Reverse dotted segments. Swap commas and dots. Add a trailing comma.
     b"x,y.b.c" => b"c,b,x.y,"
@@ -36,12 +37,13 @@ def reverse_host(host):
     parts_reversed = []
     for part in reversed(host.split(b'.')):
         parts_reversed.append(part.replace(b',', b'.'))
-    parts_reversed.append(b'') # trailing comma
+    if trailing_comma:
+        parts_reversed.append(b'')
     return b','.join(parts_reversed)
 
-def ssurt_host(host):
+def ssurt_host(host, trailing_comma=True):
     '''Reverse host unless it's an IPv4 or IPv6 address.'''
     if not host or host[:1] == b'[' or parse_ipv4(host):
         return host
     else:
-        return reverse_host(host)
+        return reverse_host(host, trailing_comma)
