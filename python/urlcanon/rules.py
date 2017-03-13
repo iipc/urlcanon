@@ -32,7 +32,7 @@ class MatchRule:
     All conditions must match for a url to be considered a match.
 
     The supported conditions are `surt`, `ssurt`, `regex`, `domain`,
-    `substring`, `parent_url_regex`.
+    `substring`, `parent_url_regex`. All of the values must by bytes objects.
 
     No canonicalization is performed on any of the conditions. It's the
     caller's responsibility to make sure that `domain` is in a form that their
@@ -89,16 +89,18 @@ class MatchRule:
         '''
         self.surt = surt
         self.ssurt = ssurt
-        self.regex = regex and re.compile(regex)
+        # append \Z to get a full match (py2 doesn't have re.fullmatch)
+        # (regex still works in case of \Z\Z)
+        self.regex = regex and re.compile(regex + br'\Z')
         self.domain = domain
         self.substring = substring and substring
         self.parent_url_regex = parent_url_regex and re.compile(
-                parent_url_regex)
+                parent_url_regex + br'\Z')
 
         if url_match:
             if url_match == 'REGEX_MATCH':
                 assert not self.regex
-                self.regex = re.compile(value)
+                self.regex = re.compile(value + br'\Z')
             elif url_match == 'SURT_MATCH':
                 assert not self.surt
                 self.surt = value
@@ -160,7 +162,7 @@ class MatchRule:
         if self.substring and not url.__bytes__().find(self.substring) >= 0:
             return False
         if self.regex:
-            if not self.regex.fullmatch(url.__bytes__()):
+            if not self.regex.match(url.__bytes__()):
                 return False
         if self.parent_url_regex:
             if not parent_url:
@@ -169,7 +171,7 @@ class MatchRule:
                 parent_url = parent_url.__bytes__()
             elif isinstance(parent_url, unicode):
                 parent_url = parent_url.encode('utf-8')
-            if not self.parent_url_regex.fullmatch(parent_url):
+            if not self.parent_url_regex.match(parent_url):
                 return False
 
         return True
