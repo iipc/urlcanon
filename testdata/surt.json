@@ -8,7 +8,7 @@
         "http://archive.org/index.html?b=a&b=b&a=b": "http://archive.org/index.html?a=b&b=a&b=b",
         "http://www34.archive.org/index.html?b=a&b=b&a=b": "http://archive.org/index.html?a=b&b=a&b=b"
     },
-    "Canonicalizer.Google": {
+    "google": {
         "http://host/%25%32%35": "http://host/%25",
         "http://host/%25%32%35%25%32%35": "http://host/%25%25",
         "http://host/%2525252525252525": "http://host/%25",

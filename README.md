@@ -24,7 +24,7 @@ parsed_url = urlcanon.parse_url(input_url)
 print(parsed_url)
 # http://///EXAMPLE.com:80/foo/../bar
 
-urlcanon.Canonicalizer.WHATWG(parsed_url)
+urlcanon.whatwg(parsed_url)
 
 print(parsed_url)
 # http://example.com/bar

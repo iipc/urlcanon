@@ -412,7 +412,7 @@ class Canonicalizer:
         if url.query:
             url.query = b'&'.join(sorted(url.query.split(b'&')))
 
-Canonicalizer.WHATWG = Canonicalizer([
+whatwg = Canonicalizer([
     Canonicalizer.remove_leading_trailing_junk,
     Canonicalizer.remove_tabs_and_newlines,
     Canonicalizer.lowercase_scheme,
@@ -436,7 +436,7 @@ Canonicalizer.WHATWG = Canonicalizer([
 
 # http://web.archive.org/web/20130116211349/https://developers.google.com/safe-browsing/developers_guide_v2#Canonicalization
 # differs from google, does not remove port, matching surt library
-Canonicalizer.Google = Canonicalizer([
+google = Canonicalizer([
     Canonicalizer.remove_leading_trailing_junk,
     Canonicalizer.default_scheme_http,
     Canonicalizer.remove_tabs_and_newlines,
@@ -460,8 +460,12 @@ Canonicalizer.Google = Canonicalizer([
     # Canonicalizer.remove_port,
 ])
 
-# A canonicalizer meant for testing urls for equivalence. Does everything
-# WHATWG does and also some cleanup:
+# Precise semantic canonicalizer, semantic in the sense that the intention is
+# to canonicalize urls that "mean" the same thing, that you would expect to
+# load the same stuff and look the same way if you pasted them into the
+# location bar of your browser.
+#
+# Does everything WHATWG does and also some cleanup:
 # - sets default scheme http: if scheme is missing
 # - removes extraneous dots in the host
 # And these additional steps:
@@ -470,7 +474,7 @@ Canonicalizer.Google = Canonicalizer([
 #   thing match
 # - sorts query params
 # - removes userinfo
-Canonicalizer.UrlEquivalence = Canonicalizer([
+semantic_precise = Canonicalizer([
     Canonicalizer.remove_leading_trailing_junk,
     Canonicalizer.default_scheme_http,
     Canonicalizer.remove_tabs_and_newlines,
@@ -494,5 +498,8 @@ Canonicalizer.UrlEquivalence = Canonicalizer([
     Canonicalizer.alpha_reorder_query,
 ])
 
-# Canonicalizer.UrlEquivalenceNoFragment = Canonicalizer(
-#         Canonicalizer.UrlEquivalence + [Canonicalizer.remove_fragment])
+# Semantic canonicalizer. Like semantic_precise but removes the fragment from
+# the url, thus considers urls which differ only in the fragment to be
+# equivalent to each other.
+semantic = Canonicalizer(
+        semantic_precise.steps + [Canonicalizer.remove_fragment])

@@ -17,7 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 from .parse import parse_url, ParsedUrl, parse_ipv4, parse_ipv4or6
-from .canon import Canonicalizer
+from .canon import Canonicalizer, whatwg, google, semantic_precise, semantic
 
 SPECIAL_SCHEMES = {
     b'ftp': b'21',
