@@ -181,15 +181,21 @@ def parse_ipv4(host):
         elif len(parts) == 2:
             part1 = _parse_num(parts[1])
             if part1 >= 2**24:
-                raise '%s not a valid ipv4 address: last part must be less than 2**24' % host
+                raise Exception(
+                        '%s not a valid ipv4 address: last part must be less '
+                        'than 2**24' % repr(host))
             ip4 = _parse_num(parts[0]) * 2**24 + _parse_num(parts[1])
         elif len(parts) == 3:
             part1 = _parse_num(parts[1])
             if part1 >= 2**8:
-                raise '%s not a valid ipv4 address: middle part must be less than 256' % host
+                raise Exception(
+                        '%s not a valid ipv4 address: middle part must be '
+                        'less than 256' % repr(host))
             part2 = _parse_num(parts[2])
             if part2 >= 2**16:
-                raise '%s not a valid ipv4 address: last part must be less than 2**16' % host
+                raise Exception(
+                        '%s not a valid ipv4 address: last part must be less '
+                        'than 2**16' % repr(host))
             ip4 = (_parse_num(parts[0]) * 2**24
                      + part1 * 2**16 + _parse_num(parts[2]))
         elif len(parts) == 4:
@@ -197,13 +203,17 @@ def parse_ipv4(host):
             part2 = _parse_num(parts[2])
             part3 = _parse_num(parts[3])
             if part1 >= 2**8 or part2 >= 2**8 or part3 >= 2**8:
-                raise '%s not a valid ipv4 address: all parts must be less than 256' % host
+                raise Exception(
+                        '%s not a valid ipv4 address: all parts must be less '
+                        'than 256' % repr(host))
             ip4 = (_parse_num(parts[0]) * 2**24
                      + part1 * 2**16 + part2 * 2**8 + part3)
         else: # len(parts) > 4
             return None
         if ip4 >= 2**32:
-            raise '%s not a valid ipv4 address: value must be less than 2**32' % host
+            raise Exception(
+                    '%s not a valid ipv4 address: value must be less than '
+                    '2**32' % repr(host))
         return ip4
     except:
         return None
