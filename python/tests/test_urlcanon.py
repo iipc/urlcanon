@@ -74,7 +74,7 @@ def load_funky_ipv4_data():
 @pytest.mark.parametrize('unresolved,expected', load_funky_ipv4_data())
 def test_funky_ipv4(unresolved, expected):
     ip4 = urlcanon.parse.parse_ipv4or6(unresolved)[0]
-    assert urlcanon.Canonicalizer.dotted_decimal(ip4) == expected
+    assert urlcanon.canon.dotted_decimal(ip4) == expected
 
 def load_path_dots_data():
     # Most of path_dots.json was generated in the browser using this html/js.
@@ -96,7 +96,7 @@ def load_path_dots_data():
     #         var p = path.join('')
     #         e.setAttribute('href', 'http://example.com' + p);
     #         // console.log(p + ' => ' + e.pathname);
-    #         console.log("assert urlcanon.Canonicalizer.resolve_path_dots(b'" + p + "') == b'" + e.pathname + "'");
+    #         console.log("assert urlcanon.canon.resolve_path_dots(b'" + p + "') == b'" + e.pathname + "'");
     #         return
     #     }
     #     path.push('');
@@ -137,7 +137,7 @@ def load_path_dots_data():
 @pytest.mark.parametrize(
         'unresolved,is_special,expected', load_path_dots_data())
 def test_resolve_path_dots(unresolved, is_special, expected):
-    assert urlcanon.Canonicalizer.resolve_path_dots(
+    assert urlcanon.canon.resolve_path_dots(
             unresolved, special=is_special) == expected
 
 def load_w3c_test_data():

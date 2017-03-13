@@ -239,8 +239,7 @@ def parse_pathish(url, pathish):
     Parses "pathish", which is the section of the url after the scheme,
     including the authority, if any, and populates fields of "url".
     '''
-    clean_scheme = canon.Canonicalizer.TAB_AND_NEWLINE_REGEX.sub(
-            b'', url.scheme).lower()
+    clean_scheme = canon.TAB_AND_NEWLINE_REGEX.sub(b'', url.scheme).lower()
     if clean_scheme == b'file':
         m = FILE_PATHISH_REGEX.match(pathish)
         if m:  # file://host/path...
