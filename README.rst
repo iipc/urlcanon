@@ -23,19 +23,23 @@ Python
 
 .. code:: python
 
-    input_url = "http://///EXAMPLE.com:80/foo/../bar"
-    parsed_url = urlcanon.parse_url(input_url)
-
-    print(parsed_url)
-    # http://///EXAMPLE.com:80/foo/../bar
-
-    urlcanon.whatwg(parsed_url)
-
-    print(parsed_url)
-    # http://example.com/bar
-
-    print(parsed_url.ssurt())
-    # b'com,example,//:http/bar'
+    >>> import urlcanon
+    >>> input_url = "http://///EXAMPLE.com:80/foo/../bar"
+    >>> parsed_url = urlcanon.parse_url(input_url)
+    >>> print(parsed_url)
+    http://///EXAMPLE.com:80/foo/../bar
+    >>> urlcanon.whatwg(parsed_url)
+    <urlcanon.parse.ParsedUrl object at 0x10eb13a58>
+    >>> print(parsed_url)
+    http://example.com/bar
+    >>> print(parsed_url.ssurt())
+    b'com,example,//:http/bar'
+    >>>
+    >>> rule = urlcanon.MatchRule(ssurt=b'com,example,//:http/bar')
+    >>> urlcanon.whatwg.rule_applies(rule, b'https://example..com/bar/baz')
+    False
+    >>> urlcanon.whatwg.rule_applies(rule, b'HTtp:////eXAMple.Com/bar//baz//..///quu')
+    True
 
 Java
 ^^^^
@@ -59,8 +63,8 @@ Java
 License
 -------
 
-| Copyright (C) 2016-2017 Internet Archive
-| Copyright (C) 2016-2017 National Library of Australia
+* Copyright (C) 2016-2017 Internet Archive
+* Copyright (C) 2016-2017 National Library of Australia
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may
 not use this software except in compliance with the License. You may

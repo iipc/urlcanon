@@ -28,8 +28,9 @@ except ImportError:
 setuptools.setup(
         name='urlcanon',
         description='url canonicalization library for python and java',
-        version='0.1.dev10',
+        version='0.1.dev11',
         packages=['urlcanon'],
+        url='https://github.com/iipc/urlcanon',
         install_requires=dependencies,
         tests_require=['pytest'],
         long_description=open('README.rst', mode='rb').read().decode('UTF-8'),
