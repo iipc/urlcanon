@@ -40,6 +40,22 @@ class Canonicalizer:
             step(url)
         return url
 
+    def rule_applies(self, match_rule, url, parent_url=None):
+        '''
+        Returns true if `self.canonicalize(url)` matches `match_rule`.
+
+        Args:
+            match_rule (urlcanon.MatchRule): the rule
+            url (urlcanon.ParsedUrl or bytes or str): the (possibly
+                uncanonicalized) url to check, can be a `urlcanon.ParsedUrl` or
+                a str or bytes
+            parent_url (str, optional): parent url (some match rules have
+                conditions on the parent url)
+        Returns:
+            bool: True if the rule matches, False otherwise
+        '''
+        return match_rule.applies(self.canonicalize(url))
+
     @staticmethod
     def remove_leading_trailing_junk(url):
         url.leading_junk = b''
