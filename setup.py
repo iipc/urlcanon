@@ -28,10 +28,11 @@ except ImportError:
 setuptools.setup(
         name='urlcanon',
         description='url canonicalization library for python and java',
-        version='0.1.dev9',
+        version='0.1.dev10',
         packages=['urlcanon'],
         install_requires=dependencies,
         tests_require=['pytest'],
+        long_description=open('README.rst', mode='rb').read().decode('UTF-8'),
         classifiers=[
             'License :: OSI Approved :: Apache Software License',
             'Programming Language :: Python :: 2.7',
