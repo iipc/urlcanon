@@ -12,7 +12,17 @@
       "a,b.y.z.": ",z,y,a.b,"
     },
     "ssurt": {
-        "http://user:pass@foo.example.org:81/path?query#frag": "org,example,foo,//:81:http@user:pass/path?query#frag"
+        "http://user:pass@foo.example.org:81/path?query#frag": "org,example,foo,//81:http@user:pass:/path?query#frag",
+        "http://user@foo.example.org:81/path?query#frag": "org,example,foo,//81:http@user:/path?query#frag",
+        "http://foo.example.org:81/path?query#frag": "org,example,foo,//81:http:/path?query#frag",
+        "http://foo.example.org/path?query#frag": "org,example,foo,//http:/path?query#frag",
+        "http://81.foo.example.org/path?query#frag": "org,example,foo,81,//http:/path?query#frag",
+        "screenshot:http://example.com/": "screenshot:http://example.com/",
+        "scheme://user:pass@foo.example.org:81/path?query#frag": "org,example,foo,//81:scheme@user:pass:/path?query#frag",
+        "scheme://user@foo.example.org:81/path?query#frag": "org,example,foo,//81:scheme@user:/path?query#frag",
+        "scheme://foo.example.org:81/path?query#frag": "org,example,foo,//81:scheme:/path?query#frag",
+        "scheme://foo.example.org/path?query#frag": "org,example,foo,//scheme:/path?query#frag",
+        "scheme://81.foo.example.org/path?query#frag": "org,example,foo,81,//scheme:/path?query#frag"
     },
     "surt": {
         "http://user:pass@foo.example.org:81/path?query#frag": "http://(org,example,foo:81,)/path?query#frag",

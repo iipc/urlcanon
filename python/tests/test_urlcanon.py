@@ -222,7 +222,7 @@ def load_ssurt_test_data(section):
         os.path.dirname(__file__), '..', '..', 'testdata', 'ssurt.json')
     with open(path, 'rb') as f:
         jb = load_json_bytes(f.read())
-    return jb[section].items()
+    return sorted(jb[section].items())
 
 @pytest.mark.parametrize(
         'host,host_reversed', load_ssurt_test_data(b'reverseHost'))

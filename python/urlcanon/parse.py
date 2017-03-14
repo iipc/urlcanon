@@ -139,9 +139,10 @@ class ParsedUrl:
         '''
         ssurt_host = urlcanon.ssurt_host(self.host)
         return (self.leading_junk + ssurt_host + self.slashes +
-                self.colon_before_port + self.port + self.colon_after_scheme +
+                self.port + self.colon_before_port  +
                 self.scheme + self.at_sign + self.username +
-                self.colon_before_password + self.password + self.path +
+                self.colon_before_password + self.password +
+                self.colon_after_scheme + self.path +
                 self.question_mark + self.query + self.hash_sign +
                 self.fragment + self.trailing_junk)
 
