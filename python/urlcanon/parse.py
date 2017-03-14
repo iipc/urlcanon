@@ -148,12 +148,16 @@ class ParsedUrl:
     def surt(self, trailing_comma=True, with_scheme=True):
         result = self.leading_junk
         if with_scheme:
-            result += self.scheme + self.colon_after_scheme + self.slashes + b'('
-        surt_host = urlcanon.ssurt_host(self.host, trailing_comma=False)
-        surt_host += self.colon_before_port + self.port
-        if trailing_comma:
-            surt_host += b','
-        result += surt_host + b')'
+            result += self.scheme + self.colon_after_scheme + self.slashes
+        if self.host:
+            surt_host = b''
+            if with_scheme:
+                surt_host += b'('
+            surt_host += urlcanon.ssurt_host(self.host, trailing_comma=False)
+            surt_host += self.colon_before_port + self.port
+            if trailing_comma:
+                surt_host += b','
+            result += surt_host + b')'
         result += (self.path + self.question_mark + self.query
                 + self.hash_sign + self.fragment + self.trailing_junk)
         return result

@@ -19,7 +19,8 @@
         "http://user:pass@foo.example.org:81/": "http://(org,example,foo:81,)/",
         "http://user:pass@foo.example.org:81": "http://(org,example,foo:81,)",
         "http://user:pass@foo.example.org:81?query": "http://(org,example,foo:81,)?query",
-        "http://user:pass@foo.example.org:81#frag": "http://(org,example,foo:81,)#frag"
+        "http://user:pass@foo.example.org:81#frag": "http://(org,example,foo:81,)#frag",
+        "screenshot:http://example.com/": "screenshot:http://example.com/"
     },
     "surtWithoutScheme": {
         "http://user:pass@foo.example.org:81/path?query#frag": "org,example,foo:81,)/path?query#frag",
