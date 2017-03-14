@@ -32,7 +32,8 @@ class MatchRule:
     All conditions must match for a url to be considered a match.
 
     The supported conditions are `surt`, `ssurt`, `regex`, `domain`,
-    `substring`, `parent_url_regex`. All of the values must by bytes objects.
+    `substring`, `parent_url_regex`. Values should be bytes objects. If they
+    are unicode strings, they will be utf-8 encoded.
 
     No canonicalization is performed on any of the conditions. It's the
     caller's responsibility to make sure that `domain` is in a form that their
@@ -78,26 +79,34 @@ class MatchRule:
             url_match=None, value=None):
         '''
         Args:
-            surt (bytes):
-            ssurt (bytes):
-            regex (bytes):
-            domain (bytes):
-            substring (bytes):
-            parent_url_regex (bytes):
+            surt (bytes or str):
+            ssurt (bytes or str):
+            regex (bytes or str):
+            domain (bytes or str):
+            substring (bytes or str):
+            parent_url_regex (bytes or str):
             url_match (str, deprecated):
             value (bytes, deprecated):
         '''
-        self.surt = surt
+        self.surt = surt.encode('utf-8') if isinstance(surt, unicode) else surt
+        self.ssurt = ssurt.encode('utf-8') if isinstance(ssurt, unicode) else ssurt
         self.ssurt = ssurt
+        self.domain = domain.encode('utf-8') if isinstance(domain, unicode) else domain
+        self.substring = substring.encode('utf-8') if isinstance(substring, unicode) else substring
+
         # append \Z to get a full match (py2 doesn't have re.fullmatch)
         # (regex still works in case of \Z\Z)
+        if isinstance(regex, unicode):
+            regex = regex.encode('utf-8')
         self.regex = regex and re.compile(regex + br'\Z')
-        self.domain = domain
-        self.substring = substring and substring
+        if isinstance(parent_url_regex, unicode):
+            parent_url_regex = parent_url_regex.encode('utf-8')
         self.parent_url_regex = parent_url_regex and re.compile(
                 parent_url_regex + br'\Z')
 
         if url_match:
+            if isinstance(value, unicode):
+                value = value.encode('utf-8')
             if url_match == 'REGEX_MATCH':
                 assert not self.regex
                 self.regex = re.compile(value + br'\Z')

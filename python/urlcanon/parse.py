@@ -5,7 +5,7 @@ based on https://gist.github.com/ato/b9875c45171d082ca6c6738640347ecb and
 https://github.com/iipc/webarchive-commons/blob/master/src/main/java/org/archive/url/URLParser.java
 
 Copyright (C) 2016 National Library of Australia
-Copyright (C) 2016 Internet Archive
+Copyright (C) 2016-2017 Internet Archive
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
