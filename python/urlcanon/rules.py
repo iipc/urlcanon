@@ -25,27 +25,47 @@ try:
 except NameError:
     unicode = str
 
+def host_matches_domain(host, domain):
+    '''
+    Returns true if
+     - domain is an ip address and host is the same ip address
+     - domain is a domain and host is the same domain
+     - domain is a domain and host is a subdomain of it
+
+    Does not do any normalization. Probably a good idea to call
+    `host_matches_domain(
+            urlcanon.normalize_host(host), urlcanon.normalize_host(domain))`.
+    '''
+    if isinstance(domain, unicode):
+        domain = domain.encode('utf-8')
+    if isinstance(host, unicode):
+        host = host.encode('utf-8')
+
+    if domain == host:
+        return True
+
+    if (urlcanon.parse_ipv4or6(domain) != (None, None)
+            or urlcanon.parse_ipv4or6(host) != (None, None)):
+        # if either of self.domain or host is an ip address and they're
+        # not identical (the first check, above), not a match
+        return False
+
+    return urlcanon.reverse_host(host).startswith(urlcanon.reverse_host(domain))
+
 def url_matches_domain(url, domain):
     '''
     Returns true if
      - domain is an ip address and url.host is the same ip address
      - domain is a domain and url.host is the same domain
      - domain is a domain and url.host is a subdomain of it
+
+    Does not do any normalization/canonicalization. Probably a good idea to
+    call `host_matches_domain(
+            canonicalize(url), urlcanon.normalize_host(domain))`.
     '''
     if not isinstance(url, urlcanon.ParsedUrl):
         url = urlcanon.parse_url(url)
-
-    if domain == url.host:
-        return True
-
-    if (urlcanon.parse_ipv4or6(domain) != (None, None)
-            or urlcanon.parse_ipv4or6(url.host) != (None, None)):
-        # if either of self.domain or url.host is an ip address and they're
-        # not identical (the first check, above), not a match
-        return False
-
-    return urlcanon.reverse_host(url.host).startswith(
-            urlcanon.reverse_host(domain))
+    return host_matches_domain(url.host, domain)
 
 class MatchRule:
     '''

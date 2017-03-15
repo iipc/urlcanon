@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''
 test_match_rules.py - unit tests for urlcanon.MatchRule
 
@@ -63,4 +64,45 @@ def test_match_rules():
     assert not rule.applies('https://twitter.com/twit')
     assert not rule.applies('https://twitter.com/twit?lang=en')
     assert rule.applies('https://twitter.com/twit?lang=es')
+
+def test_url_matches_domain():
+    assert urlcanon.url_matches_domain('http://1.2.3.4/', '1.2.3.4')
+    assert urlcanon.url_matches_domain(b'scheme://1.2.3.4', '1.2.3.4')
+    assert urlcanon.url_matches_domain('ftp://1.2.3.4/a/b/c/d', b'1.2.3.4')
+    assert urlcanon.url_matches_domain(b'http://1.2.3.4', b'1.2.3.4')
+    assert urlcanon.url_matches_domain(
+            'http://foo.example.com', 'example.com')
+    assert not urlcanon.url_matches_domain(
+            'http://example.com', 'foo.example.com')
+    assert not urlcanon.url_matches_domain(
+            'http://foo.EXAMPLE.COM', 'example.com')
+    assert urlcanon.url_matches_domain(
+            urlcanon.whatwg('http://foo.EXAMPLE.COM'), 'example.com')
+    assert not urlcanon.url_matches_domain('http://☃.net', 'xn--n3h.net')
+    assert urlcanon.url_matches_domain('http://☃.net', '☃.net')
+    assert urlcanon.url_matches_domain('http://😬.☃.net', '☃.net')
+    assert not urlcanon.url_matches_domain(
+            'http://😬.☃.net', urlcanon.normalize_host('☃.net'))
+    assert urlcanon.url_matches_domain(
+            urlcanon.whatwg('https://😬.☃.net'),
+            urlcanon.normalize_host('☃.net'))
+
+def test_host_matches_domain():
+    assert urlcanon.host_matches_domain('1.2.3.4', '1.2.3.4')
+    assert urlcanon.host_matches_domain(b'1.2.3.4', '1.2.3.4')
+    assert urlcanon.host_matches_domain('1.2.3.4', b'1.2.3.4')
+    assert urlcanon.host_matches_domain(b'1.2.3.4', b'1.2.3.4')
+    assert urlcanon.host_matches_domain('foo.example.com', 'example.com')
+    assert not urlcanon.host_matches_domain('example.com', 'foo.example.com')
+    assert not urlcanon.host_matches_domain('foo.EXAMPLE.COM', 'example.com')
+    assert urlcanon.host_matches_domain(
+            urlcanon.normalize_host('foo.EXAMPLE.COM'), 'example.com')
+    assert not urlcanon.host_matches_domain('☃.net', 'xn--n3h.net')
+    assert urlcanon.host_matches_domain('☃.net', '☃.net')
+    assert urlcanon.host_matches_domain('😬.☃.net', '☃.net')
+    assert not urlcanon.host_matches_domain(
+            '😬.☃.net', urlcanon.normalize_host('☃.net'))
+    assert urlcanon.host_matches_domain(
+            urlcanon.normalize_host('😬.☃.net'),
+            urlcanon.normalize_host('☃.net'))
 

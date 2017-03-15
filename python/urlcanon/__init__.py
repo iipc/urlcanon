@@ -20,12 +20,12 @@ from .parse import parse_url, ParsedUrl, parse_ipv4, parse_ipv4or6
 from .canon import (
         Canonicalizer, whatwg, google, semantic_precise, semantic,
         normalize_host)
-from .rules import MatchRule, url_matches_domain
+from .rules import MatchRule, url_matches_domain, host_matches_domain
 
 __all__ = ['parse_url', 'ParsedUrl', 'parse_ipv4', 'parse_ipv4or6',
            'Canonicalizer', 'whatwg', 'google', 'semantic_precise', 'semantic',
            'MatchRule', 'SPECIAL_SCHEMES', 'reverse_host', 'ssurt_host',
-           'url_matches_domain', 'normalize_host']
+           'host_matches_domain', 'url_matches_domain', 'normalize_host']
 
 SPECIAL_SCHEMES = {
     b'ftp': b'21',
