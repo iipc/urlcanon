@@ -23,6 +23,6 @@ public class ParserUrlTest {
 
     @Test
     public void testSsurt() {
-        assertEquals("org,example,foo,//:81:http@user:pass/path?query#frag", ParsedUrl.parseUrl("http://user:pass@foo.example.org:81/path?query#frag").ssurt().toString());
+        assertEquals("org,example,foo,//81:http@user:pass:/path?query#frag", ParsedUrl.parseUrl("http://user:pass@foo.example.org:81/path?query#frag").ssurt().toString());
     }
 }

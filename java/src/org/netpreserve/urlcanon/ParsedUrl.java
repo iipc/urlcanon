@@ -326,14 +326,14 @@ public class ParsedUrl {
         builder.append(leadingJunk);
         builder.append(ssurtHost);
         builder.append(slashes);
-        builder.append(colonBeforePort);
         builder.append(port);
-        builder.append(colonAfterScheme);
+        builder.append(colonBeforePort);
         builder.append(scheme);
         builder.append(atSign);
         builder.append(username);
         builder.append(colonBeforePassword);
         builder.append(password);
+        builder.append(colonAfterScheme);
         builder.append(path);
         builder.append(questionMark);
         builder.append(query);
