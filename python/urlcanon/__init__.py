@@ -17,12 +17,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 from .parse import parse_url, ParsedUrl, parse_ipv4, parse_ipv4or6
-from .canon import Canonicalizer, whatwg, google, semantic_precise, semantic
-from .rules import MatchRule
+from .canon import (
+        Canonicalizer, whatwg, google, semantic_precise, semantic,
+        normalize_host)
+from .rules import MatchRule, url_matches_domain
 
 __all__ = ['parse_url', 'ParsedUrl', 'parse_ipv4', 'parse_ipv4or6',
            'Canonicalizer', 'whatwg', 'google', 'semantic_precise', 'semantic',
-           'MatchRule', 'SPECIAL_SCHEMES', 'reverse_host', 'ssurt_host']
+           'MatchRule', 'SPECIAL_SCHEMES', 'reverse_host', 'ssurt_host',
+           'url_matches_domain', 'normalize_host']
 
 SPECIAL_SCHEMES = {
     b'ftp': b'21',

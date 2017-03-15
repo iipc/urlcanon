@@ -26,6 +26,11 @@ except ImportError:
 import idna
 import encodings.idna as idna2003
 
+try:
+    unicode
+except NameError:
+    unicode = str
+
 class Canonicalizer:
     def __init__(self, steps):
         self.steps = steps
@@ -460,3 +465,22 @@ semantic_precise = Canonicalizer([
 # equivalent to each other.
 semantic = Canonicalizer(
         semantic_precise.steps + [remove_fragment])
+
+def normalize_host(host):
+    '''
+    Normalize a host. Does the same stuff that the semantic canonicalizer
+    does to the host part of a url.
+    '''
+    url = urlcanon.ParsedUrl()
+    url.scheme = b'http'   # treat it as "special"
+    if isinstance(host, unicode):
+        url.host = host.encode('utf-8')
+    else:
+        url.host = host
+    url.host = pct_decode_token_repeatedly(url.host)
+    reparse_host(url)
+    normalize_ip_address(url)
+    fix_host_dots(url)
+    punycode_special_host(url)
+    url.host = pct_encode(url.host, GOOGLE_PCT_ENCODE_RE)
+    return url.host

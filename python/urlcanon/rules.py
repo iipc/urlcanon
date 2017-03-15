@@ -25,6 +25,28 @@ try:
 except NameError:
     unicode = str
 
+def url_matches_domain(url, domain):
+    '''
+    Returns true if
+     - domain is an ip address and url.host is the same ip address
+     - domain is a domain and url.host is the same domain
+     - domain is a domain and url.host is a subdomain of it
+    '''
+    if not isinstance(url, urlcanon.ParsedUrl):
+        url = urlcanon.parse_url(url)
+
+    if domain == url.host:
+        return True
+
+    if (urlcanon.parse_ipv4or6(domain) != (None, None)
+            or urlcanon.parse_ipv4or6(url.host) != (None, None)):
+        # if either of self.domain or url.host is an ip address and they're
+        # not identical (the first check, above), not a match
+        return False
+
+    return urlcanon.reverse_host(url.host).startswith(
+            urlcanon.reverse_host(domain))
+
 class MatchRule:
     '''
     A url-matching rule, with one or more conditions.
@@ -121,28 +143,6 @@ class MatchRule:
                         'invalid scope rule with url_match '
                         '%s' % repr(url_match))
 
-        self.domain_is_ip_address = urlcanon.parse_ipv4or6(
-                self.domain) != (None, None)
-
-    def is_domain_match(self, url):
-        '''
-        Returns true if
-         - self.domain is an ip address and url.host is the same ip address
-         - self.domain is a domain and url.host is the same domain
-         - self.domain is a domain and url.host is a subdomain of it
-        '''
-        if self.domain == url.host:
-            return True
-
-        if (self.domain_is_ip_address
-                or urlcanon.parse_ipv4or6(url.host) != (None, None)):
-            # if either of self.domain or url.host is an ip address and they're
-            # not identical (the first check, above), not a match
-            return False
-
-        return urlcanon.reverse_host(url.host).startswith(
-                urlcanon.reverse_host(self.domain))
-
     def applies(self, url, parent_url=None):
         '''
         Returns true if `url` matches `match_rule`.
@@ -162,7 +162,7 @@ class MatchRule:
         if not isinstance(url, urlcanon.ParsedUrl):
             url = urlcanon.parse_url(url)
 
-        if self.domain and not self.is_domain_match(url):
+        if self.domain and not url_matches_domain(url, self.domain):
             return False
         if self.surt and not url.surt().startswith(self.surt):
             return False

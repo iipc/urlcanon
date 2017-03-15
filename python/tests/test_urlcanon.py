@@ -288,6 +288,24 @@ def test_semantic_precise(uncanonicalized, canonicalized):
     urlcanon.semantic_precise(url)
     assert url.__bytes__() == canonicalized
 
+def test_normalize_host():
+    assert urlcanon.normalize_host('EXAMPLE.Com') == b'example.com'
+    assert urlcanon.normalize_host('₹.com') == b'xn--yzg.com'
+    assert urlcanon.normalize_host('XN--fa-Hia.de..') == b'xn--fa-hia.de'
+    assert urlcanon.normalize_host('☕.de') == b'xn--53h.de'
+    assert urlcanon.normalize_host(
+            '日本⒈co．jp') == b'%E6%97%A5%E6%9C%AC%E2%92%88co%EF%BC%8Ejp'
+    assert urlcanon.normalize_host('☃.net') == b'xn--n3h.net'
+    assert urlcanon.normalize_host('%e2%98%83.n%45t') == b'xn--n3h.net'
+    assert urlcanon.normalize_host('%25e2%98%%383.N%45t') == b'xn--n3h.net'
+    # XXX some test cases from http://unicode.org/cldr/utility/idna.jsp
+    # don't work. python needs an implementation of uts46
+    # assert urlcanon.normalize_host('Faß.de') == b'fass.de'
+    # assert urlcanon.normalize_host('σόλος.gr') == b'xn--wxaikc6b.gr'
+    # assert urlcanon.normalize_host('Σόλος.gr') == b'xn--wxaikc6b.gr'
+    # assert urlcanon.normalize_host(
+    #         'ΣΌΛΟΣ.grﻋﺮﺑﻲ.de') == b'xn--wxaikc6b.xn--gr-gtd9a1b0g.de'
+
 ## # XXX these are "parsing" tests from the surt library, change to
 ## # canonicalization tests, which canonicalizer?
 ## assert handyurl.parse("http:////////////////www.vikings.com").geturl() == 'http://www.vikings.com/'
