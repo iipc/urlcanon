@@ -54,12 +54,12 @@ class WhatwgCanonicalizer implements Canonicalizer {
         return s.replaceAll(TAB_AND_NEWLINE_REGEX, ByteString.EMPTY);
     }
 
-    void removeLeadingTrailingJunk(ParsedUrl url) {
+    static void removeLeadingTrailingJunk(ParsedUrl url) {
         url.setLeadingJunk(ByteString.EMPTY);
         url.setTrailingJunk(ByteString.EMPTY);
     }
 
-    void removeTabsAndNewlines(ParsedUrl url) {
+    static void removeTabsAndNewlines(ParsedUrl url) {
         url.setLeadingJunk(removeTabsAndNewlines(url.getLeadingJunk()));
         url.setScheme(removeTabsAndNewlines(url.getScheme()));
         url.setColonAfterScheme(removeTabsAndNewlines(url.getColonAfterScheme()));
@@ -79,11 +79,11 @@ class WhatwgCanonicalizer implements Canonicalizer {
         url.setTrailingJunk(removeTabsAndNewlines(url.getTrailingJunk()));
     }
 
-    void lowercaseScheme(ParsedUrl url) {
+    static void lowercaseScheme(ParsedUrl url) {
         url.setScheme(url.getScheme().asciiLowerCase());
     }
 
-    void fixBackslashes(ParsedUrl url) {
+    static void fixBackslashes(ParsedUrl url) {
         if (ParsedUrl.SPECIAL_SCHEMES.containsKey(url.getScheme().toString())) {
             url.setSlashes(url.getSlashes().replace((byte) '\\', (byte) '/'));
             ByteString path = url.getPath();
@@ -125,9 +125,24 @@ class WhatwgCanonicalizer implements Canonicalizer {
         }
     }
 
-    void normalizePathDots(ParsedUrl url) {
+    static void normalizePathDots(ParsedUrl url) {
         url.setPath(resolvePathDots(url.getPath(), ParsedUrl.SPECIAL_SCHEMES.containsKey(url.getScheme().toString())));
     }
+
+    protected static Pattern PCT_DECODE_REGEX = Pattern.compile("%([0-9a-fA-F]{2})");
+    public static ByteString pctDecode(ByteString str) {
+        ByteStringBuilder buf = new ByteStringBuilder(str.length());
+        int pos = 0;
+        Matcher m = PCT_DECODE_REGEX.matcher(str);
+        while (m.find()) {
+            buf.append(str, pos, m.start());
+            buf.append((byte) (Integer.parseInt(m.group(1), 16) & 0xff));
+            pos = m.end();
+        }
+        buf.append(str, pos, str.length());
+        return buf.toByteString();
+    }
+
 
     static ByteString pctEncode(ByteString str, Pattern encodeSetRegex) {
         ByteStringBuilder buf = new ByteStringBuilder(str.length());
@@ -164,21 +179,21 @@ class WhatwgCanonicalizer implements Canonicalizer {
         url.setQuery(pctEncode(url.getQuery(), QUERY_ENCODE_REGEX));
     }
 
-    void emptyPathToSlash(ParsedUrl url) {
+    static void emptyPathToSlash(ParsedUrl url) {
         if (url.getPath().isEmpty() && !url.getHost().isEmpty()
                 && ParsedUrl.SPECIAL_SCHEMES.containsKey(url.getScheme().toString())) {
             url.setPath(SLASH);
         }
     }
 
-    void elideDefaultPort(ParsedUrl url) {
+    static void elideDefaultPort(ParsedUrl url) {
         if (hasDefaultPort(url)) {
             url.setColonBeforePort(ByteString.EMPTY);
             url.setPort(ByteString.EMPTY);
         }
     }
 
-    private boolean hasDefaultPort(ParsedUrl url) {
+    private static boolean hasDefaultPort(ParsedUrl url) {
         Integer defaultPort = ParsedUrl.SPECIAL_SCHEMES.get(url.getScheme().toString());
         int port = (int) CharSequences.parseLong(url.getPort());
         return defaultPort != null && port == defaultPort.intValue();
@@ -238,17 +253,17 @@ class WhatwgCanonicalizer implements Canonicalizer {
         }
     }
 
-    void pctEncodeHost(ParsedUrl url) {
+    static void pctEncodeHost(ParsedUrl url) {
         url.setHost(pctEncode(url.getHost(), C0_ENCODE_REGEX));
     }
 
-    void pctDecodeHost(ParsedUrl url) {
+    static void pctDecodeHost(ParsedUrl url) {
         if (ParsedUrl.SPECIAL_SCHEMES.containsKey(url.getScheme().toString())) {
             url.setHost(url.getHost().pctDecode());
         }
     }
 
-    void pctEncodeUserinfo(ParsedUrl url) {
+    static void pctEncodeUserinfo(ParsedUrl url) {
         url.setUsername(pctEncode(url.getUsername(), USERINFO_ENCODE_REGEX));
         url.setPassword(pctEncode(url.getPassword(), USERINFO_ENCODE_REGEX));
     }

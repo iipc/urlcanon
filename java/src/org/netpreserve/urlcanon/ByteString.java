@@ -189,4 +189,17 @@ public class ByteString implements CharSequence {
         }
         return true;
     }
+
+    public boolean equals(CharSequence s) {
+        int len = s.length();
+        if (len != data.length) {
+            return false;
+        }
+        for (int i = 0; i < len; i++) {
+            if (data[i] != (byte)s.charAt(i)) {
+                return false;
+            }
+        }
+        return true;
+    }
 }

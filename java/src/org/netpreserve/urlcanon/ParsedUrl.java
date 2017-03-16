@@ -86,10 +86,10 @@ public class ParsedUrl {
 
     private final static Pattern AUTHORITY_REGEX = Pattern.compile(("\\A" +
             "(?:" +
-            "   ( [^:@]* )" + // USERNAME
+            "   ( [^:]* )" + // USERNAME
             "   (?:" +
             "     ( : )" + // COLON_BEFORE_PASSWORD
-            "     ( [^@]* )" + // PASSWORD
+            "     ( .* )" + // PASSWORD
             "   )?" +
             "   ( @ )" + // AT_SIGN
             ")?" +
@@ -191,12 +191,23 @@ public class ParsedUrl {
             throw new AssertionError("URL_REGEX didn't match");
         }
 
-        ByteString cleanScheme = url.scheme.replaceAll(TAB_AND_NEWLINE_REGEX, "").asciiLowerCase();
-        boolean special = SPECIAL_SCHEMES.containsKey(cleanScheme.toString());
-
         // we parse the authority + path into "pathish" initially so that we can
         // correctly handle file: urls
         ByteString pathish = CharSequences.group(input, m, URL_GROUP_PATHISH);
+
+        parsePathish(url, pathish);
+
+        return url;
+    }
+
+    /**
+     * Parses "pathish", which is the section of the url after the scheme,
+     * including the authority, if any, and populates fields of "url".
+     */
+    static void parsePathish(ParsedUrl url, ByteString pathish) {
+        Matcher m;
+        ByteString cleanScheme = url.scheme.replaceAll(TAB_AND_NEWLINE_REGEX, "").asciiLowerCase();
+        boolean special = SPECIAL_SCHEMES.containsKey(cleanScheme.toString());
 
         if (cleanScheme.equalsIgnoreCase("file")) {
             m = FILE_PATHISH_REGEX.matcher(pathish);
@@ -255,8 +266,6 @@ public class ParsedUrl {
                 url.port = ByteString.EMPTY;
             }
         }
-
-        return url;
     }
 
     //-------------------------------------------------------------------------
