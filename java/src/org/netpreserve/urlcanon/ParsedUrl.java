@@ -93,7 +93,7 @@ public class ParsedUrl {
             "   )?" +
             "   ( @ )" + // AT_SIGN
             ")?" +
-            "( [^:]* )" + // HOST
+            "( \\[[^]]*\\] | [^:]*  )" + // HOST
             "(?:" +
             "  ( : )" + // COLON_BEFORE_PORT
             "  ( .* )" + // PORT
