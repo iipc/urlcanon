@@ -1,4 +1,5 @@
 /.idea
+*.iml
 /target
 /urlcanon.egg-info
 __pycache__

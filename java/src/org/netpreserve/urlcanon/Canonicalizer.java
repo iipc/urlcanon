@@ -21,8 +21,10 @@ package org.netpreserve.urlcanon;
 
 public interface Canonicalizer {
 
-    Canonicalizer WHATWG = new WhatwgCanonicalizer();
+    Canonicalizer AGGRESSIVE = new AggressiveCanonicalizer();
+    Canonicalizer SEMANTIC = new SemanticCanonicalizer();
     Canonicalizer SEMANTIC_PRECISE = new SemanticPreciseCanonicalizer();
+    Canonicalizer WHATWG = new WhatwgCanonicalizer();
 
     void canonicalize(ParsedUrl url);
 
