@@ -43,6 +43,7 @@ public class AggressiveCanonicalizer implements Canonicalizer {
         stripSessionIdsFromPath(url);
         removeRedundantAmpersandsFromQuery(url);
         omitQuestionMarkIfQueryEmpty(url);
+        SemanticPreciseCanonicalizer.alphaReorderQuery(url); // sort again after lowercasing
     }
 
     static void httpsToHttp(ParsedUrl url) {
