@@ -134,7 +134,7 @@ public class SemanticPreciseCanonicalizer implements Canonicalizer {
     }
 
     static final Pattern LESS_DUMB_QUERY_ENCODE_RE = Pattern.compile("[\\x00-\\x20\\x7f-\\xff#%&=]");
-    static final Pattern QUERY_PARAM_RE = Pattern.compile("([^=]*)(=[^&]*)?(&|$)");
+    static final Pattern QUERY_PARAM_RE = Pattern.compile("([^&=]*)(=[^&]*)?(&|$)");
 
     private static ByteString pctRecodeQueryPart(ByteString s) {
         ByteString decoded = pctDecodeTokenRepeatedly(s);

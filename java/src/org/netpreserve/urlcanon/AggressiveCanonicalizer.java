@@ -28,6 +28,8 @@ import java.util.regex.Pattern;
  * - removes www from hostname
  * - lowercases path and query
  * - strips common session ids from path and query
+ * - removes redundant &'s from query
+ * - removes ? if query is empty
  */
 public class AggressiveCanonicalizer implements Canonicalizer {
     @Override
@@ -39,6 +41,8 @@ public class AggressiveCanonicalizer implements Canonicalizer {
         lowercaseQuery(url);
         stripSessionIdsFromQuery(url);
         stripSessionIdsFromPath(url);
+        removeRedundantAmpersandsFromQuery(url);
+        omitQuestionMarkIfQueryEmpty(url);
     }
 
     static void httpsToHttp(ParsedUrl url) {
@@ -88,5 +92,16 @@ public class AggressiveCanonicalizer implements Canonicalizer {
         }
         path = path.replaceAll(PATH_SESSIONID_RE, "");
         url.setPath(path);
+    }
+
+    private static final Pattern REDUNDANT_AMPERSANDS_RE = Pattern.compile("^&+|&+$|(?<=&)&+");
+    static void removeRedundantAmpersandsFromQuery(ParsedUrl url) {
+        url.setQuery(url.getQuery().replaceAll(REDUNDANT_AMPERSANDS_RE, ""));
+    }
+
+    private void omitQuestionMarkIfQueryEmpty(ParsedUrl url) {
+        if (url.getQuery().isEmpty()) {
+            url.setQuestionMark(ByteString.EMPTY);
+        }
     }
 }

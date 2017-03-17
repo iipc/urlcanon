@@ -38,5 +38,7 @@
   "http://example.com/?a=1&ASPSESSIONIDAQBSDSRT=EOHBLBDDPFCLHKPGGKLILNAM&foo=bar": "http://example.com/?a=1&foo=bar",
   "http://example.com/?a=1&CFID=12412453&CFTOKEN=15501799&foo=bar": "http://example.com/?a=1&foo=bar",
   "http://example.com/?a=1&CFID=3304324&CFTOKEN=57491900&jsessionid=a63098d96360$B0$D9$A&foo=bar": "http://example.com/?a=1&foo=bar",
-  "http://example.com/something/;jsessionid=E85FAC04E331FFCA55549B10B7C7A4FA": "http://example.com/something/"
+  "http://example.com/something/;jsessionid=E85FAC04E331FFCA55549B10B7C7A4FA": "http://example.com/something/",
+  "http://example.com/foo?&": "http://example.com/foo",
+  "http://example.com/foo?&&a=1&&&&b=2&c=3&": "http://example.com/foo?a=1&b=2&c=3"
 }
