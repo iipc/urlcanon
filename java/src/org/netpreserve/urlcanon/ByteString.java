@@ -18,7 +18,10 @@
 
 package org.netpreserve.urlcanon;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,7 +36,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * The CharSequence methods in this class operate effectively as if this were a ISO-8859-1 String, but when we convert
  * to and from String we decode and encode as UTF-8.
  */
-public class ByteString implements CharSequence {
+public class ByteString implements CharSequence, Comparable<ByteString> {
 
     public static final ByteString EMPTY = new ByteString(new byte[0]);
 
@@ -103,13 +106,20 @@ public class ByteString implements CharSequence {
         return data.length == 0;
     }
 
-    public static ByteString join(ByteString delimiter, Iterable<? extends CharSequence> sequence) {
+    public static ByteString join(CharSequence delimiter, Iterable<? extends CharSequence> sequence) {
         int size = 0;
         for (CharSequence s: sequence) {
+            if (size > 0) {
+                size += delimiter.length();
+            }
             size += s.length();
         }
+
         ByteStringBuilder builder = new ByteStringBuilder(size);
         for (CharSequence s: sequence) {
+            if (builder.length() > 0) {
+                builder.append(delimiter);
+            }
             builder.append(s);
         }
         return builder.toByteString();
@@ -201,5 +211,32 @@ public class ByteString implements CharSequence {
             }
         }
         return true;
+    }
+
+    @Override
+    public int compareTo(ByteString other) {
+        for (int i = 0; i < length() && i < other.length(); i++) {
+            int comparison = Character.compare(charAt(i), other.charAt(i));
+            if (comparison != 0) {
+                return comparison;
+            }
+        }
+        return Integer.compare(length(), other.length());
+    }
+
+    public List<ByteString> split(char delim) {
+        ArrayList<ByteString> parts = new ArrayList<>();
+        int startOfPart = 0;
+
+        for (int i = 0; i < length(); i++) {
+            if (charAt(i) == delim) {
+                parts.add(subSequence(startOfPart, i));
+                startOfPart = i + 1;
+            }
+        }
+
+        parts.add(subSequence(startOfPart, length()));
+
+        return parts;
     }
 }

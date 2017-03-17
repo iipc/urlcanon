@@ -19,6 +19,10 @@
 
 package org.netpreserve.urlcanon;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -61,7 +65,7 @@ public class SemanticPreciseCanonicalizer implements Canonicalizer {
         WhatwgCanonicalizer.normalizePathDots(url);
         collapseConsecutiveSlashes(url);
         WhatwgCanonicalizer.emptyPathToSlash(url);
-        // TODO: alpha_reorder_query,
+        alphaReorderQuery(url);
 
     }
 
@@ -170,5 +174,11 @@ public class SemanticPreciseCanonicalizer implements Canonicalizer {
         }
 
         url.setQuery(out.toByteString());
+    }
+
+    static void alphaReorderQuery(ParsedUrl url) {
+        List<ByteString> params = url.getQuery().split('&');
+        Collections.sort(params);
+        url.setQuery(ByteString.join("&", params));
     }
 }
