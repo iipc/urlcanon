@@ -171,6 +171,10 @@ QUERY_ENCODE_RE = re.compile(br'[\x00-\x20\x22\x23\x3c\x3e\x7f-\xff]')
 USERINFO_ENCODE_RE = re.compile(
         br'[\x00-\x20\x7f-\xff"#<>?`{}/:;=@\[\\\]\^\|]')
 
+# XXX need to take a closer look at whatwg host parsing, this regex is a hack
+# to fix handling of host containing "%20"
+HOST_ENCODE_RE = re.compile(br'[\x00-\x20\x7f-\xff]')
+
 def pct_encode(bs, encode_re):
     '''
     Returns the result of replacing bytes in `bs` that match `encode_re`
@@ -197,7 +201,7 @@ def pct_encode_fragment(url):
     url.fragment = pct_encode(url.fragment, C0_ENCODE_RE)
 
 def pct_encode_host(url):
-    url.host = pct_encode(url.host, C0_ENCODE_RE)
+    url.host = pct_encode(url.host, HOST_ENCODE_RE)
 
 def empty_path_to_slash(url):
     if (not url.path and url.authority

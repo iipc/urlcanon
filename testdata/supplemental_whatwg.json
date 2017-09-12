@@ -118,5 +118,6 @@
     "http://@:@@host/a/b": "http://%40:%40@host/a/b",
     "http://@ho@st/a/b": "http://%40ho@st/a/b",
     "lolscheme:x x#x x": "lolscheme:x x#x x",
-    "lolscheme:/x x#x x": "lolscheme:/x%20x#x x"
+    "lolscheme:/x x#x x": "lolscheme:/x%20x#x x",
+    "http://info@merseburger.de%20/": "http://info@merseburger.de%20/"
 }
