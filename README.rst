@@ -10,7 +10,7 @@ A URL canonicalization (normalization) library for Python and Java.
 It currently provides:
 
 * A URL parser which preserves the input bytes exactly
-* A precanned canonicalization ruleset that tries to match the normalization implicit in the [parsing rules used by browsers](https://url.spec.whatwg.org/)
+* A precanned canonicalization ruleset that tries to match the normalization implicit in the `parsing rules used by browsers  <https://url.spec.whatwg.org/>`_
 * An alternative URL serialization suitable for sorting and prefix-matching
 
 **Status:** Early development. No API or output stability guarantees yet.
