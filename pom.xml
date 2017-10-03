@@ -22,7 +22,7 @@ limitations under the License.
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.netpreserve</groupId>
     <artifactId>urlcanon</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.1.0</version>
 
     <name>urlcanon</name>
     <description>URL parsing and canonicalization library</description>
