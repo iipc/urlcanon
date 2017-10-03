@@ -13,7 +13,7 @@ It currently provides:
 * A precanned canonicalization ruleset that tries to match the normalization implicit in the `parsing rules used by browsers  <https://url.spec.whatwg.org/>`_
 * An alternative URL serialization suitable for sorting and prefix-matching
 
-**Status:** Early development. No API or output stability guarantees yet.
+**Status:** Early development. While the library is already useful, some corner cases are incomplete. No API or output stability guarantees yet. The Java version is close but not quite at feature parity with the Python version. Patches that fix failing tests are most welcome.
 
 Examples
 --------
@@ -59,6 +59,16 @@ Java
 
     System.out.println(parsedUrl.ssurt());
     // "com,example,//:http/bar"
+
+Java releases are available in the Maven Central repository:
+
+.. code:: xml
+
+    <dependency>
+        <groupId>org.netpreserve</groupId>
+        <artifactId>urlcanon</artifactId>
+        <version>0.1.0</version>
+    </dependency>
 
 License
 -------
