@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
  * - removes www from hostname
  * - lowercases path and query
  * - strips common session ids from path and query
- * - removes redundant &'s from query
+ * - removes redundant &amp;'s from query
  * - removes ? if query is empty
  */
 public class AggressiveCanonicalizer implements Canonicalizer {
