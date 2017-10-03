@@ -137,4 +137,13 @@ limitations under the License.
     <scm>
         <url>https://github.com/iipc/urlcanon</url>
     </scm>
+
+    <developers>
+        <developer>
+            <name>Alexander Osborne</name>
+            <email>aosborne@nla.gov.au</email>
+            <organization>National Library of Australia</organization>
+            <organizationUrl>http://www.nla.gov.au/</organizationUrl>
+        </developer>
+    </developers>
 </project>
