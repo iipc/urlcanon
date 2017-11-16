@@ -38,9 +38,7 @@ public class ParsedUrl {
             "   ( [a-zA-Z] [^:]* )" + // SCHEME
             "   ( : )" + // COLON_AFTER_SCHEME
             ")?" +
-            "(" + // PATHISH
-            "  (?: [/\\\\]* [^/\\\\?#]* )*" +
-            ")" +
+            "( [^?#]* )" + // PATHISH
             "(?:" +
             "  ( [?] )" + // QUESTION_MARK
             "  ( [^#]* )" + // QUERY
