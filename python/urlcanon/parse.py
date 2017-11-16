@@ -34,9 +34,7 @@ URL_REGEX = re.compile(br'''
    (?P<scheme> [a-zA-Z] [^:]* )
    (?P<colon_after_scheme> : )
 )?
-(?P<pathish>
-  ( [/\\]* [^/\\?#]* )*
-)
+(?P<pathish> [^?#]* )
 (?:
   (?P<question_mark> [?] )
   (?P<query> [^#]* )
