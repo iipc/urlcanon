@@ -67,7 +67,7 @@ Java releases are available in the Maven Central repository:
     <dependency>
         <groupId>org.netpreserve</groupId>
         <artifactId>urlcanon</artifactId>
-        <version>0.1.0</version>
+        <version>0.1.1</version>
     </dependency>
 
 License
