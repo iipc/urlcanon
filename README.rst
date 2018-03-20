@@ -10,16 +10,21 @@ A URL canonicalization (normalization) library for Python and Java.
 It currently provides:
 
 * A URL parser which preserves the input bytes exactly
-* A precanned canonicalization ruleset that tries to match the normalization implicit in the `parsing rules used by browsers  <https://url.spec.whatwg.org/>`_
-* An alternative URL serialization suitable for sorting and prefix-matching
+* A precanned canonicalization ruleset that tries to match the normalization
+  implicit in the `parsing rules used by browsers
+  <https://url.spec.whatwg.org/>`_
+* An alternative URL serialization suitable for sorting and prefix-matching:
+  `SSURT <ssurt.rst>`_.
 
-**Status:** Early development. While the library is already useful, some corner cases are incomplete. No API or output stability guarantees yet. The Java version is close but not quite at feature parity with the Python version. Patches that fix failing tests are most welcome.
+**Status:** Stable and in production use for some time. But no API or output
+stability guarantees yet. There are differences in features between Java and
+Python versions.
 
 Examples
 --------
 
 Python
-^^^^^^
+~~~~~~
 
 .. code:: python
 
@@ -41,8 +46,14 @@ Python
     >>> urlcanon.whatwg.rule_applies(rule, b'HTtp:////eXAMple.Com/bar//baz//..///quu')
     True
 
+Python releases are available in PyPI:
+
+.. code:: sh
+
+    pip install urlcanon
+
 Java
-^^^^
+~~~~
 
 .. code:: java
 
