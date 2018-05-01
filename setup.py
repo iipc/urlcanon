@@ -2,7 +2,7 @@
 '''
 setup.py - setuptools installation configuration for urlcanon
 
-Copyright (C) 2016 Internet Archive
+Copyright (C) 2016-2018 Internet Archive
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@ setuptools.setup(
         long_description=open('README.rst', mode='rb').read().decode('UTF-8'),
         classifiers=[
             'License :: OSI Approved :: Apache Software License',
-            'Programming Language :: Python :: 2.7',
             'Programming Language :: Python :: 3.4',
             'Programming Language :: Python :: 3.5',
             'Programming Language :: Python :: 3.6',
