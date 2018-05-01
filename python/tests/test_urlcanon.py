@@ -2,7 +2,7 @@
 '''
 test_urlcanon.py - unit tests for the urlcanon package
 
-Copyright (C) 2016-2017 Internet Archive
+Copyright (C) 2016-2018 Internet Archive
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -271,6 +271,22 @@ def load_surt_test_data(section):
 def test_google_canonicalizer(uncanonicalized, canonicalized):
     url = urlcanon.parse_url(uncanonicalized)
     urlcanon.google(url)
+    assert url.__bytes__() == canonicalized
+
+def load_aggressive_test_data():
+    path = os.path.join(
+        os.path.dirname(__file__), '..', '..', 'testdata', 'aggressive.json')
+    with open(path, 'rb') as f:
+        jb = load_json_bytes(f.read())
+    return sorted(jb.items())
+
+@pytest.mark.parametrize(
+        'uncanonicalized,canonicalized', load_aggressive_test_data())
+def test_aggressive(uncanonicalized, canonicalized):
+    url = urlcanon.parse_url(uncanonicalized)
+    # if uncanonicalized == b'  https://www.google.com/  ':
+    #     import pdb; pdb.set_trace()
+    urlcanon.aggressive(url)
     assert url.__bytes__() == canonicalized
 
 def load_semantic_precise_test_data():

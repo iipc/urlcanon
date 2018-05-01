@@ -1,7 +1,8 @@
+# vim: set fileencoding=utf-8:
 '''
 urlcanon/canon.py - url canonicalization
 
-Copyright (C) 2016-2017 Internet Archive
+Copyright (C) 2016-2018 Internet Archive
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -378,6 +379,54 @@ def alpha_reorder_query(url):
     if url.query:
         url.query = b'&'.join(sorted(url.query.split(b'&')))
 
+def https_to_http(url):
+    if url.scheme == b'https':
+        url.scheme = b'http'
+
+WWWN_RE = re.compile(br'^www\d*\.')
+def strip_www(url):
+    m = WWWN_RE.match(url.host)
+    if m:
+        url.host = url.host[len(m.group(0)):]
+
+def lowercase_path(url):
+    url.path = url.path.lower()
+
+def lowercase_query(url):
+    url.query = url.query.lower()
+
+# can't use the lookbehind in the java version because:
+# sre_constants.error: look-behind requires fixed-width pattern
+QUERY_SESSIONID_RE = re.compile(
+        b'(?i)(&|^)(?:'
+        b'jsessionid=[0-9a-z$]{10,}'
+        b'|sessionid=[0-9a-z]{16,}'
+        b'|phpsessid=[0-9a-z]{16,}'
+        b'|sid=[0-9a-z]{16,}'
+        b'|aspsessionid[a-z]{8}=[0-9a-z]{16,}'
+        b'|cfid=[0-9]+&cftoken=[0-9a-z-]+'
+        b')(&|$)')
+def strip_session_ids_from_query(url):
+    url.query = QUERY_SESSIONID_RE.sub(br'\1\2', url.query)
+
+ASPX_SUFFIX_RE = re.compile(b'.*\\.aspx$')
+ASPX_PATH_SESSIONID_RE = re.compile(
+        b'(?<=/)\\([0-9a-z]{24}\\)/|'
+        b'(?<=/)(?:\\((?:[a-z]\\([0-9a-z]{24}\\))+\\)/)')
+PATH_SESSIONID_RE = re.compile(b';jsessionid=[0-9a-z]{32}$');
+def strip_session_ids_from_path(url):
+    if ASPX_SUFFIX_RE.fullmatch(url.path):
+        url.path = ASPX_PATH_SESSIONID_RE.sub(b'', url.path)
+    url.path = PATH_SESSIONID_RE.sub(b'', url.path)
+
+REDUNDANT_AMPERSAND_RE = re.compile(b'^&+|&+$|(?<=&)&+');
+def remove_redundant_ampersands_from_query(url):
+    url.query = REDUNDANT_AMPERSAND_RE.sub(b'', url.query)
+
+def omit_question_mark_if_query_empty(url):
+    if not url.query:
+        url.question_mark = b''
+
 whatwg = Canonicalizer([
     remove_leading_trailing_junk,
     remove_tabs_and_newlines,
@@ -473,6 +522,18 @@ And these additional steps:
 # equivalent to each other.
 semantic = Canonicalizer(
         semantic_precise.steps + [remove_fragment])
+
+aggressive = Canonicalizer(
+        semantic.steps + [
+            https_to_http,
+            strip_www,
+            lowercase_path,
+            lowercase_query,
+            strip_session_ids_from_query,
+            strip_session_ids_from_path,
+            remove_redundant_ampersands_from_query,
+            omit_question_mark_if_query_empty,
+            alpha_reorder_query]) # sort again after lowercasing
 
 def normalize_host(host):
     '''

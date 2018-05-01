@@ -1,8 +1,8 @@
 '''
-urlcanon/__init__.py
+urlcanon/__init__.py - URL canonicalization library, python version
 
 Copyright (C) 2016 National Library of Australia
-Copyright (C) 2016-2017 Internet Archive
+Copyright (C) 2016-2018 Internet Archive
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -18,14 +18,15 @@ limitations under the License.
 '''
 from .parse import parse_url, ParsedUrl, parse_ipv4, parse_ipv4or6
 from .canon import (
-        Canonicalizer, whatwg, google, semantic_precise, semantic,
+        Canonicalizer, whatwg, google, semantic_precise, semantic, aggressive,
         normalize_host)
 from .rules import MatchRule, url_matches_domain, host_matches_domain
 
 __all__ = ['parse_url', 'ParsedUrl', 'parse_ipv4', 'parse_ipv4or6',
            'Canonicalizer', 'whatwg', 'google', 'semantic_precise', 'semantic',
            'MatchRule', 'SPECIAL_SCHEMES', 'reverse_host', 'ssurt_host',
-           'host_matches_domain', 'url_matches_domain', 'normalize_host']
+           'host_matches_domain', 'url_matches_domain', 'normalize_host',
+           'aggressive']
 
 SPECIAL_SCHEMES = {
     b'ftp': b'21',
