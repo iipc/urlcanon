@@ -409,13 +409,13 @@ QUERY_SESSIONID_RE = re.compile(
 def strip_session_ids_from_query(url):
     url.query = QUERY_SESSIONID_RE.sub(br'\1\2', url.query)
 
-ASPX_SUFFIX_RE = re.compile(b'.*\\.aspx$')
+ASPX_SUFFIX_RE = re.compile(b'.*\\.aspx\\Z')
 ASPX_PATH_SESSIONID_RE = re.compile(
         b'(?<=/)\\([0-9a-z]{24}\\)/|'
         b'(?<=/)(?:\\((?:[a-z]\\([0-9a-z]{24}\\))+\\)/)')
 PATH_SESSIONID_RE = re.compile(b';jsessionid=[0-9a-z]{32}$');
 def strip_session_ids_from_path(url):
-    if ASPX_SUFFIX_RE.fullmatch(url.path):
+    if ASPX_SUFFIX_RE.match(url.path):
         url.path = ASPX_PATH_SESSIONID_RE.sub(b'', url.path)
     url.path = PATH_SESSIONID_RE.sub(b'', url.path)
 
