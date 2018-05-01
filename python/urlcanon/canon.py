@@ -426,20 +426,7 @@ google = Canonicalizer([
     # remove_port,
 ])
 
-# Precise semantic canonicalizer, semantic in the sense that the intention is
-# to canonicalize urls that "mean" the same thing, that you would expect to
-# load the same stuff and look the same way if you pasted them into the
-# location bar of your browser.
-#
-# Does everything WHATWG does and also some cleanup:
-# - sets default scheme http: if scheme is missing
-# - removes extraneous dots in the host
-# And these additional steps:
-# - collapses consecutive slashes in the path
-# - standardizes percent encodings so that different encodings of the same-ish
-#   thing match
-# - sorts query params
-# - removes userinfo
+# 😭 pydoc ignores my docstring
 semantic_precise = Canonicalizer([
     remove_leading_trailing_junk,
     default_scheme_http,
@@ -463,6 +450,23 @@ semantic_precise = Canonicalizer([
     empty_path_to_slash,
     alpha_reorder_query,
 ])
+'''
+Precise semantic canonicalizer.
+
+Semantic in the sense that the intention is to canonicalize urls that "mean"
+the same thing, that you would expect to load the same stuff and look the same
+way if you pasted them into the location bar of your browser.
+
+Does everything WHATWG does and also some cleanup:
+- sets default scheme http: if scheme is missing
+- removes extraneous dots in the host
+And these additional steps:
+- collapses consecutive slashes in the path
+- standardizes percent encodings so that different encodings of the same-ish
+  thing match
+- sorts query params
+- removes userinfo
+'''
 
 # Semantic canonicalizer. Like semantic_precise but removes the fragment from
 # the url, thus considers urls which differ only in the fragment to be
