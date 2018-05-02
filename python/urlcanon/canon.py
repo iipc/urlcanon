@@ -427,6 +427,10 @@ def omit_question_mark_if_query_empty(url):
     if not url.query:
         url.question_mark = b''
 
+def strip_trailing_slash_unless_empty(parsed_url):
+    if parsed_url.path != b'/' and parsed_url.path.endswith(b'/'):
+        parsed_url.path = parsed_url.path[:-1]
+
 whatwg = Canonicalizer([
     remove_leading_trailing_junk,
     remove_tabs_and_newlines,
@@ -531,6 +535,7 @@ aggressive = Canonicalizer(
             lowercase_query,
             strip_session_ids_from_query,
             strip_session_ids_from_path,
+            strip_trailing_slash_unless_empty,
             remove_redundant_ampersands_from_query,
             omit_question_mark_if_query_empty,
             alpha_reorder_query]) # sort again after lowercasing
