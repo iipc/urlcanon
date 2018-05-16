@@ -33,6 +33,12 @@ def test_match_rules():
     assert not rule.applies('http://example.com/foo/baz')
 
     rule = urlcanon.MatchRule(
+            ssurt=urlcanon.semantic('http://example.com/foo/bar').ssurt().decode('ascii'))
+    assert not rule.applies('hTTp://EXAmple.com.../FOo/Bar#zuh')
+    assert rule.applies(b'http://example.com/foo/bar')
+    assert not rule.applies('http://example.com/foo/baz')
+
+    rule = urlcanon.MatchRule(
             url_match='REGEX_MATCH', value=b'^.*/audio_file/.*\.mp3$')
     assert not rule.applies('http://foo.com/some.mp3')
     assert rule.applies('http://foo.com/blah/audio_file/some.mp3')
