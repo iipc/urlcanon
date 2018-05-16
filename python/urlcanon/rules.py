@@ -132,7 +132,6 @@ class MatchRule:
         '''
         self.surt = surt.encode('utf-8') if isinstance(surt, unicode) else surt
         self.ssurt = ssurt.encode('utf-8') if isinstance(ssurt, unicode) else ssurt
-        self.ssurt = ssurt
         self.domain = domain.encode('utf-8') if isinstance(domain, unicode) else domain
         self.substring = substring.encode('utf-8') if isinstance(substring, unicode) else substring
 
