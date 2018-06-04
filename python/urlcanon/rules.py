@@ -115,6 +115,22 @@ class MatchRule:
       parent_url_regex: ^https?://(www.)?youtube.com/user/.*$
     '''
 
+    def __repr__(self):
+        conditions = []
+        if self.surt:
+            conditions.append('surt=%r' % self.surt)
+        if self.ssurt:
+            conditions.append('ssurt=%r' % self.ssurt)
+        if self.regex:
+            conditions.append('regex=%r' % self.regex)
+        if self.domain:
+            conditions.append('domain=%r' % self.domain)
+        if self.substring:
+            conditions.append('substring=%r' % self.substring)
+        if self.parent_url_regex:
+            conditions.append('parent_url_regex=%r' % self.parent_url_regex)
+        return 'MatchRule(%s)' % ','.join(conditions)
+
     def __init__(
             self, surt=None, ssurt=None, regex=None, domain=None,
             substring=None, parent_url_regex=None,
