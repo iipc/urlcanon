@@ -161,6 +161,50 @@ class ParsedUrl:
                 + self.hash_sign + self.fragment + self.trailing_junk)
         return result
 
+    def get_surt_parts(self):
+        # For now, we only support SURT parts for certain cases.
+        if self.scheme not in urlcanon.SPECIAL_SCHEMES.keys():
+            return []
+
+        result = []
+        parts = []
+
+        # Build a list of all of the parts of the SURT.
+        parts.append(
+            self.scheme + self.colon_after_scheme + self.slashes)
+        if self.host:
+            parts.append(parts.pop() + b'(')
+            for part in urlcanon.ssurt_host(
+                    self.host, trailing_comma=False).split(b','):
+                parts.append(part + b',')
+            # Closing paren is its own part to allow for incomplete and
+            # incomplete hosts
+            # (e.g: http://(com,examle) and http://(com,example )
+            if self.port:
+                parts.append(b':' + self.port + b')')
+            else:
+                parts.append(b')')
+        for part in self.path.split(b'/'):
+            if part != b'':
+                parts.append(b'/' + part)
+        if self.query:
+            parts.append(self.question_mark + self.query)
+        if self.fragment:
+            parts.append(self.hash_sign + self.fragment)
+        if self.trailing_junk:
+            parts.append(self.trailing_junk)
+
+        # Strip empty parts.
+        parts = [part for part in parts if part != b'']
+
+        # Build a list of SURT fragments.
+        while parts != []:
+            result.append(b''.join(parts))
+            parts.pop()
+
+        return result
+
+
 def parse_ipv4(host):
     def _parse_num(s):
         if len(s) >= 2 and s[:2] in (b'0x', b'0X', '0x', '0X'):

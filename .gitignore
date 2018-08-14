@@ -4,3 +4,8 @@
 /urlcanon.egg-info
 __pycache__
 /.cache
+*.py[co]
+build
+.eggs
+.pytest_cache
+venv
