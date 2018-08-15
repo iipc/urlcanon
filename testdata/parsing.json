@@ -1,4 +1,448 @@
 {
+  "http://example.com": {
+    "at_sign": "",
+    "colon_after_scheme": ":",
+    "colon_before_password": "",
+    "colon_before_port": "",
+    "fragment": "",
+    "hash_sign": "",
+    "host": "example.com",
+    "ip4": null,
+    "ip6": null,
+    "leading_junk": "",
+    "password": "",
+    "path": "",
+    "port": "",
+    "query": "",
+    "question_mark": "",
+    "scheme": "http",
+    "slashes": "//",
+    "trailing_junk": "",
+    "username": "",
+    "surt_ancestry": [
+      "http://(com,example,)",
+      "http://(com,example,",
+      "http://(com,",
+      "http://("
+    ]
+  },
+  "http://example.com/test": {
+    "at_sign": "",
+    "colon_after_scheme": ":",
+    "colon_before_password": "",
+    "colon_before_port": "",
+    "fragment": "",
+    "hash_sign": "",
+    "host": "example.com",
+    "ip4": null,
+    "ip6": null,
+    "leading_junk": "",
+    "password": "",
+    "path": "/test",
+    "port": "",
+    "query": "",
+    "question_mark": "",
+    "scheme": "http",
+    "slashes": "//",
+    "trailing_junk": "",
+    "username": "",
+    "surt_ancestry": [
+      "http://(com,example,)/test",
+      "http://(com,example,)",
+      "http://(com,example,",
+      "http://(com,",
+      "http://("
+    ]
+  },
+  "http://example.com/test?a=b": {
+    "at_sign": "",
+    "colon_after_scheme": ":",
+    "colon_before_password": "",
+    "colon_before_port": "",
+    "fragment": "",
+    "hash_sign": "",
+    "host": "example.com",
+    "ip4": null,
+    "ip6": null,
+    "leading_junk": "",
+    "password": "",
+    "path": "/test",
+    "port": "",
+    "query": "a=b",
+    "question_mark": "?",
+    "scheme": "http",
+    "slashes": "//",
+    "trailing_junk": "",
+    "username": "",
+    "surt_ancestry": [
+      "http://(com,example,)/test?a=b",
+      "http://(com,example,)/test",
+      "http://(com,example,)",
+      "http://(com,example,",
+      "http://(com,",
+      "http://("
+    ]
+  },
+  "http://example.com/test#x": {
+    "at_sign": "",
+    "colon_after_scheme": ":",
+    "colon_before_password": "",
+    "colon_before_port": "",
+    "fragment": "x",
+    "hash_sign": "#",
+    "host": "example.com",
+    "ip4": null,
+    "ip6": null,
+    "leading_junk": "",
+    "password": "",
+    "path": "/test",
+    "port": "",
+    "query": "",
+    "question_mark": "",
+    "scheme": "http",
+    "slashes": "//",
+    "trailing_junk": "",
+    "username": "",
+    "surt_ancestry": [
+      "http://(com,example,)/test#x",
+      "http://(com,example,)/test",
+      "http://(com,example,)",
+      "http://(com,example,",
+      "http://(com,",
+      "http://("
+    ]
+  },
+  "http://example.com/test?a=b#x": {
+    "at_sign": "",
+    "colon_after_scheme": ":",
+    "colon_before_password": "",
+    "colon_before_port": "",
+    "fragment": "x",
+    "hash_sign": "#",
+    "host": "example.com",
+    "ip4": null,
+    "ip6": null,
+    "leading_junk": "",
+    "password": "",
+    "path": "/test",
+    "port": "",
+    "query": "a=b",
+    "question_mark": "?",
+    "scheme": "http",
+    "slashes": "//",
+    "trailing_junk": "",
+    "username": "",
+    "surt_ancestry": [
+      "http://(com,example,)/test?a=b#x",
+      "http://(com,example,)/test?a=b",
+      "http://(com,example,)/test",
+      "http://(com,example,)",
+      "http://(com,example,",
+      "http://(com,",
+      "http://("
+    ]
+  },
+  "http://subdomain.example.com": {
+    "at_sign": "",
+    "colon_after_scheme": ":",
+    "colon_before_password": "",
+    "colon_before_port": "",
+    "fragment": "",
+    "hash_sign": "",
+    "host": "subdomain.example.com",
+    "ip4": null,
+    "ip6": null,
+    "leading_junk": "",
+    "password": "",
+    "path": "",
+    "port": "",
+    "query": "",
+    "question_mark": "",
+    "scheme": "http",
+    "slashes": "//",
+    "trailing_junk": "",
+    "username": "",
+    "surt_ancestry": [
+      "http://(com,example,subdomain,)",
+      "http://(com,example,subdomain,",
+      "http://(com,example,",
+      "http://(com,",
+      "http://("
+    ]
+  },
+  "http://subdomain.example.com/test": {
+    "at_sign": "",
+    "colon_after_scheme": ":",
+    "colon_before_password": "",
+    "colon_before_port": "",
+    "fragment": "",
+    "hash_sign": "",
+    "host": "subdomain.example.com",
+    "ip4": null,
+    "ip6": null,
+    "leading_junk": "",
+    "password": "",
+    "path": "/test",
+    "port": "",
+    "query": "",
+    "question_mark": "",
+    "scheme": "http",
+    "slashes": "//",
+    "trailing_junk": "",
+    "username": "",
+    "surt_ancestry": [
+      "http://(com,example,subdomain,)/test",
+      "http://(com,example,subdomain,)",
+      "http://(com,example,subdomain,",
+      "http://(com,example,",
+      "http://(com,",
+      "http://("
+    ]
+  },
+  "http://subdomain.example.com/test?a=b": {
+    "at_sign": "",
+    "colon_after_scheme": ":",
+    "colon_before_password": "",
+    "colon_before_port": "",
+    "fragment": "",
+    "hash_sign": "",
+    "host": "subdomain.example.com",
+    "ip4": null,
+    "ip6": null,
+    "leading_junk": "",
+    "password": "",
+    "path": "/test",
+    "port": "",
+    "query": "a=b",
+    "question_mark": "?",
+    "scheme": "http",
+    "slashes": "//",
+    "trailing_junk": "",
+    "username": "",
+    "surt_ancestry": [
+      "http://(com,example,subdomain,)/test?a=b",
+      "http://(com,example,subdomain,)/test",
+      "http://(com,example,subdomain,)",
+      "http://(com,example,subdomain,",
+      "http://(com,example,",
+      "http://(com,",
+      "http://("
+    ]
+  },
+  "http://subdomain.example.com/test#x": {
+    "at_sign": "",
+    "colon_after_scheme": ":",
+    "colon_before_password": "",
+    "colon_before_port": "",
+    "fragment": "x",
+    "hash_sign": "#",
+    "host": "subdomain.example.com",
+    "ip4": null,
+    "ip6": null,
+    "leading_junk": "",
+    "password": "",
+    "path": "/test",
+    "port": "",
+    "query": "",
+    "question_mark": "",
+    "scheme": "http",
+    "slashes": "//",
+    "trailing_junk": "",
+    "username": "",
+    "surt_ancestry": [
+      "http://(com,example,subdomain,)/test#x",
+      "http://(com,example,subdomain,)/test",
+      "http://(com,example,subdomain,)",
+      "http://(com,example,subdomain,",
+      "http://(com,example,",
+      "http://(com,",
+      "http://("
+    ]
+  },
+  "http://subdomain.example.com/test?a=b#x": {
+    "at_sign": "",
+    "colon_after_scheme": ":",
+    "colon_before_password": "",
+    "colon_before_port": "",
+    "fragment": "x",
+    "hash_sign": "#",
+    "host": "subdomain.example.com",
+    "ip4": null,
+    "ip6": null,
+    "leading_junk": "",
+    "password": "",
+    "path": "/test",
+    "port": "",
+    "query": "a=b",
+    "question_mark": "?",
+    "scheme": "http",
+    "slashes": "//",
+    "trailing_junk": "",
+    "username": "",
+    "surt_ancestry": [
+      "http://(com,example,subdomain,)/test?a=b#x",
+      "http://(com,example,subdomain,)/test?a=b",
+      "http://(com,example,subdomain,)/test",
+      "http://(com,example,subdomain,)",
+      "http://(com,example,subdomain,",
+      "http://(com,example,",
+      "http://(com,",
+      "http://("
+    ]
+  },
+  "http://sub.subdomain.example.com": {
+    "at_sign": "",
+    "colon_after_scheme": ":",
+    "colon_before_password": "",
+    "colon_before_port": "",
+    "fragment": "",
+    "hash_sign": "",
+    "host": "sub.subdomain.example.com",
+    "ip4": null,
+    "ip6": null,
+    "leading_junk": "",
+    "password": "",
+    "path": "",
+    "port": "",
+    "query": "",
+    "question_mark": "",
+    "scheme": "http",
+    "slashes": "//",
+    "trailing_junk": "",
+    "username": "",
+    "surt_ancestry": [
+      "http://(com,example,subdomain,sub,)",
+      "http://(com,example,subdomain,sub,",
+      "http://(com,example,subdomain,",
+      "http://(com,example,",
+      "http://(com,",
+      "http://("
+    ]
+  },
+  "http://sub.subdomain.example.com/test": {
+    "at_sign": "",
+    "colon_after_scheme": ":",
+    "colon_before_password": "",
+    "colon_before_port": "",
+    "fragment": "",
+    "hash_sign": "",
+    "host": "sub.subdomain.example.com",
+    "ip4": null,
+    "ip6": null,
+    "leading_junk": "",
+    "password": "",
+    "path": "/test",
+    "port": "",
+    "query": "",
+    "question_mark": "",
+    "scheme": "http",
+    "slashes": "//",
+    "trailing_junk": "",
+    "username": "",
+    "surt_ancestry": [
+      "http://(com,example,subdomain,sub,)/test",
+      "http://(com,example,subdomain,sub,)",
+      "http://(com,example,subdomain,sub,",
+      "http://(com,example,subdomain,",
+      "http://(com,example,",
+      "http://(com,",
+      "http://("
+    ]
+  },
+  "http://sub.subdomain.example.com/test?a=b": {
+    "at_sign": "",
+    "colon_after_scheme": ":",
+    "colon_before_password": "",
+    "colon_before_port": "",
+    "fragment": "",
+    "hash_sign": "",
+    "host": "sub.subdomain.example.com",
+    "ip4": null,
+    "ip6": null,
+    "leading_junk": "",
+    "password": "",
+    "path": "/test",
+    "port": "",
+    "query": "a=b",
+    "question_mark": "?",
+    "scheme": "http",
+    "slashes": "//",
+    "trailing_junk": "",
+    "username": "",
+    "surt_ancestry": [
+      "http://(com,example,subdomain,sub,)/test?a=b",
+      "http://(com,example,subdomain,sub,)/test",
+      "http://(com,example,subdomain,sub,)",
+      "http://(com,example,subdomain,sub,",
+      "http://(com,example,subdomain,",
+      "http://(com,example,",
+      "http://(com,",
+      "http://("
+    ]
+  },
+  "http://sub.subdomain.example.com/test#x": {
+    "at_sign": "",
+    "colon_after_scheme": ":",
+    "colon_before_password": "",
+    "colon_before_port": "",
+    "fragment": "x",
+    "hash_sign": "#",
+    "host": "sub.subdomain.example.com",
+    "ip4": null,
+    "ip6": null,
+    "leading_junk": "",
+    "password": "",
+    "path": "/test",
+    "port": "",
+    "query": "",
+    "question_mark": "",
+    "scheme": "http",
+    "slashes": "//",
+    "trailing_junk": "",
+    "username": "",
+    "surt_ancestry": [
+      "http://(com,example,subdomain,sub,)/test#x",
+      "http://(com,example,subdomain,sub,)/test",
+      "http://(com,example,subdomain,sub,)",
+      "http://(com,example,subdomain,sub,",
+      "http://(com,example,subdomain,",
+      "http://(com,example,",
+      "http://(com,",
+      "http://("
+    ]
+  },
+  "http://sub.subdomain.example.com/test?a=b#x": {
+    "at_sign": "",
+    "colon_after_scheme": ":",
+    "colon_before_password": "",
+    "colon_before_port": "",
+    "fragment": "x",
+    "hash_sign": "#",
+    "host": "sub.subdomain.example.com",
+    "ip4": null,
+    "ip6": null,
+    "leading_junk": "",
+    "password": "",
+    "path": "/test",
+    "port": "",
+    "query": "a=b",
+    "question_mark": "?",
+    "scheme": "http",
+    "slashes": "//",
+    "trailing_junk": "",
+    "username": "",
+    "surt_ancestry": [
+      "http://(com,example,subdomain,sub,)/test?a=b#x",
+      "http://(com,example,subdomain,sub,)/test?a=b",
+      "http://(com,example,subdomain,sub,)/test",
+      "http://(com,example,subdomain,sub,)",
+      "http://(com,example,subdomain,sub,",
+      "http://(com,example,subdomain,",
+      "http://(com,example,",
+      "http://(com,",
+      "http://("
+    ]
+  },
   "about:blank#x": {
     "at_sign": "",
     "colon_after_scheme": ":",
@@ -18,7 +462,8 @@
     "scheme": "about",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": []
   },
   "\tHt\ntp\t:": {
     "at_sign": "",
@@ -39,7 +484,8 @@
     "scheme": "Ht\ntp\t",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": []
   },
   "\tNon\nspecial\t:": {
     "at_sign": "",
@@ -60,7 +506,8 @@
     "scheme": "Non\nspecial\t",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": []
   },
   "\tfi\nle\t:": {
     "at_sign": "",
@@ -81,7 +528,8 @@
     "scheme": "fi\nle\t",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": []
   },
   " f\ti\nle\t:": {
     "at_sign": "",
@@ -102,7 +550,8 @@
     "scheme": "f\ti\nle\t",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": []
   },
   " h\tT\nTp\t:": {
     "at_sign": "",
@@ -123,7 +572,8 @@
     "scheme": "h\tT\nTp\t",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": []
   },
   " n\tO\nNspecial\t:": {
     "at_sign": "",
@@ -144,7 +594,8 @@
     "scheme": "n\tO\nNspecial\t",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": []
   },
   "fi\nle:": {
     "at_sign": "",
@@ -165,7 +616,8 @@
     "scheme": "fi\nle",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": []
   },
   "file:": {
     "at_sign": "",
@@ -186,7 +638,10 @@
     "scheme": "file",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "file:"
+    ]
   },
   "file:\na/b/c": {
     "at_sign": "",
@@ -207,7 +662,13 @@
     "scheme": "file",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "file:/\na/b/c",
+      "file:/\na/b",
+      "file:/\na",
+      "file:"
+    ]
   },
   "file:/\n///a/b/c": {
     "at_sign": "",
@@ -228,7 +689,14 @@
     "scheme": "file",
     "slashes": "/\n/",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "file:/\n///a/b/c",
+      "file:/\n///a/b",
+      "file:/\n///a",
+      "file:/\n//",
+      "file:/\n/"
+    ]
   },
   "file:/\n//a/b/c": {
     "at_sign": "",
@@ -249,7 +717,13 @@
     "scheme": "file",
     "slashes": "/\n/",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "file:/\n//a/b/c",
+      "file:/\n//a/b",
+      "file:/\n//a",
+      "file:/\n/"
+    ]
   },
   "file:/\n/a/b/c": {
     "at_sign": "",
@@ -270,7 +744,14 @@
     "scheme": "file",
     "slashes": "/\n/",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "file:/\n/(a,)/b/c",
+      "file:/\n/(a,)/b",
+      "file:/\n/(a,)",
+      "file:/\n/(a,",
+      "file:/\n/("
+    ]
   },
   "file:/\na/b/c": {
     "at_sign": "",
@@ -291,7 +772,13 @@
     "scheme": "file",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "file:/\na/b/c",
+      "file:/\na/b",
+      "file:/\na",
+      "file:"
+    ]
   },
   "file:////a/b/c": {
     "at_sign": "",
@@ -312,7 +799,14 @@
     "scheme": "file",
     "slashes": "//",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "file:////a/b/c",
+      "file:////a/b",
+      "file:////a",
+      "file:///",
+      "file://"
+    ]
   },
   "file:///a/b/c": {
     "at_sign": "",
@@ -333,7 +827,13 @@
     "scheme": "file",
     "slashes": "//",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "file:///a/b/c",
+      "file:///a/b",
+      "file:///a",
+      "file://"
+    ]
   },
   "file://a/b/c": {
     "at_sign": "",
@@ -354,7 +854,14 @@
     "scheme": "file",
     "slashes": "//",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "file://(a,)/b/c",
+      "file://(a,)/b",
+      "file://(a,)",
+      "file://(a,",
+      "file://("
+    ]
   },
   "file://x:y@a:8000/b/c": {
     "at_sign": "",
@@ -375,7 +882,14 @@
     "scheme": "file",
     "slashes": "//",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "file://(x:y@a:8000,)/b/c",
+      "file://(x:y@a:8000,)/b",
+      "file://(x:y@a:8000,)",
+      "file://(x:y@a:8000,",
+      "file://("
+    ]
   },
   "file:/\\//a/b/c": {
     "at_sign": "",
@@ -396,7 +910,14 @@
     "scheme": "file",
     "slashes": "/\\",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "file:/\\//a/b/c",
+      "file:/\\//a/b",
+      "file:/\\//a",
+      "file:/\\/",
+      "file:/\\"
+    ]
   },
   "file:/\\/a/b/c": {
     "at_sign": "",
@@ -417,7 +938,13 @@
     "scheme": "file",
     "slashes": "/\\",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "file:/\\/a/b/c",
+      "file:/\\/a/b",
+      "file:/\\/a",
+      "file:/\\"
+    ]
   },
   "file:/\\a/b/c": {
     "at_sign": "",
@@ -438,7 +965,14 @@
     "scheme": "file",
     "slashes": "/\\",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "file:/\\(a,)/b/c",
+      "file:/\\(a,)/b",
+      "file:/\\(a,)",
+      "file:/\\(a,",
+      "file:/\\("
+    ]
   },
   "file:/a/b/c": {
     "at_sign": "",
@@ -459,7 +993,13 @@
     "scheme": "file",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "file:/a/b/c",
+      "file:/a/b",
+      "file:/a",
+      "file:"
+    ]
   },
   "file:/a\\b/c": {
     "at_sign": "",
@@ -480,7 +1020,12 @@
     "scheme": "file",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "file:/a\\b/c",
+      "file:/a\\b",
+      "file:"
+    ]
   },
   "file:\\///a/b/c": {
     "at_sign": "",
@@ -501,7 +1046,14 @@
     "scheme": "file",
     "slashes": "\\/",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "file:\\///a/b/c",
+      "file:\\///a/b",
+      "file:\\///a",
+      "file:\\//",
+      "file:\\/"
+    ]
   },
   "file:\\//a/b/c": {
     "at_sign": "",
@@ -522,7 +1074,13 @@
     "scheme": "file",
     "slashes": "\\/",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "file:\\//a/b/c",
+      "file:\\//a/b",
+      "file:\\//a",
+      "file:\\/"
+    ]
   },
   "file:\\/a/b/c": {
     "at_sign": "",
@@ -543,7 +1101,14 @@
     "scheme": "file",
     "slashes": "\\/",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "file:\\/(a,)/b/c",
+      "file:\\/(a,)/b",
+      "file:\\/(a,)",
+      "file:\\/(a,",
+      "file:\\/("
+    ]
   },
   "file:\\a/b/c": {
     "at_sign": "",
@@ -564,7 +1129,13 @@
     "scheme": "file",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "file:/\\a/b/c",
+      "file:/\\a/b",
+      "file:/\\a",
+      "file:"
+    ]
   },
   "file:a/b/c": {
     "at_sign": "",
@@ -585,7 +1156,13 @@
     "scheme": "file",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "file:/a/b/c",
+      "file:/a/b",
+      "file:/a",
+      "file:"
+    ]
   },
   "ht\nTP:": {
     "at_sign": "",
@@ -606,7 +1183,8 @@
     "scheme": "ht\nTP",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": []
   },
   "http:": {
     "at_sign": "",
@@ -627,7 +1205,10 @@
     "scheme": "http",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "http:"
+    ]
   },
   "http:\na/b/c": {
     "at_sign": "",
@@ -648,7 +1229,14 @@
     "scheme": "http",
     "slashes": "\n",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "http:\n(a,)/b/c",
+      "http:\n(a,)/b",
+      "http:\n(a,)",
+      "http:\n(a,",
+      "http:\n("
+    ]
   },
   "http:/\n///a/b/c": {
     "at_sign": "",
@@ -669,7 +1257,14 @@
     "scheme": "http",
     "slashes": "/\n///",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "http:/\n///(a,)/b/c",
+      "http:/\n///(a,)/b",
+      "http:/\n///(a,)",
+      "http:/\n///(a,",
+      "http:/\n///("
+    ]
   },
   "http:/\n//a/b/c": {
     "at_sign": "",
@@ -690,7 +1285,14 @@
     "scheme": "http",
     "slashes": "/\n//",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "http:/\n//(a,)/b/c",
+      "http:/\n//(a,)/b",
+      "http:/\n//(a,)",
+      "http:/\n//(a,",
+      "http:/\n//("
+    ]
   },
   "http:/\n/a/b/c": {
     "at_sign": "",
@@ -711,7 +1313,14 @@
     "scheme": "http",
     "slashes": "/\n/",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "http:/\n/(a,)/b/c",
+      "http:/\n/(a,)/b",
+      "http:/\n/(a,)",
+      "http:/\n/(a,",
+      "http:/\n/("
+    ]
   },
   "http:/\na/b/c": {
     "at_sign": "",
@@ -732,7 +1341,14 @@
     "scheme": "http",
     "slashes": "/\n",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "http:/\n(a,)/b/c",
+      "http:/\n(a,)/b",
+      "http:/\n(a,)",
+      "http:/\n(a,",
+      "http:/\n("
+    ]
   },
   "http:////a/b/c": {
     "at_sign": "",
@@ -753,7 +1369,14 @@
     "scheme": "http",
     "slashes": "////",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "http:////(a,)/b/c",
+      "http:////(a,)/b",
+      "http:////(a,)",
+      "http:////(a,",
+      "http:////("
+    ]
   },
   "http:///a/b/c": {
     "at_sign": "",
@@ -774,7 +1397,14 @@
     "scheme": "http",
     "slashes": "///",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "http:///(a,)/b/c",
+      "http:///(a,)/b",
+      "http:///(a,)",
+      "http:///(a,",
+      "http:///("
+    ]
   },
   "http:///x:y@a:8000/b/c": {
     "at_sign": "@",
@@ -795,7 +1425,14 @@
     "scheme": "http",
     "slashes": "///",
     "trailing_junk": "",
-    "username": "x"
+    "username": "x",
+    "surt_ancestry": [
+      "http:///(a,:8000)/b/c",
+      "http:///(a,:8000)/b",
+      "http:///(a,:8000)",
+      "http:///(a,",
+      "http:///("
+    ]
   },
   "http://a/b/c": {
     "at_sign": "",
@@ -816,7 +1453,43 @@
     "scheme": "http",
     "slashes": "//",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "http://(a,)/b/c",
+      "http://(a,)/b",
+      "http://(a,)",
+      "http://(a,",
+      "http://("
+    ]
+  },
+  "http://a/b//c": {
+    "at_sign": "",
+    "colon_after_scheme": ":",
+    "colon_before_password": "",
+    "colon_before_port": "",
+    "fragment": "",
+    "hash_sign": "",
+    "host": "a",
+    "ip4": null,
+    "ip6": null,
+    "leading_junk": "",
+    "password": "",
+    "path": "/b//c",
+    "port": "",
+    "query": "",
+    "question_mark": "",
+    "scheme": "http",
+    "slashes": "//",
+    "trailing_junk": "",
+    "username": "",
+    "surt_ancestry": [
+      "http://(a,)/b//c",
+      "http://(a,)/b/",
+      "http://(a,)/b",
+      "http://(a,)",
+      "http://(a,",
+      "http://("
+    ]
   },
   "http://x:y@a:8000/b/c": {
     "at_sign": "@",
@@ -837,7 +1510,14 @@
     "scheme": "http",
     "slashes": "//",
     "trailing_junk": "",
-    "username": "x"
+    "username": "x",
+    "surt_ancestry": [
+      "http://(a,:8000)/b/c",
+      "http://(a,:8000)/b",
+      "http://(a,:8000)",
+      "http://(a,",
+      "http://("
+    ]
   },
   "http:/\\//a/b/c": {
     "at_sign": "",
@@ -858,7 +1538,14 @@
     "scheme": "http",
     "slashes": "/\\//",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "http:/\\//(a,)/b/c",
+      "http:/\\//(a,)/b",
+      "http:/\\//(a,)",
+      "http:/\\//(a,",
+      "http:/\\//("
+    ]
   },
   "http:/\\/a/b/c": {
     "at_sign": "",
@@ -879,7 +1566,14 @@
     "scheme": "http",
     "slashes": "/\\/",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "http:/\\/(a,)/b/c",
+      "http:/\\/(a,)/b",
+      "http:/\\/(a,)",
+      "http:/\\/(a,",
+      "http:/\\/("
+    ]
   },
   "http:/\\/x:y@a:8000/b/c": {
     "at_sign": "@",
@@ -900,7 +1594,14 @@
     "scheme": "http",
     "slashes": "/\\/",
     "trailing_junk": "",
-    "username": "x"
+    "username": "x",
+    "surt_ancestry": [
+      "http:/\\/(a,:8000)/b/c",
+      "http:/\\/(a,:8000)/b",
+      "http:/\\/(a,:8000)",
+      "http:/\\/(a,",
+      "http:/\\/("
+    ]
   },
   "http:/\\a/b/c": {
     "at_sign": "",
@@ -921,7 +1622,14 @@
     "scheme": "http",
     "slashes": "/\\",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "http:/\\(a,)/b/c",
+      "http:/\\(a,)/b",
+      "http:/\\(a,)",
+      "http:/\\(a,",
+      "http:/\\("
+    ]
   },
   "http:/\\x:y@a:8000/b/c": {
     "at_sign": "@",
@@ -942,7 +1650,14 @@
     "scheme": "http",
     "slashes": "/\\",
     "trailing_junk": "",
-    "username": "x"
+    "username": "x",
+    "surt_ancestry": [
+      "http:/\\(a,:8000)/b/c",
+      "http:/\\(a,:8000)/b",
+      "http:/\\(a,:8000)",
+      "http:/\\(a,",
+      "http:/\\("
+    ]
   },
   "http:/a/b/c": {
     "at_sign": "",
@@ -963,7 +1678,14 @@
     "scheme": "http",
     "slashes": "/",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "http:/(a,)/b/c",
+      "http:/(a,)/b",
+      "http:/(a,)",
+      "http:/(a,",
+      "http:/("
+    ]
   },
   "http:/a\\b/c": {
     "at_sign": "",
@@ -984,7 +1706,14 @@
     "scheme": "http",
     "slashes": "/",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "http:/(a,)/\\b/c",
+      "http:/(a,)/\\b",
+      "http:/(a,)",
+      "http:/(a,",
+      "http:/("
+    ]
   },
   "http:/x:y@a:8000/b/c": {
     "at_sign": "@",
@@ -1005,7 +1734,14 @@
     "scheme": "http",
     "slashes": "/",
     "trailing_junk": "",
-    "username": "x"
+    "username": "x",
+    "surt_ancestry": [
+      "http:/(a,:8000)/b/c",
+      "http:/(a,:8000)/b",
+      "http:/(a,:8000)",
+      "http:/(a,",
+      "http:/("
+    ]
   },
   "http:\\///a/b/c": {
     "at_sign": "",
@@ -1026,7 +1762,14 @@
     "scheme": "http",
     "slashes": "\\///",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "http:\\///(a,)/b/c",
+      "http:\\///(a,)/b",
+      "http:\\///(a,)",
+      "http:\\///(a,",
+      "http:\\///("
+    ]
   },
   "http:\\//a/b/c": {
     "at_sign": "",
@@ -1047,7 +1790,14 @@
     "scheme": "http",
     "slashes": "\\//",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "http:\\//(a,)/b/c",
+      "http:\\//(a,)/b",
+      "http:\\//(a,)",
+      "http:\\//(a,",
+      "http:\\//("
+    ]
   },
   "http:\\//x:y@a:8000/b/c": {
     "at_sign": "@",
@@ -1068,7 +1818,14 @@
     "scheme": "http",
     "slashes": "\\//",
     "trailing_junk": "",
-    "username": "x"
+    "username": "x",
+    "surt_ancestry": [
+      "http:\\//(a,:8000)/b/c",
+      "http:\\//(a,:8000)/b",
+      "http:\\//(a,:8000)",
+      "http:\\//(a,",
+      "http:\\//("
+    ]
   },
   "http:\\/a/b/c": {
     "at_sign": "",
@@ -1089,7 +1846,14 @@
     "scheme": "http",
     "slashes": "\\/",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "http:\\/(a,)/b/c",
+      "http:\\/(a,)/b",
+      "http:\\/(a,)",
+      "http:\\/(a,",
+      "http:\\/("
+    ]
   },
   "http:\\/x:y@a:8000/b/c": {
     "at_sign": "@",
@@ -1110,7 +1874,14 @@
     "scheme": "http",
     "slashes": "\\/",
     "trailing_junk": "",
-    "username": "x"
+    "username": "x",
+    "surt_ancestry": [
+      "http:\\/(a,:8000)/b/c",
+      "http:\\/(a,:8000)/b",
+      "http:\\/(a,:8000)",
+      "http:\\/(a,",
+      "http:\\/("
+    ]
   },
   "http:\\a/b/c": {
     "at_sign": "",
@@ -1131,7 +1902,14 @@
     "scheme": "http",
     "slashes": "\\",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "http:\\(a,)/b/c",
+      "http:\\(a,)/b",
+      "http:\\(a,)",
+      "http:\\(a,",
+      "http:\\("
+    ]
   },
   "http:\\x:y@a:8000/b/c": {
     "at_sign": "@",
@@ -1152,7 +1930,14 @@
     "scheme": "http",
     "slashes": "\\",
     "trailing_junk": "",
-    "username": "x"
+    "username": "x",
+    "surt_ancestry": [
+      "http:\\(a,:8000)/b/c",
+      "http:\\(a,:8000)/b",
+      "http:\\(a,:8000)",
+      "http:\\(a,",
+      "http:\\("
+    ]
   },
   "http:a/b/c": {
     "at_sign": "",
@@ -1173,7 +1958,14 @@
     "scheme": "http",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "http:(a,)/b/c",
+      "http:(a,)/b",
+      "http:(a,)",
+      "http:(a,",
+      "http:("
+    ]
   },
   "http:x:y@a:8000/b/c": {
     "at_sign": "@",
@@ -1194,7 +1986,14 @@
     "scheme": "http",
     "slashes": "",
     "trailing_junk": "",
-    "username": "x"
+    "username": "x",
+    "surt_ancestry": [
+      "http:(a,:8000)/b/c",
+      "http:(a,:8000)/b",
+      "http:(a,:8000)",
+      "http:(a,",
+      "http:("
+    ]
   },
   "non\nSPeciAL:": {
     "at_sign": "",
@@ -1215,7 +2014,8 @@
     "scheme": "non\nSPeciAL",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": []
   },
   "nonspecial:\na/b/c": {
     "at_sign": "",
@@ -1236,7 +2036,8 @@
     "scheme": "nonspecial",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": []
   },
   "nonspecial:/\n///a/b/c": {
     "at_sign": "",
@@ -1257,7 +2058,8 @@
     "scheme": "nonspecial",
     "slashes": "/\n/",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": []
   },
   "nonspecial:/\n//a/b/c": {
     "at_sign": "",
@@ -1278,7 +2080,8 @@
     "scheme": "nonspecial",
     "slashes": "/\n/",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": []
   },
   "nonspecial:/\n/a/b/c": {
     "at_sign": "",
@@ -1299,7 +2102,8 @@
     "scheme": "nonspecial",
     "slashes": "/\n/",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": []
   },
   "nonspecial:/\na/b/c": {
     "at_sign": "",
@@ -1320,7 +2124,8 @@
     "scheme": "nonspecial",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": []
   },
   "nonspecial:////a/b/c": {
     "at_sign": "",
@@ -1341,7 +2146,8 @@
     "scheme": "nonspecial",
     "slashes": "//",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": []
   },
   "nonspecial:///a/b/c": {
     "at_sign": "",
@@ -1362,7 +2168,8 @@
     "scheme": "nonspecial",
     "slashes": "//",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": []
   },
   "nonspecial:///x:y@a:8000/b/c": {
     "at_sign": "",
@@ -1383,7 +2190,8 @@
     "scheme": "nonspecial",
     "slashes": "//",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": []
   },
   "nonspecial://a/b/c": {
     "at_sign": "",
@@ -1404,7 +2212,8 @@
     "scheme": "nonspecial",
     "slashes": "//",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": []
   },
   "nonspecial://x:y@a:8000/b/c": {
     "at_sign": "@",
@@ -1425,7 +2234,8 @@
     "scheme": "nonspecial",
     "slashes": "//",
     "trailing_junk": "",
-    "username": "x"
+    "username": "x",
+    "surt_ancestry": []
   },
   "nonspecial:/\\//a/b/c": {
     "at_sign": "",
@@ -1446,7 +2256,8 @@
     "scheme": "nonspecial",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": []
   },
   "nonspecial:/\\/a/b/c": {
     "at_sign": "",
@@ -1467,7 +2278,8 @@
     "scheme": "nonspecial",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": []
   },
   "nonspecial:/\\/x:y@a:8000/b/c": {
     "at_sign": "",
@@ -1488,7 +2300,8 @@
     "scheme": "nonspecial",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": []
   },
   "nonspecial:/\\a/b/c": {
     "at_sign": "",
@@ -1509,7 +2322,8 @@
     "scheme": "nonspecial",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": []
   },
   "nonspecial:/\\x:y@a:8000/b/c": {
     "at_sign": "",
@@ -1530,7 +2344,8 @@
     "scheme": "nonspecial",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": []
   },
   "nonspecial:/a/b/c": {
     "at_sign": "",
@@ -1551,7 +2366,8 @@
     "scheme": "nonspecial",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": []
   },
   "nonspecial:/a\\b/c": {
     "at_sign": "",
@@ -1572,7 +2388,8 @@
     "scheme": "nonspecial",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": []
   },
   "nonspecial:/x:y@a:8000/b/c": {
     "at_sign": "",
@@ -1593,7 +2410,8 @@
     "scheme": "nonspecial",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": []
   },
   "nonspecial:\\///a/b/c": {
     "at_sign": "",
@@ -1614,7 +2432,8 @@
     "scheme": "nonspecial",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": []
   },
   "nonspecial:\\//a/b/c": {
     "at_sign": "",
@@ -1635,7 +2454,8 @@
     "scheme": "nonspecial",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": []
   },
   "nonspecial:\\//x:y@a:8000/b/c": {
     "at_sign": "",
@@ -1656,7 +2476,8 @@
     "scheme": "nonspecial",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": []
   },
   "nonspecial:\\/a/b/c": {
     "at_sign": "",
@@ -1677,7 +2498,8 @@
     "scheme": "nonspecial",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": []
   },
   "nonspecial:\\/x:y@a:8000/b/c": {
     "at_sign": "",
@@ -1698,7 +2520,8 @@
     "scheme": "nonspecial",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": []
   },
   "nonspecial:\\a/b/c": {
     "at_sign": "",
@@ -1719,7 +2542,8 @@
     "scheme": "nonspecial",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": []
   },
   "nonspecial:\\x:y@a:8000/b/c": {
     "at_sign": "",
@@ -1740,7 +2564,8 @@
     "scheme": "nonspecial",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": []
   },
   "nonspecial:a/b/c": {
     "at_sign": "",
@@ -1761,7 +2586,8 @@
     "scheme": "nonspecial",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": []
   },
   "nonspecial:x:y@a:8000/b/c": {
     "at_sign": "",
@@ -1782,7 +2608,8 @@
     "scheme": "nonspecial",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": []
   },
   "\u0001\u0002\u0003\u0004\u0005\u0006\u0007\u0008\u0009\u000a\u000b\u000c\u000d\u000e\u000f\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\u0018\u0019\u001a\u001b\u001c\u001d\u001e\u001f\u0020\u0021\u0022\u0023\u0024\u0025\u0026\u0027\u0028\u0029\u002a\u002b\u002c\u002d\u002e\u002f\u0030\u0031\u0032\u0033\u0034\u0035\u0036\u0037\u0038\u0039\u003a\u003b\u003c\u003d\u003e\u003f\u0040\u0041\u0042\u0043\u0044\u0045\u0046\u0047\u0048\u0049\u004a\u004b\u004c\u004d\u004e\u004f\u0050\u0051\u0052\u0053\u0054\u0055\u0056\u0057\u0058\u0059\u005a\u005b\u005c\u005d\u005e\u005f\u0060\u0061\u0062\u0063\u0064\u0065\u0066\u0067\u0068\u0069\u006a\u006b\u006c\u006d\u006e\u006f\u0070\u0071\u0072\u0073\u0074\u0075\u0076\u0077\u0078\u0079\u007a\u007b\u007c\u007d\u007e\u007f\u0080\u0081\u0082\u0083\u0084\u0085\u0086\u0087\u0088\u0089\u008a\u008b\u008c\u008d\u008e\u008f\u0090\u0091\u0092\u0093\u0094\u0095\u0096\u0097\u0098\u0099\u009a\u009b\u009c\u009d\u009e\u009f\u00a0\u00a1\u00a2\u00a3\u00a4\u00a5\u00a6\u00a7\u00a8\u00a9\u00aa\u00ab\u00ac\u00ad\u00ae\u00af\u00b0\u00b1\u00b2\u00b3\u00b4\u00b5\u00b6\u00b7\u00b8\u00b9\u00ba\u00bb\u00bc\u00bd\u00be\u00bf\u00c0\u00c1\u00c2\u00c3\u00c4\u00c5\u00c6\u00c7\u00c8\u00c9\u00ca\u00cb\u00cc\u00cd\u00ce\u00cf\u00d0\u00d1\u00d2\u00d3\u00d4\u00d5\u00d6\u00d7\u00d8\u00d9\u00da\u00db\u00dc\u00dd\u00de\u00df\u00e0\u00e1\u00e2\u00e3\u00e4\u00e5\u00e6\u00e7\u00e8\u00e9\u00ea\u00eb\u00ec\u00ed\u00ee\u00ef\u00f0\u00f1\u00f2\u00f3\u00f4\u00f5\u00f6\u00f7\u00f8\u00f9\u00fa\u00fb\u00fc\u00fd\u00fe\u00ff": {
     "at_sign": "",
@@ -1803,7 +2630,8 @@
     "scheme": "",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": []
   },
   "http:x:y@a:8000": {
     "at_sign": "@",
@@ -1824,7 +2652,12 @@
     "scheme": "http",
     "slashes": "",
     "trailing_junk": "",
-    "username": "x"
+    "username": "x",
+    "surt_ancestry": [
+      "http:(a,:8000)",
+      "http:(a,",
+      "http:("
+    ]
   },
   "http:/x:y@a:8000": {
     "at_sign": "@",
@@ -1845,7 +2678,12 @@
     "scheme": "http",
     "slashes": "/",
     "trailing_junk": "",
-    "username": "x"
+    "username": "x",
+    "surt_ancestry": [
+      "http:/(a,:8000)",
+      "http:/(a,",
+      "http:/("
+    ]
   },
   "http://x:y@a:8000": {
     "at_sign": "@",
@@ -1866,7 +2704,12 @@
     "scheme": "http",
     "slashes": "//",
     "trailing_junk": "",
-    "username": "x"
+    "username": "x",
+    "surt_ancestry": [
+      "http://(a,:8000)",
+      "http://(a,",
+      "http://("
+    ]
   },
   "file:x:y@a:8000": {
     "at_sign": "",
@@ -1887,7 +2730,11 @@
     "scheme": "file",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "file:/x:y@a:8000",
+      "file:"
+    ]
   },
   "file:/x:y@a:8000": {
     "at_sign": "",
@@ -1908,7 +2755,11 @@
     "scheme": "file",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "file:/x:y@a:8000",
+      "file:"
+    ]
   },
   "file://x:y@a:8000": {
     "at_sign": "",
@@ -1929,7 +2780,12 @@
     "scheme": "file",
     "slashes": "//",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": [
+      "file://(x:y@a:8000,)",
+      "file://(x:y@a:8000,",
+      "file://("
+    ]
   },
   "nonspecial:x:y@a:8000": {
     "at_sign": "",
@@ -1950,7 +2806,8 @@
     "scheme": "nonspecial",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": []
   },
   "nonspecial:/x:y@a:8000": {
     "at_sign": "",
@@ -1971,7 +2828,8 @@
     "scheme": "nonspecial",
     "slashes": "",
     "trailing_junk": "",
-    "username": ""
+    "username": "",
+    "surt_ancestry": []
   },
   "nonspecial://x:y@a:8000": {
     "at_sign": "@",
@@ -1992,6 +2850,7 @@
     "scheme": "nonspecial",
     "slashes": "//",
     "trailing_junk": "",
-    "username": "x"
+    "username": "x",
+    "surt_ancestry": []
   }
 }
