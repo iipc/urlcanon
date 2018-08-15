@@ -161,7 +161,7 @@ class ParsedUrl:
                 + self.hash_sign + self.fragment + self.trailing_junk)
         return result
 
-    def get_surt_parts(self):
+    def surt_ancestry(self):
         # For now, we only support SURT parts for certain cases.
         if self.scheme not in urlcanon.SPECIAL_SCHEMES.keys():
             return []
@@ -181,21 +181,21 @@ class ParsedUrl:
             # incomplete hosts
             # (e.g: http://(com,examle) and http://(com,example )
             if self.port:
-                parts.append(b':' + self.port + b')')
+                parts.append(self.colon_before_port + self.port + b')')
             else:
                 parts.append(b')')
-        for part in self.path.split(b'/'):
-            if part != b'':
-                parts.append(b'/' + part)
+        # Remove initial b'' which appears due to leading slash on the path.
+        path_parts = self.path.split(b'/')
+        if path_parts[0] == b'':
+            path_parts.remove(b'')
+        for part in path_parts:
+            parts.append(b'/' + part)
         if self.query:
             parts.append(self.question_mark + self.query)
         if self.fragment:
             parts.append(self.hash_sign + self.fragment)
         if self.trailing_junk:
             parts.append(self.trailing_junk)
-
-        # Strip empty parts.
-        parts = [part for part in parts if part != b'']
 
         # Build a list of SURT fragments.
         while parts != []:

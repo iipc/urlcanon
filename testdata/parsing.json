@@ -247,9 +247,10 @@
     "trailing_junk": "",
     "username": "",
     "parts": [
-      "file:/\n//a/b/c",
-      "file:/\n//a/b",
-      "file:/\n//a",
+      "file:/\n///a/b/c",
+      "file:/\n///a/b",
+      "file:/\n///a",
+      "file:/\n//",
       "file:/\n/"
     ]
   },
@@ -356,9 +357,10 @@
     "trailing_junk": "",
     "username": "",
     "parts": [
-      "file:///a/b/c",
-      "file:///a/b",
-      "file:///a",
+      "file:////a/b/c",
+      "file:////a/b",
+      "file:////a",
+      "file:///",
       "file://"
     ]
   },
@@ -466,9 +468,10 @@
     "trailing_junk": "",
     "username": "",
     "parts": [
-      "file:/\\/a/b/c",
-      "file:/\\/a/b",
-      "file:/\\/a",
+      "file:/\\//a/b/c",
+      "file:/\\//a/b",
+      "file:/\\//a",
+      "file:/\\/",
       "file:/\\"
     ]
   },
@@ -601,9 +604,10 @@
     "trailing_junk": "",
     "username": "",
     "parts": [
-      "file:\\//a/b/c",
-      "file:\\//a/b",
-      "file:\\//a",
+      "file:\\///a/b/c",
+      "file:\\///a/b",
+      "file:\\///a",
+      "file:\\//",
       "file:\\/"
     ]
   },
@@ -1008,6 +1012,35 @@
     "username": "",
     "parts": [
       "http://(a,)/b/c",
+      "http://(a,)/b",
+      "http://(a,)",
+      "http://(a,",
+      "http://("
+    ]
+  },
+  "http://a/b//c": {
+    "at_sign": "",
+    "colon_after_scheme": ":",
+    "colon_before_password": "",
+    "colon_before_port": "",
+    "fragment": "",
+    "hash_sign": "",
+    "host": "a",
+    "ip4": null,
+    "ip6": null,
+    "leading_junk": "",
+    "password": "",
+    "path": "/b//c",
+    "port": "",
+    "query": "",
+    "question_mark": "",
+    "scheme": "http",
+    "slashes": "//",
+    "trailing_junk": "",
+    "username": "",
+    "parts": [
+      "http://(a,)/b//c",
+      "http://(a,)/b/",
       "http://(a,)/b",
       "http://(a,)",
       "http://(a,",

@@ -201,7 +201,7 @@ def test_parsing(input, parsed_fields):
     assert parsed_url.hash_sign == parsed_fields[b'hash_sign']
     assert parsed_url.fragment == parsed_fields[b'fragment']
     assert parsed_url.trailing_junk == parsed_fields[b'trailing_junk']
-    assert parsed_url.get_surt_parts() == parsed_fields[b'parts']
+    assert parsed_url.surt_ancestry() == parsed_fields[b'parts']
 
 
 def load_supplemental_whatwg_test_data():
