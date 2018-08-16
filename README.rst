@@ -1,7 +1,7 @@
 urlcanon
 ========
 
-.. image:: https://travis-ci.org/iipc/urlcanon.svg?branch=master
+.. image:: https://travis-ci.org/iipc/urlcanon.svg?branch=0.1
     :target: https://travis-ci.org/iipc/urlcanon
     :alt: build status
 
@@ -84,7 +84,7 @@ Java releases are available in the Maven Central repository:
 License
 -------
 
-* Copyright (C) 2016-2017 Internet Archive
+* Copyright (C) 2016-2018 Internet Archive
 * Copyright (C) 2016-2017 National Library of Australia
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may
