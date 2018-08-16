@@ -1,7 +1,7 @@
 urlcanon
 ========
 
-.. image:: https://travis-ci.org/iipc/urlcanon.svg?branch=python-v0.2
+.. image:: https://travis-ci.org/iipc/urlcanon.svg?branch=master
     :target: https://travis-ci.org/iipc/urlcanon
     :alt: build status
 

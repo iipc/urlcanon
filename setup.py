@@ -19,16 +19,16 @@ limitations under the License.
 
 import setuptools
 
-dependencies = ['idna>=2.5,<=2.7']
+dependencies = ['idna>=2.5']
 try:
     import ipaddress
 except ImportError:
-    dependencies.append('py2-ipaddress>=3.4.1,<=3.4.1')
+    dependencies.append('py2-ipaddress>=3.4.1')
 
 setuptools.setup(
         name='urlcanon',
         description='url canonicalization library for python and java',
-        version='0.2',
+        version='0.2.dev27',
         packages=['urlcanon'],
         url='https://github.com/iipc/urlcanon',
         install_requires=dependencies,
