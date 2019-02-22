@@ -152,9 +152,7 @@ class ParsedUrl:
             surt_host = b''
             if with_scheme:
                 surt_host += b'('
-            surt_host += urlcanon.ssurt_host(self.host, trailing_comma=False)
-            if trailing_comma:
-                surt_host += b','
+            surt_host += urlcanon.ssurt_host(self.host, trailing_comma)
             surt_host += self.colon_before_port + self.port
             result += surt_host + b')'
         result += (self.path + self.question_mark + self.query
