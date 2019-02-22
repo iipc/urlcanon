@@ -4,16 +4,17 @@ matrix:
   allow_failures:
   - python: nightly
   - python: pypy3
-  - python: 3.7-dev
+  - python: 3.8-dev
   - language: java
   include:
+  - python: 3.7
   - python: 3.6
   - python: 3.5
   - python: 3.4
   - python: 2.7
   - python: pypy
   - python: pypy3
-  - python: 3.7-dev
+  - python: 3.8-dev
   - python: nightly
   - language: java
     jdk: oraclejdk8
