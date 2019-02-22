@@ -26,5 +26,5 @@ before_script:
 script:
 - case $TRAVIS_LANGUAGE in
   java) mvn test ;;
-  python) py.test -v -s python/tests ;;
+  python) py.test -v --tb=native python/tests ;;
   esac
