@@ -52,6 +52,25 @@ def host_matches_domain(host, domain):
 
     return urlcanon.reverse_host(host).startswith(urlcanon.reverse_host(domain))
 
+
+def host_matches_domain_exactly(host, domain):
+    '''
+    Returns true if
+     - domain is an ip address and host is the same ip address
+     - domain is a domain and host is the same domain
+
+    Does not do any normalization. Probably a good idea to call
+    `host_matches_domain_exactly(
+            urlcanon.normalize_host(host), urlcanon.normalize_host(domain))`.
+    '''
+    if isinstance(domain, unicode):
+        domain = domain.encode('utf-8')
+    if isinstance(host, unicode):
+        host = host.encode('utf-8')
+
+    return domain == host
+
+
 def url_matches_domain(url, domain):
     '''
     Returns true if
@@ -67,15 +86,41 @@ def url_matches_domain(url, domain):
         url = urlcanon.parse_url(url)
     return host_matches_domain(url.host, domain)
 
+
+def url_matches_domain_exactly(url, domain):
+    '''
+    Returns true if
+     - domain is an ip address and url.host is the same ip address
+     - domain is a domain and url.host is the same domain
+
+    Does not do any normalization/canonicalization. Probably a good idea to
+    call `host_matches_domain(
+            canonicalize(url), urlcanon.normalize_host(domain))`.
+    '''
+    if not isinstance(url, urlcanon.ParsedUrl):
+        url = urlcanon.parse_url(url)
+    return host_matches_domain_exactly(url.host, domain)
+
+
 class MatchRule:
     '''
     A url-matching rule, with one or more conditions.
 
     All conditions must match for a url to be considered a match.
 
-    The supported conditions are `surt`, `ssurt`, `regex`, `domain`,
-    `substring`, `parent_url_regex`. Values should be bytes objects. If they
-    are unicode strings, they will be utf-8 encoded.
+    The supported conditions are `surt`, `ssurt`, `regex`, `domain`
+    `substring`, `parent_url_regex`. Values should be bytes objects.
+    If they are unicode strings, they will be utf-8 encoded.
+
+    The supported condition modifiers are `exact`.
+
+    The `exact` modifier switches the rule into matching the supplied url
+    against the configured conditions exactly, that is to say the domain,
+    surt, and or ssurts of a supplied url must match exactly to the values
+    the rule was configured with.
+
+    Note: The `regex` or `substring` conditions are not affected by
+    the condition modifiers.
 
     No canonicalization is performed on any of the conditions. It's the
     caller's responsibility to make sure that `domain` is in a form that their
@@ -129,11 +174,12 @@ class MatchRule:
             conditions.append('substring=%r' % self.substring)
         if self.parent_url_regex:
             conditions.append('parent_url_regex=%r' % self.parent_url_regex)
+        conditions.append('exact=%r' % self.exact)
         return 'MatchRule(%s)' % ','.join(conditions)
 
     def __init__(
             self, surt=None, ssurt=None, regex=None, domain=None,
-            substring=None, parent_url_regex=None,
+            substring=None, parent_url_regex=None, exact=None,
             url_match=None, value=None):
         '''
         Args:
@@ -143,6 +189,7 @@ class MatchRule:
             domain (bytes or str):
             substring (bytes or str):
             parent_url_regex (bytes or str):
+            exact (bool):
             url_match (str, deprecated):
             value (bytes, deprecated):
         '''
@@ -150,6 +197,7 @@ class MatchRule:
         self.ssurt = ssurt.encode('utf-8') if isinstance(ssurt, unicode) else ssurt
         self.domain = domain.encode('utf-8') if isinstance(domain, unicode) else domain
         self.substring = substring.encode('utf-8') if isinstance(substring, unicode) else substring
+        self.exact = exact if isinstance(exact, bool) else False
 
         # append \Z to get a full match (py2 doesn't have re.fullmatch)
         # (regex still works in case of \Z\Z)
@@ -197,12 +245,22 @@ class MatchRule:
         if not isinstance(url, urlcanon.ParsedUrl):
             url = urlcanon.parse_url(url)
 
-        if self.domain and not url_matches_domain(url, self.domain):
-            return False
-        if self.surt and not url.surt().startswith(self.surt):
-            return False
-        if self.ssurt and not url.ssurt().startswith(self.ssurt):
-            return False
+        if self.domain:
+            domain_test_fn = (
+                url_matches_domain
+                if not self.exact
+                else url_matches_domain_exactly
+            )
+            if not domain_test_fn(url, self.domain):
+                return False
+        if self.surt:
+            surt = url.surt()
+            if not (surt == self.surt if self.exact else surt.startswith(self.surt)):
+                return False
+        if self.ssurt:
+            surt = url.ssurt()
+            if not (surt == self.ssurt if self.exact else surt.startswith(self.ssurt)):
+                return False
         if self.substring and not url.__bytes__().find(self.substring) >= 0:
             return False
         if self.regex:
