@@ -41,11 +41,11 @@ public class AggressiveCanonicalizer implements Canonicalizer {
         lowercaseQuery(url);
         stripSessionIdsFromQuery(url);
         stripSessionIdsFromPath(url);
+        stripTrailingSlashUnlessEmpty(url);
         removeRedundantAmpersandsFromQuery(url);
         omitQuestionMarkIfQueryEmpty(url);
         SemanticPreciseCanonicalizer.alphaReorderQuery(url); // sort again after lowercasing
     }
-
     static void httpsToHttp(ParsedUrl url) {
         if (url.getScheme().equalsIgnoreCase("https")) {
             url.setScheme(new ByteString("http"));
@@ -98,6 +98,13 @@ public class AggressiveCanonicalizer implements Canonicalizer {
     private static final Pattern REDUNDANT_AMPERSANDS_RE = Pattern.compile("^&+|&+$|(?<=&)&+");
     static void removeRedundantAmpersandsFromQuery(ParsedUrl url) {
         url.setQuery(url.getQuery().replaceAll(REDUNDANT_AMPERSANDS_RE, ""));
+    }
+
+    private static void stripTrailingSlashUnlessEmpty(ParsedUrl url) {
+        ByteString path = url.getPath();
+        if (path.length() > 1 && path.charAt(path.length() - 1) == '/') {
+            url.setPath(path.subSequence(0, path.length() - 1));
+        }
     }
 
     private void omitQuestionMarkIfQueryEmpty(ParsedUrl url) {
