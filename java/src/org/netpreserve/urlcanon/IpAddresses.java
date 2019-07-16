@@ -44,13 +44,10 @@ class IpAddresses {
                 return -1;
             }
 
-            long part;
+            long part = parseIpv4Num(host, startOfPart, endOfPart);
 
-            try {
-                part = parseIpv4Num(host, startOfPart, endOfPart);
-            } catch (NumberFormatException e) {
-                return -1;
-            }
+            // not a number
+            if (part == -1) return -1;
 
             // if this is the last part (or second-last part and last part is empty)
             if (endOfPart >= host.length() - 1) {
@@ -85,6 +82,18 @@ class IpAddresses {
                 start++;
             }
         }
-        return CharSequences.parseLong(host, start, end, radix);
+        return parseLongFast(host, start, end, radix);
+    }
+
+    static long parseLongFast(CharSequence s, int start, int end, int radix) {
+        long n = 0;
+        for (int i = start; i < end; i++) {
+            int digit = Character.digit(s.charAt(i), radix);
+            if (digit == -1) {
+                return -1;
+            }
+            n = n * radix + digit;
+        }
+        return n;
     }
 }
