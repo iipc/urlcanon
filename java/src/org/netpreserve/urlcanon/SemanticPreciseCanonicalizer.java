@@ -79,7 +79,9 @@ public class SemanticPreciseCanonicalizer implements Canonicalizer {
     private static final Pattern TWO_OR_MORE_SLASHES_RE = Pattern.compile("//+");
 
     private void collapseConsecutiveSlashes(ParsedUrl url) {
-        url.setPath(TWO_OR_MORE_SLASHES_RE.matcher(url.getPath()).replaceAll("/"));
+        if (ParsedUrl.SPECIAL_SCHEMES.containsKey(url.getScheme())) {
+            url.setPath(TWO_OR_MORE_SLASHES_RE.matcher(url.getPath()).replaceAll("/"));
+        }
     }
 
     static void defaultSchemeHttp(ParsedUrl url) {
