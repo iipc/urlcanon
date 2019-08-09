@@ -32,6 +32,10 @@ class IpAddresses {
         long ipv4 = 0;
         int startOfPart = 0;
 
+        if (host.isEmpty()) {
+            return -1;
+        }
+
         for (int i = 0;; i++) {
             // find the end of this part
             int endOfPart = host.indexOf(".", startOfPart);
@@ -39,13 +43,18 @@ class IpAddresses {
                 endOfPart = host.length();
             }
 
-            // if a part is empty or there's more than 4 return failure
-            if (startOfPart == endOfPart || i >= 4) {
+            // if there's more than 4 return failure
+            if (i >= 4) {
                 return -1;
             }
 
-            long part = parseIpv4Num(host, startOfPart, endOfPart);
-            if (part == -1) return -1; // not a number
+            long part;
+            if (startOfPart == endOfPart) { // treat empty parts as zero
+                part = 0;
+            } else {
+                part = parseIpv4Num(host, startOfPart, endOfPart);
+                if (part == -1) return -1; // not a number
+            }
 
             // if this is the last part (or second-last part and last part is empty)
             if (endOfPart >= host.length() - 1) {
