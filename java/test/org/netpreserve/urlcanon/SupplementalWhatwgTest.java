@@ -42,7 +42,6 @@ public class SupplementalWhatwgTest {
     }
 
     @Test
-    @Ignore
     public void test() {
         ParsedUrl url = ParsedUrl.parseUrl(input);
         Canonicalizer.WHATWG.canonicalize(url);

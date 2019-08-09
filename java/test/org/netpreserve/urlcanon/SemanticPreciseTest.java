@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.nio.charset.StandardCharsets.ISO_8859_1;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertEquals;
 
@@ -44,7 +45,7 @@ public class SemanticPreciseTest {
     @Test
     public void test() {
         ParsedUrl url = ParsedUrl.parseUrl(input);
-        Canonicalizer.SEMANTIC_PRECISE.canonicalize(url);
+        new SemanticPreciseCanonicalizer().canonicalize(url, ISO_8859_1);
         assertEquals(expected, url.toString());
     }
 }

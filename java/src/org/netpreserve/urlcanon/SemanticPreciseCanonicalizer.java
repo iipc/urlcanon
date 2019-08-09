@@ -19,9 +19,15 @@
 
 package org.netpreserve.urlcanon;
 
-import java.util.*;
+import java.nio.charset.Charset;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.netpreserve.urlcanon.WhatwgCanonicalizer.buildEncodeSet;
 
 /**
  * Precise semantic canonicalizer, semantic in the sense that the intention is
@@ -42,6 +48,10 @@ import java.util.regex.Pattern;
 public class SemanticPreciseCanonicalizer implements Canonicalizer {
     @Override
     public void canonicalize(ParsedUrl url) {
+        canonicalize(url, UTF_8);
+    }
+
+    public void canonicalize(ParsedUrl url, Charset charset) {
         WhatwgCanonicalizer.removeLeadingTrailingJunk(url);
         defaultSchemeHttp(url);
         WhatwgCanonicalizer.removeTabsAndNewlines(url);
@@ -49,14 +59,14 @@ public class SemanticPreciseCanonicalizer implements Canonicalizer {
         WhatwgCanonicalizer.elideDefaultPort(url);
         WhatwgCanonicalizer.cleanUpUserinfo(url);
         WhatwgCanonicalizer.twoSlashes(url);
-        pctDecodeRepeatedlyExceptQuery(url);
+        pctDecodeRepeatedlyExceptQuery(url, charset);
         // TODO: reparse_host,
         WhatwgCanonicalizer.normalizeIpAddress(url);
         fixHostDots(url);
-        WhatwgCanonicalizer.punycodeSpecialHost(url);
+        WhatwgCanonicalizer.punycodeSpecialHost(url, charset);
         removeUserinfo(url);
-        lessDumbPctEncode(url);
-        lessDumbPctRecodeQuery(url);
+        lessDumbPctEncode(url, charset);
+        lessDumbPctRecodeQuery(url, charset);
         WhatwgCanonicalizer.fixBackslashes(url);
         WhatwgCanonicalizer.leadingSlash(url);
         WhatwgCanonicalizer.normalizePathDots(url);
@@ -94,19 +104,19 @@ public class SemanticPreciseCanonicalizer implements Canonicalizer {
         }
     }
 
-    static void pctDecodeRepeatedlyExceptQuery(ParsedUrl url) {
-        url.setScheme(pctDecodeTokenRepeatedly(url.getScheme()));
-        url.setUsername(pctDecodeTokenRepeatedly(url.getUsername()));
-        url.setPassword(pctDecodeTokenRepeatedly(url.getPassword()));
-        url.setHost(pctDecodeTokenRepeatedly(url.getHost()));
-        url.setPort(pctDecodeTokenRepeatedly(url.getPort()));
-        url.setPath(pctDecodeTokenRepeatedly(url.getPath()));
-        url.setFragment(pctDecodeTokenRepeatedly(url.getFragment()));
+    static void pctDecodeRepeatedlyExceptQuery(ParsedUrl url, Charset charset) {
+        url.setScheme(pctDecodeTokenRepeatedly(url.getScheme(), charset));
+        url.setUsername(pctDecodeTokenRepeatedly(url.getUsername(), charset));
+        url.setPassword(pctDecodeTokenRepeatedly(url.getPassword(), charset));
+        url.setHost(pctDecodeTokenRepeatedly(url.getHost(), charset));
+        url.setPort(pctDecodeTokenRepeatedly(url.getPort(), charset));
+        url.setPath(pctDecodeTokenRepeatedly(url.getPath(), charset));
+        url.setFragment(pctDecodeTokenRepeatedly(url.getFragment(), charset));
     }
 
-    static String pctDecodeTokenRepeatedly(String str) {
+    static String pctDecodeTokenRepeatedly(String str, Charset charset) {
         for (;;) {
-            String decoded = WhatwgCanonicalizer.pctDecode(str);
+            String decoded = WhatwgCanonicalizer.pctDecode(str, charset);
             if (decoded.equals(str)) {
                 return decoded;
             }
@@ -121,30 +131,30 @@ public class SemanticPreciseCanonicalizer implements Canonicalizer {
         url.setAtSign("");
     }
 
-    static final Pattern GOOGLE_PCT_ENCODE_RE = Pattern.compile("[\\x00-\\x20\\x7f-\\xff#%]");
-    static final Pattern LESS_DUMB_USERINFO_ENCODE_RE = Pattern.compile("[\\x00-\\x20\\x7f-\\xff#%:@]");
-    static final Pattern LESS_DUMB_PATH_ENCODE_RE = Pattern.compile("[\\x00-\\x20\\x7f-\\xff#%?]");
+    static final boolean[] GOOGLE_PCT_ENCODE = buildEncodeSet("[\\x00-\\x20\\x7f-\\xff#%]");
+    static final boolean[] LESS_DUMB_USERINFO_ENCODE = buildEncodeSet("[\\x00-\\x20\\x7f-\\xff#%:@]");
+    static final boolean[] LESS_DUMB_PATH_ENCODE = buildEncodeSet("[\\x00-\\x20\\x7f-\\xff#%?]");
 
-    static void lessDumbPctEncode(ParsedUrl url) {
-        url.setScheme(WhatwgCanonicalizer.pctEncode(url.getScheme(), GOOGLE_PCT_ENCODE_RE));
-        url.setScheme(WhatwgCanonicalizer.pctEncode(url.getScheme(), GOOGLE_PCT_ENCODE_RE));
-        url.setUsername(WhatwgCanonicalizer.pctEncode(url.getUsername(), LESS_DUMB_USERINFO_ENCODE_RE));
-        url.setPassword(WhatwgCanonicalizer.pctEncode(url.getPassword(), LESS_DUMB_USERINFO_ENCODE_RE));
-        url.setHost(WhatwgCanonicalizer.pctEncode(url.getHost(), GOOGLE_PCT_ENCODE_RE));
-        url.setPort(WhatwgCanonicalizer.pctEncode(url.getPort(), GOOGLE_PCT_ENCODE_RE));
-        url.setPath(WhatwgCanonicalizer.pctEncode(url.getPath(), LESS_DUMB_PATH_ENCODE_RE));
-        url.setFragment(WhatwgCanonicalizer.pctEncode(url.getFragment(), GOOGLE_PCT_ENCODE_RE));
+    static void lessDumbPctEncode(ParsedUrl url, Charset charset) {
+        url.setScheme(WhatwgCanonicalizer.pctEncode(url.getScheme(), GOOGLE_PCT_ENCODE, charset));
+        url.setScheme(WhatwgCanonicalizer.pctEncode(url.getScheme(), GOOGLE_PCT_ENCODE, charset));
+        url.setUsername(WhatwgCanonicalizer.pctEncode(url.getUsername(), LESS_DUMB_USERINFO_ENCODE, charset));
+        url.setPassword(WhatwgCanonicalizer.pctEncode(url.getPassword(), LESS_DUMB_USERINFO_ENCODE, charset));
+        url.setHost(WhatwgCanonicalizer.pctEncode(url.getHost(), GOOGLE_PCT_ENCODE, charset));
+        url.setPort(WhatwgCanonicalizer.pctEncode(url.getPort(), GOOGLE_PCT_ENCODE, charset));
+        url.setPath(WhatwgCanonicalizer.pctEncode(url.getPath(), LESS_DUMB_PATH_ENCODE, charset));
+        url.setFragment(WhatwgCanonicalizer.pctEncode(url.getFragment(), GOOGLE_PCT_ENCODE, charset));
     }
 
-    static final Pattern LESS_DUMB_QUERY_ENCODE_RE = Pattern.compile("[\\x00-\\x20\\x7f-\\xff#%&=]");
+    static final boolean[] LESS_DUMB_QUERY_ENCODE = buildEncodeSet("[\\x00-\\x20\\x7f-\\xff#%&=]");
     static final Pattern QUERY_PARAM_RE = Pattern.compile("([^&=]*)(=[^&]*)?(&|$)");
 
-    private static String pctRecodeQueryPart(String s) {
-        String decoded = pctDecodeTokenRepeatedly(s);
-        return WhatwgCanonicalizer.pctEncode(decoded, LESS_DUMB_QUERY_ENCODE_RE);
+    private static String pctRecodeQueryPart(String s, Charset charset) {
+        String decoded = pctDecodeTokenRepeatedly(s, charset);
+        return WhatwgCanonicalizer.pctEncode(decoded, LESS_DUMB_QUERY_ENCODE, charset);
     }
 
-    static void lessDumbPctRecodeQuery(ParsedUrl url) {
+    static void lessDumbPctRecodeQuery(ParsedUrl url, Charset charset) {
         String query = url.getQuery();
         if (query.isEmpty()) {
             return;
@@ -154,12 +164,12 @@ public class SemanticPreciseCanonicalizer implements Canonicalizer {
         Matcher m = QUERY_PARAM_RE.matcher(query);
         while (m.lookingAt()) {
             String key = query.substring(m.start(1), m.end(1));
-            out.append(pctRecodeQueryPart(key));
+            out.append(pctRecodeQueryPart(key, charset));
 
             if (m.start(2) != -1) {
                 out.append('=');
                 String value = query.substring(m.start(2) + 1, m.end(2));
-                out.append(pctRecodeQueryPart(value));
+                out.append(pctRecodeQueryPart(value, charset));
             }
 
             if (m.start(3) < m.end()) {

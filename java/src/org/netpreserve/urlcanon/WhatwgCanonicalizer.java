@@ -20,16 +20,16 @@
 
 package org.netpreserve.urlcanon;
 
-import static java.util.regex.Pattern.CASE_INSENSITIVE;
-
-import java.io.UnsupportedEncodingException;
 import java.net.IDN;
-import java.net.URLDecoder;
+import java.nio.charset.Charset;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.regex.Pattern.CASE_INSENSITIVE;
 
 class WhatwgCanonicalizer implements Canonicalizer {
     private static final String SLASH = "/";
@@ -46,12 +46,22 @@ class WhatwgCanonicalizer implements Canonicalizer {
      * > The userinfo percent-encode set is the path percent-encode set and code
      * > points "/", ":", ";", "=", "@", "[", "\", "]", "^", and "|".
      */
-    private static final Pattern C0_ENCODE_REGEX = Pattern.compile("[\\x00-\\x1f\\x7f-\\xff]");
-    private static final Pattern PATH_ENCODE_REGEX = Pattern.compile("[\\x00-\\x20\\x7f-\\xff\"#<>?`{}]");
-    private static final Pattern QUERY_ENCODE_REGEX = Pattern.compile("[\\x00-\\x20\\x22\\x23\\x3c\\x3e\\x7f-\\xff]");
-    private static final Pattern USERINFO_ENCODE_REGEX = Pattern.compile("[\\x00-\\x20\\x7f-\\xff\"#<>?`{}/:;=@\\x5b\\x5c\\x5d\\x5e\\x7c]");
+    private static final boolean[] C0_ENCODE = buildEncodeSet("[\\x00-\\x1f\\x7f-\\xff]");
+    private static final boolean[] PATH_ENCODE = buildEncodeSet("[\\x00-\\x20\\x7f-\\xff\"#<>?`{}]");
+    private static final boolean[] QUERY_ENCODE = buildEncodeSet("[\\x00-\\x20\\x22\\x23\\x3c\\x3e\\x7f-\\xff]");
+    private static final boolean[] USERINFO_ENCODE = buildEncodeSet("[\\x00-\\x20\\x7f-\\xff\"#<>?`{}/:;=@\\x5b\\x5c\\x5d\\x5e\\x7c]");
+    private static final boolean[] HOST_ENCODE = buildEncodeSet("[\\x00-\\x20\\x7f-\\xff]");
 
     private static final Pattern TAB_AND_NEWLINE_REGEX = Pattern.compile("[\\x09\\x0a\\x0d]");
+
+    static boolean[] buildEncodeSet(String regex) {
+        boolean[] array = new boolean[256];
+        Pattern pattern = Pattern.compile(regex);
+        for (int i = 0; i < 256; i++) {
+            array[i] = pattern.matcher(Character.toString((char) i)).matches();
+        }
+        return array;
+    }
 
     static String removeTabsAndNewlines(String s) {
         return TAB_AND_NEWLINE_REGEX.matcher(s).replaceAll("");
@@ -132,54 +142,76 @@ class WhatwgCanonicalizer implements Canonicalizer {
         url.setPath(resolvePathDots(url.getPath(), ParsedUrl.SPECIAL_SCHEMES.containsKey(url.getScheme())));
     }
 
-    protected static Pattern PCT_DECODE_REGEX = Pattern.compile("%([0-9a-fA-F]{2})");
-    public static String pctDecode(String str) {
-        StringBuilder buf = new StringBuilder(str.length());
-        int pos = 0;
-        Matcher m = PCT_DECODE_REGEX.matcher(str);
-        while (m.find()) {
-            buf.append(str, pos, m.start());
-            buf.append((char) (Integer.parseInt(m.group(1), 16) & 0xff));
-            pos = m.end();
+    public static String pctDecode(String str, Charset charset) {
+        StringBuilder sb = new StringBuilder(str.length());
+        byte[] buf = new byte[16];
+        int len = 0;
+        int i = 0;
+        while (i < str.length()) {
+            while (true) {
+                if (i + 3 > str.length()) break;
+                if (str.charAt(i) != '%') break;
+                int digit1 = Character.digit(str.charAt(i + 1), 16);
+                if (digit1 == -1) break;
+                int digit2 = Character.digit(str.charAt(i + 2), 16);
+                if (digit2 == -1) break;
+                buf[len++] = (byte) (digit1 << 4 | digit2);
+                i += 3;
+            }
+            if (len > 0) {
+                sb.append(new String(buf, 0, len, charset));
+                len = 0;
+            } else {
+                sb.append(str.charAt(i));
+                i++;
+            }
         }
-        buf.append(str, pos, str.length());
-        return buf.toString();
+        return sb.toString();
+    }
+
+    private static boolean isHexDigit(char c) {
+        return (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F') || (c >= '0' && c <= '9');
     }
 
 
-    static String pctEncode(String str, Pattern encodeSetRegex) {
+    static String pctEncode(String str, boolean[] encodeSet, Charset charset) {
         StringBuilder buf = new StringBuilder(str.length());
-        Matcher m = encodeSetRegex.matcher(str);
-        int pos = 0;
-        while (m.find()) {
-            buf.append(str, pos, m.start());
-            buf.append('%');
-            int b = (str.charAt(m.start())) & 0xff;
-            buf.append(Character.toUpperCase(Character.forDigit(b >> 4, 16)));
-            buf.append(Character.toUpperCase(Character.forDigit(b & 0xf, 16)));
-            pos = m.end();
+        for (int i = 0; i < str.length();) {
+            int codepoint = str.codePointAt(i);
+            int len = Character.charCount(codepoint);
+
+            if (codepoint > 0xff || encodeSet[codepoint]) {
+                byte[] encoded = str.substring(i, i + len).getBytes(charset);
+                for (byte b : encoded) {
+                    buf.append('%');
+                    buf.append(Character.toUpperCase(Character.forDigit((b & 0xff) >> 4, 16)));
+                    buf.append(Character.toUpperCase(Character.forDigit(b & 0xf, 16)));
+                }
+            } else {
+                buf.append(str, i, i + len);
+            }
+            i += len;
         }
-        buf.append(str, pos, str.length());
         return buf.toString();
     }
 
-    void pctEncodePath(ParsedUrl url) {
-        Pattern encodeSetRegex;
+    void pctEncodePath(ParsedUrl url, Charset charset) {
+        boolean[] encodeSet;
         if (!url.getPath().isEmpty() && url.getPath().charAt(0) == '/'
                 || ParsedUrl.SPECIAL_SCHEMES.containsKey(url.getScheme())) {
-            encodeSetRegex = PATH_ENCODE_REGEX;
+            encodeSet = PATH_ENCODE;
         } else {
-            encodeSetRegex = C0_ENCODE_REGEX;
+            encodeSet = C0_ENCODE;
         }
-        url.setPath(pctEncode(url.getPath(), encodeSetRegex));
+        url.setPath(pctEncode(url.getPath(), encodeSet, charset));
     }
 
-    void pctEncodeFragment(ParsedUrl url) {
-        url.setFragment(pctEncode(url.getFragment(), C0_ENCODE_REGEX));
+    void pctEncodeFragment(ParsedUrl url, Charset charset) {
+        url.setFragment(pctEncode(url.getFragment(), C0_ENCODE, charset));
     }
 
-    void pctEncodeQuery(ParsedUrl url) {
-        url.setQuery(pctEncode(url.getQuery(), QUERY_ENCODE_REGEX));
+    void pctEncodeQuery(ParsedUrl url, Charset charset) {
+        url.setQuery(pctEncode(url.getQuery(), QUERY_ENCODE, charset));
     }
 
     static void emptyPathToSlash(ParsedUrl url) {
@@ -248,52 +280,61 @@ class WhatwgCanonicalizer implements Canonicalizer {
         }
     }
 
-    public static void punycodeSpecialHost(ParsedUrl url) {
+    public static void punycodeSpecialHost(ParsedUrl url, Charset charset) {
         if (ParsedUrl.SPECIAL_SCHEMES.containsKey(url.getScheme())) {
             String host = url.getHost();
-            String ascii = IDN.toASCII(host, IDN.ALLOW_UNASSIGNED);
-            url.setHost(ascii.toLowerCase());
-        }
-    }
-
-    static void pctEncodeHost(ParsedUrl url) {
-        url.setHost(pctEncode(url.getHost(), C0_ENCODE_REGEX));
-    }
-
-    static void pctDecodeHost(ParsedUrl url) {
-        if (ParsedUrl.SPECIAL_SCHEMES.containsKey(url.getScheme())) {
+            if (charset != UTF_8) {
+                // XXX: hack to match python behaviour
+                host = new String(host.getBytes(charset), UTF_8);
+            }
             try {
-                url.setHost(URLDecoder.decode(url.getHost(), "utf-8"));
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
+                String ascii = IDN.toASCII(host, IDN.ALLOW_UNASSIGNED);
+                url.setHost(ascii.toLowerCase());
+            } catch (IllegalArgumentException e) {
+                // leave unmodified
             }
         }
     }
 
-    static void pctEncodeUserinfo(ParsedUrl url) {
-        url.setUsername(pctEncode(url.getUsername(), USERINFO_ENCODE_REGEX));
-        url.setPassword(pctEncode(url.getPassword(), USERINFO_ENCODE_REGEX));
+    static void pctEncodeHost(ParsedUrl url, Charset charset) {
+        url.setHost(pctEncode(url.getHost(), HOST_ENCODE, charset));
     }
 
+    static void pctDecodeHost(ParsedUrl url, Charset charset) {
+        if (ParsedUrl.SPECIAL_SCHEMES.containsKey(url.getScheme())) {
+            url.setHost(pctDecode(url.getHost(), charset));
+        }
+    }
+
+    static void pctEncodeUserinfo(ParsedUrl url, Charset charset) {
+        url.setUsername(pctEncode(url.getUsername(), USERINFO_ENCODE, charset));
+        url.setPassword(pctEncode(url.getPassword(), USERINFO_ENCODE, charset));
+    }
+
+    @Override
     public void canonicalize(ParsedUrl url) {
+        canonicalize(url, UTF_8);
+    }
+
+    public void canonicalize(ParsedUrl url, Charset charset) {
         removeLeadingTrailingJunk(url);
         removeTabsAndNewlines(url);
         lowercaseScheme(url);
         elideDefaultPort(url);
         cleanUpUserinfo(url);
         twoSlashes(url);
-        pctDecodeHost(url);
+        pctDecodeHost(url, charset);
         normalizeIpAddress(url);
-        punycodeSpecialHost(url);
-        pctEncodeHost(url);
+        punycodeSpecialHost(url, charset);
+        pctEncodeHost(url, charset);
         fixBackslashes(url);
-        pctEncodePath(url);
+        pctEncodePath(url, charset);
         elideDefaultPort(url);
         leadingSlash(url);
         normalizePathDots(url);
         emptyPathToSlash(url);
-        pctEncodeUserinfo(url);
-        pctEncodeQuery(url);
-        pctEncodeFragment(url);
+        pctEncodeUserinfo(url, charset);
+        pctEncodeQuery(url, charset);
+        pctEncodeFragment(url, charset);
     }
 }
