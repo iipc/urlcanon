@@ -289,11 +289,14 @@ class WhatwgCanonicalizer implements Canonicalizer {
         if (ParsedUrl.SPECIAL_SCHEMES.containsKey(url.getScheme())) {
             String host = url.getHost();
             if (charset != UTF_8) {
-                // XXX: hack to match python behaviour
+                // XXX: hack to match python behaviour, attempt to interpret as utf8 for punycoding
                 host = new String(host.getBytes(charset), UTF_8);
+                if (host.contains("\ufffd")) { // contains non-utf8 junk
+                    return; // leave unmodified
+                }
             }
             try {
-                String ascii = IDN.toASCII(host, IDN.ALLOW_UNASSIGNED);
+                String ascii = Idn.load().toAscii(host);
                 url.setHost(ascii.toLowerCase());
             } catch (IllegalArgumentException e) {
                 // leave unmodified
