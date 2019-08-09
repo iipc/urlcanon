@@ -20,9 +20,9 @@
 
 package org.netpreserve.urlcanon;
 
-import java.net.IDN;
 import java.nio.charset.Charset;
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.Locale;
 import java.util.regex.Matcher;
@@ -151,10 +151,16 @@ class WhatwgCanonicalizer implements Canonicalizer {
             while (true) {
                 if (i + 3 > str.length()) break;
                 if (str.charAt(i) != '%') break;
+
                 int digit1 = Character.digit(str.charAt(i + 1), 16);
                 if (digit1 == -1) break;
                 int digit2 = Character.digit(str.charAt(i + 2), 16);
                 if (digit2 == -1) break;
+
+                if (len >= buf.length) {
+                    buf = Arrays.copyOf(buf, buf.length * 2);
+                }
+
                 buf[len++] = (byte) (digit1 << 4 | digit2);
                 i += 3;
             }
