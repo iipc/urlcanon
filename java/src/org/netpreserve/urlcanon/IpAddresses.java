@@ -28,6 +28,116 @@ class IpAddresses {
                 (ipv4 >> 8) & 0xff, ipv4 & 0xff);
     }
 
+    static short[] parseIpv6(String host) {
+        short[] addr = new short[8];
+        String[] groups = host.split(":", 10);
+        if (groups.length < 3 || groups.length > 9) {
+            return null;
+        }
+
+        boolean hasIp4 = groups[groups.length - 1].indexOf('.') != -1;
+        boolean seenDoubleColon = false;
+        int j = 0;
+        for (int i = 0; i < groups.length; i++) {
+            String group = groups[i];
+
+            // expand ::
+            if (group.isEmpty()) {
+                if (seenDoubleColon) {
+                    return null; // allowed only once
+                }
+                seenDoubleColon = true;
+
+                // leading
+                if (i == 0) {
+                    if (groups[1].isEmpty()) { // leading ::
+                        i++;
+                    } else { // leading :
+                        return null; // not allowed
+                    }
+                }
+
+                // trailing
+                if (i == groups.length - 2 && groups[i + 1].isEmpty()) {
+                    i++;
+                }
+
+                j = addr.length - (groups.length - i) + 1;
+                if (hasIp4) j--;
+                continue;
+            }
+
+            // handle ip4 in last group
+            if (i == groups.length - 1 && hasIp4) {
+                if (j != 6) { // must be the 7th & 8th short
+                    return null;
+                }
+
+                long ip4 = parseIpv4(group);
+                if (ip4 == -1) {
+                    return null;
+                }
+                addr[6] = (short)(ip4 >>> 16);
+                addr[7] = (short)ip4;
+                return addr;
+            }
+
+            long value = CharSequences.parseUnsignedLongNoThrow(group, 0, group.length(), 16);
+            if (value == -1) {
+                return null; // not a number
+            }
+            if (j >= addr.length) {
+                return null;
+            }
+            addr[j++] = (short)value;
+        }
+        if (!seenDoubleColon && groups.length != 8) {
+            return null;
+        }
+        return addr;
+    }
+
+    static String formatIpv6(short[] addr) {
+        // find longest sequence of zeroes
+        int zeroesStart = addr.length;
+        int zeroesLen = 0;
+        {
+            int curStart = 0;
+            int curLen = 0;
+            for (int i = 0; i < addr.length; i++) {
+                if (addr[i] == 0) {
+                    if (curLen == 0) {
+                        curStart = i;
+                    }
+                    curLen++;
+                } else {
+                    if (curLen > 1 && curLen > zeroesLen) {
+                        zeroesLen = curLen;
+                        zeroesStart = curStart;
+                    }
+                    curLen = 0;
+                }
+            }
+            if (curLen > 1 && curLen > zeroesLen) {
+                zeroesLen = curLen;
+                zeroesStart = curStart;
+            }
+        }
+
+        // print
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < zeroesStart; i++) {
+            sb.append(Integer.toHexString(addr[i] & 0xffff));
+            if (i < addr.length - 1) sb.append(':');
+        }
+        if (zeroesStart == 0) sb.append(':');
+        for (int i = zeroesStart + zeroesLen; i < addr.length; i++) {
+            sb.append(':').append(Integer.toHexString(addr[i] & 0xffff));
+        }
+        if (zeroesLen > 0 && zeroesStart + zeroesLen == addr.length) sb.append(':');
+        return sb.toString();
+    }
+
     static long parseIpv4(String host) {
         long ipv4 = 0;
         int startOfPart = 0;

@@ -235,6 +235,11 @@ class WhatwgCanonicalizer implements Canonicalizer {
     }
 
     static String normalizeIpAddress(String host) {
+        if (host.startsWith("[") && host.endsWith("]")) {
+            short[] ipv6 = IpAddresses.parseIpv6(host.substring(1, host.length() - 1));
+            if (ipv6 == null) return host;
+            return "[" + IpAddresses.formatIpv6(ipv6) + "]";
+        }
         long ipv4 = IpAddresses.parseIpv4(host);
         if (ipv4 != -1) {
             return IpAddresses.formatIpv4(ipv4);
