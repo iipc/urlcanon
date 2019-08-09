@@ -32,7 +32,7 @@ public class SemanticCanonicalizer implements Canonicalizer {
     }
 
     static void removeFrament(ParsedUrl url) {
-        url.setHashSign(ByteString.EMPTY);
-        url.setFragment(ByteString.EMPTY);
+        url.setHashSign("");
+        url.setFragment("");
     }
 }

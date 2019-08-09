@@ -21,39 +21,29 @@ package org.netpreserve.urlcanon;
 import java.util.regex.Matcher;
 
 class CharSequences {
-
-    static int indexOf(CharSequence s, char c, int start) {
-        for (int i = start; i < s.length(); i++) {
-            if (s.charAt(i) == c) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    // Long.parseLong(CharSequence) will be available in Java 9
-    static long parseLong(CharSequence s, int start, int end, int radix) {
+    /**
+     * Parses an unsigned long. This differs from Long.parseLong in that it doesn't support negative
+     * numbers and it returns -1 rather than throwing an exception (which was slow).
+     */
+    static long parseUnsignedLongNoThrow(CharSequence s, int start, int end, int radix) {
         long n = 0;
         for (int i = start; i < end; i++) {
             int digit = Character.digit(s.charAt(i), radix);
             if (digit == -1) {
-                throw new NumberFormatException();
+               return -1;
             }
             n = n * radix + digit;
         }
         return n;
     }
 
+
     public static long parseLong(CharSequence s) {
-        return parseLong(s, 0, s.length(), 10);
+        return parseUnsignedLongNoThrow(s, 0, s.length(), 10);
     }
 
-    static ByteString group(ByteString input, Matcher matcher, int group) {
-        int start = matcher.start(group);
-        if (start == -1) {
-            return ByteString.EMPTY;
-        } else {
-            return input.subSequence(start, matcher.end(group));
-        }
+    static String group(Matcher matcher, int group) {
+        String g = matcher.group(group);
+        return g == null ? "" : g;
     }
 }

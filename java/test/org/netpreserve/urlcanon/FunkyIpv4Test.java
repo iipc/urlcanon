@@ -68,7 +68,7 @@ public class FunkyIpv4Test {
 
     @Test
     public void test() {
-        long ipv4 = IpAddresses.parseIpv4(new ByteString(input));
+        long ipv4 = IpAddresses.parseIpv4(input);
         String formatted = ipv4 == -1 ? null : IpAddresses.formatIpv4(ipv4);
         assertEquals(expected, formatted);
     }

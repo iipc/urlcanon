@@ -52,6 +52,6 @@ public class ParserIdempotenceTest {
 
     @Test
     public void test() {
-        assertEquals(test, ParsedUrl.parseUrl(test.getBytes()).toString());
+        assertEquals(test, ParsedUrl.parseUrl(test).toString());
     }
 }

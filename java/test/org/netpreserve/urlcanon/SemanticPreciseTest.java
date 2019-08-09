@@ -43,7 +43,7 @@ public class SemanticPreciseTest {
 
     @Test
     public void test() {
-        ByteString bs = new ByteString(input.getBytes(StandardCharsets.ISO_8859_1));
+        String bs = new String(input.getBytes(StandardCharsets.ISO_8859_1));
         ParsedUrl url = ParsedUrl.parseUrl(bs);
         Canonicalizer.SEMANTIC_PRECISE.canonicalize(url);
         assertEquals(expected, url.toString());

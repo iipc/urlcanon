@@ -79,6 +79,6 @@ public class ResolvePathDotsTest {
 
     @Test
     public void test() {
-        assertEquals(expected, WhatwgCanonicalizer.resolvePathDots(new ByteString(input), special).toString());
+        assertEquals(expected, WhatwgCanonicalizer.resolvePathDots(new String(input), special).toString());
     }
 }

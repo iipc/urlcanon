@@ -21,6 +21,7 @@
 package org.netpreserve.urlcanon;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Matcher;
@@ -123,75 +124,137 @@ public class ParsedUrl {
         return map;
     }
 
-    private ByteString leadingJunk;
-    private ByteString trailingJunk;
-    private ByteString scheme;
-    private ByteString colonAfterScheme;
-    private ByteString questionMark;
-    private ByteString query;
-    private ByteString hashSign;
-    private ByteString fragment;
-    private ByteString slashes;
-    private ByteString path;
-    private ByteString username;
-    private ByteString colonBeforePassword;
-    private ByteString password;
-    private ByteString atSign;
-    private ByteString host;
-    private ByteString colonBeforePort;
-    private ByteString port;
+    private String leadingJunk;
+    private String trailingJunk;
+    private String scheme;
+    private String colonAfterScheme;
+    private String questionMark;
+    private String query;
+    private String hashSign;
+    private String fragment;
+    private String slashes;
+    private String path;
+    private String username;
+    private String colonBeforePassword;
+    private String password;
+    private String atSign;
+    private String host;
+    private String colonBeforePort;
+    private String port;
 
     //-------------------------------------------------------------------------
     //region URL Parsing
     //-------------------------------------------------------------------------
 
-    private ParsedUrl() {
+    ParsedUrl() {
     }
 
-    public static ParsedUrl parseUrl(String s) {
-        return parseUrl(new ByteString(s));
+    private ParsedUrl(ParsedUrl base, ParsedUrl relative) {
+        leadingJunk = relative.leadingJunk;
+        trailingJunk = relative.trailingJunk;
+        scheme = relative.scheme;
+        colonAfterScheme = relative.colonAfterScheme;
+        questionMark = relative.questionMark;
+        query = relative.query;
+        hashSign = relative.hashSign;
+        fragment = relative.fragment;
+        slashes = relative.slashes;
+        path = relative.path;
+        username = relative.username;
+        colonBeforePassword = relative.colonBeforePassword;
+        password = relative.password;
+        atSign = relative.atSign;
+        host = relative.host;
+        colonBeforePort = relative.colonBeforePort;
+        port = relative.port;
+
+        if (!slashes.isEmpty()) {
+            if (scheme.isEmpty()) {
+                scheme = base.scheme;
+            }
+            return;
+        }
+
+        if (!scheme.isEmpty() && !scheme.equalsIgnoreCase(base.scheme)) {
+            return;
+        }
+
+        if (scheme.isEmpty() || scheme.equalsIgnoreCase(base.scheme)) {
+            scheme = base.scheme;
+            colonAfterScheme = base.colonAfterScheme;
+            username = base.username;
+            colonBeforePassword = base.colonBeforePassword;
+            password = base.password;
+            atSign = base.atSign;
+            host = base.host;
+            colonBeforePort = base.colonBeforePort;
+            port = base.port;
+        }
+
+        if (path.isEmpty() && !relative.host.isEmpty()) {
+            path = relative.host;
+        }
+
+        if (path.isEmpty() || path.charAt(0) == '/') {
+            return;
+        }
+
+        String dirname = base.dirname();
+        StringBuilder builder = new StringBuilder(dirname.length() + path.length());
+        builder.append(dirname);
+        builder.append(path);
+        path = builder.toString();
+    }
+
+    private String dirname() {
+        for (int i = path.length() - 1; i >= 0; i--) {
+            if (path.charAt(i) == '/') {
+                return path.substring(0, i + 1);
+            }
+        }
+        return "";
     }
 
     public static ParsedUrl parseUrl(byte[] bytes) {
-        return parseUrl(new ByteString(bytes));
+        return parseUrl(new String(bytes));
     }
 
-    public static ParsedUrl parseUrl(ByteString input) {
+    public static ParsedUrl parseUrl(String input) {
         ParsedUrl url = new ParsedUrl();
 
         // "leading and trailing C0 controls and space"
         Matcher m = LEADING_JUNK_REGEX.matcher(input);
         if (m.matches()) {
-            url.leadingJunk = CharSequences.group(input, m, 1);
-            input = CharSequences.group(input, m, 2);
+            url.leadingJunk = CharSequences.group(m, 1);
+            input = CharSequences.group(m, 2);
         } else {
-            url.leadingJunk = ByteString.EMPTY;
+            url.leadingJunk = "";
         }
 
         m = TRAILING_JUNK_REGEX.matcher(input);
         if (m.matches()) {
-            url.trailingJunk = CharSequences.group(input, m, 2);
-            input = CharSequences.group(input, m, 1);
+            url.trailingJunk = CharSequences.group(m, 2);
+            input = CharSequences.group(m, 1);
         } else {
-            url.trailingJunk = ByteString.EMPTY;
+            url.trailingJunk = "";
         }
 
         // parse url
         m = URL_REGEX.matcher(input);
         if (m.matches()) {
-            url.scheme = CharSequences.group(input, m, URL_GROUP_SCHEME);
-            url.colonAfterScheme = CharSequences.group(input, m, URL_GROUP_COLON_AFTER_SCHEME);
-            url.questionMark = CharSequences.group(input, m, URL_GROUP_QUESTION_MARK);
-            url.query = CharSequences.group(input, m, URL_GROUP_QUERY);
-            url.hashSign = CharSequences.group(input, m, URL_GROUP_HASH_SIGN);
-            url.fragment = CharSequences.group(input, m, URL_GROUP_FRAGMENT);
+            url.scheme = CharSequences.group(m, URL_GROUP_SCHEME);
+            url.colonAfterScheme = CharSequences.group(m, URL_GROUP_COLON_AFTER_SCHEME);
+            url.questionMark = CharSequences.group(m, URL_GROUP_QUESTION_MARK);
+            url.query = CharSequences.group(m, URL_GROUP_QUERY);
+            url.hashSign = CharSequences.group(m, URL_GROUP_HASH_SIGN);
+            url.fragment = CharSequences.group(m, URL_GROUP_FRAGMENT);
         } else {
             throw new AssertionError("URL_REGEX didn't match");
         }
 
         // we parse the authority + path into "pathish" initially so that we can
         // correctly handle file: urls
-        ByteString pathish = CharSequences.group(input, m, URL_GROUP_PATHISH);
+        String pathish = CharSequences.group(m, URL_GROUP_PATHISH);
 
         parsePathish(url, pathish);
 
@@ -202,38 +265,38 @@ public class ParsedUrl {
      * Parses "pathish", which is the section of the url after the scheme,
      * including the authority, if any, and populates fields of "url".
      */
-    static void parsePathish(ParsedUrl url, ByteString pathish) {
+    static void parsePathish(ParsedUrl url, String pathish) {
         Matcher m;
-        ByteString cleanScheme = url.scheme.replaceAll(TAB_AND_NEWLINE_REGEX, "").asciiLowerCase();
+        String cleanScheme = TAB_AND_NEWLINE_REGEX.matcher(url.scheme).replaceAll("").toLowerCase(Locale.US);
         boolean special = SPECIAL_SCHEMES.containsKey(cleanScheme.toString());
 
         if (cleanScheme.equalsIgnoreCase("file")) {
             m = FILE_PATHISH_REGEX.matcher(pathish);
             if (m.matches()) { // file: with host
-                url.slashes = CharSequences.group(pathish, m, PATHISH_GROUP_SLASHES);
-                url.host = CharSequences.group(pathish, m, PATHISH_GROUP_HOST);
-                url.path = CharSequences.group(pathish, m, PATHISH_GROUP_PATH);
+                url.slashes = CharSequences.group(m, PATHISH_GROUP_SLASHES);
+                url.host = CharSequences.group(m, PATHISH_GROUP_HOST);
+                url.path = CharSequences.group(m, PATHISH_GROUP_PATH);
 
             } else { // file: without host
-                url.slashes = ByteString.EMPTY;
+                url.slashes = "";
                 url.path = pathish;
-                url.host = ByteString.EMPTY;
+                url.host = "";
             }
 
             // these are always empty for file: URLs
-            url.username = ByteString.EMPTY;
-            url.colonBeforePassword = ByteString.EMPTY;
-            url.password = ByteString.EMPTY;
-            url.atSign = ByteString.EMPTY;
-            url.colonBeforePort = ByteString.EMPTY;
-            url.port = ByteString.EMPTY;
+            url.username = "";
+            url.colonBeforePassword = "";
+            url.password = "";
+            url.atSign = "";
+            url.colonBeforePort = "";
+            url.port = "";
         } else {
             // not file:
             m = (special ? SPECIAL_PATHISH_REGEX : NONSPECIAL_PATHISH_REGEX).matcher(pathish);
             if (m.matches()) {
-                ByteString slashes = CharSequences.group(pathish, m, PATHISH_GROUP_SLASHES);
-                ByteString authority = CharSequences.group(pathish, m, PATHISH_GROUP_AUTHORITY);
-                ByteString path = CharSequences.group(pathish, m, PATHISH_GROUP_PATH);
+                String slashes = CharSequences.group(m, PATHISH_GROUP_SLASHES);
+                String authority = CharSequences.group(m, PATHISH_GROUP_AUTHORITY);
+                String path = CharSequences.group(m, PATHISH_GROUP_PATH);
 
                 url.slashes = slashes;
                 url.path = path;
@@ -241,27 +304,27 @@ public class ParsedUrl {
                 // parse the authority
                 m = AUTHORITY_REGEX.matcher(authority);
                 if (m.matches()) {
-                    url.username = CharSequences.group(authority, m, AUTHORITY_GROUP_USERNAME);
-                    url.colonBeforePassword = CharSequences.group(authority, m, AUTHORITY_GROUP_COLON_BEFORE_PASSWORD);
-                    url.password = CharSequences.group(authority, m, AUTHORITY_GROUP_PASSWORD);
-                    url.atSign = CharSequences.group(authority, m, AUTHORITY_GROUP_AT_SIGN);
-                    url.host = CharSequences.group(authority, m, AUTHORITY_GROUP_HOST);
-                    url.colonBeforePort = CharSequences.group(authority, m, AUTHORITY_GROUP_COLON_BEFORE_PORT);
-                    url.port = CharSequences.group(authority, m, AUTHORITY_GROUP_PORT);
+                    url.username = CharSequences.group(m, AUTHORITY_GROUP_USERNAME);
+                    url.colonBeforePassword = CharSequences.group(m, AUTHORITY_GROUP_COLON_BEFORE_PASSWORD);
+                    url.password = CharSequences.group(m, AUTHORITY_GROUP_PASSWORD);
+                    url.atSign = CharSequences.group(m, AUTHORITY_GROUP_AT_SIGN);
+                    url.host = CharSequences.group(m, AUTHORITY_GROUP_HOST);
+                    url.colonBeforePort = CharSequences.group(m, AUTHORITY_GROUP_COLON_BEFORE_PORT);
+                    url.port = CharSequences.group(m, AUTHORITY_GROUP_PORT);
                 } else {
                     throw new AssertionError("AUTHORITY_REGEX didn't match");
                 }
             } else {
                 // scheme not special and pathish doesn't start with // so it's an opaque thing
                 url.path = pathish;
-                url.slashes = ByteString.EMPTY;
-                url.username = ByteString.EMPTY;
-                url.colonBeforePassword = ByteString.EMPTY;
-                url.password = ByteString.EMPTY;
-                url.atSign = ByteString.EMPTY;
-                url.host = ByteString.EMPTY;
-                url.colonBeforePort = ByteString.EMPTY;
-                url.port = ByteString.EMPTY;
+                url.slashes = "";
+                url.username = "";
+                url.colonBeforePassword = "";
+                url.password = "";
+                url.atSign = "";
+                url.host = "";
+                url.colonBeforePort = "";
+                url.port = "";
             }
         }
     }
@@ -274,42 +337,25 @@ public class ParsedUrl {
     //region URL Formatting
     //-------------------------------------------------------------------------
 
-    public byte[] toByteArray() {
-        return buildUrl().toByteArray();
-    }
-
-    public ByteString toByteString() {
-        return buildUrl().toByteString();
-    }
 
     public String toString() {
-        return buildUrl().toString();
-    }
-
-    private ByteStringBuilder buildUrl() {
-        ByteStringBuilder builder = new ByteStringBuilder(leadingJunk.length() + scheme.length() + colonAfterScheme.length()
-                + slashes.length() + username.length() + colonBeforePassword.length() + password.length()
-                + atSign.length() + host.length() + colonBeforePort.length() + port.length() + path.length()
-                + questionMark.length() + query.length() + hashSign.length()
-                + fragment.length() + trailingJunk.length());
-        builder.append(leadingJunk);
-        builder.append(scheme);
-        builder.append(colonAfterScheme);
-        builder.append(slashes);
-        builder.append(username);
-        builder.append(colonBeforePassword);
-        builder.append(password);
-        builder.append(atSign);
-        builder.append(host);
-        builder.append(colonBeforePort);
-        builder.append(port);
-        builder.append(path);
-        builder.append(questionMark);
-        builder.append(query);
-        builder.append(hashSign);
-        builder.append(fragment);
-        builder.append(trailingJunk);
-        return builder;
+        return leadingJunk
+                + scheme
+                + colonAfterScheme
+                + slashes
+                + username
+                + colonBeforePassword
+                + password
+                + atSign
+                + host
+                + colonBeforePort
+                + port
+                + path
+                + questionMark
+                + query
+                + hashSign
+                + fragment
+                + trailingJunk;
     }
 
     //-------------------------------------------------------------------------
@@ -323,9 +369,9 @@ public class ParsedUrl {
     /**
      * Format this URL with a field order suitable for sorting.
      */
-    public ByteString ssurt() {
-        ByteString ssurtHost = ssurtHost(host);
-        ByteStringBuilder builder = new ByteStringBuilder(leadingJunk.length() + scheme.length() + colonAfterScheme.length()
+    public String ssurt() {
+        String ssurtHost = ssurtHost(host);
+        StringBuilder builder = new StringBuilder(leadingJunk.length() + scheme.length() + colonAfterScheme.length()
                 + slashes.length() + username.length() + colonBeforePassword.length() + password.length()
                 + atSign.length() + ssurtHost.length() + colonBeforePort.length() + port.length() + path.length()
                 + questionMark.length() + query.length() + hashSign.length()
@@ -347,13 +393,13 @@ public class ParsedUrl {
         builder.append(hashSign);
         builder.append(fragment);
         builder.append(trailingJunk);
-        return builder.toByteString();
+        return builder.toString();
     }
 
     /**
      * Reverse host unless it's an IPv4 or IPv6 address.
      */
-    static ByteString ssurtHost(ByteString host) {
+    static String ssurtHost(String host) {
         if (host.isEmpty()) {
             return host;
         } else if (host.charAt(0) == '[') {
@@ -370,9 +416,9 @@ public class ParsedUrl {
      *
      * "x,y.b.c" => "c,b,x.y,"
      */
-    static ByteString reverseHost(ByteString host) {
-        ByteStringBuilder buf = new ByteStringBuilder(host.length() + 1);
-        ByteString nocommas = host.replace((byte)',', (byte)'.');
+    static String reverseHost(String host) {
+        StringBuilder buf = new StringBuilder(host.length() + 1);
+        String nocommas = host.replace(",", ".");
         int j = host.length();
         for (int i = host.length() - 1; i >= 0; i--) {
             if (host.charAt(i) == '.') {
@@ -383,7 +429,7 @@ public class ParsedUrl {
         }
         buf.append(nocommas, 0, j);
         buf.append(',');
-        return buf.toByteString();
+        return buf.toString();
     }
 
     //-------------------------------------------------------------------------
@@ -394,12 +440,12 @@ public class ParsedUrl {
     //region Accessors: Calculated
     //-------------------------------------------------------------------------
 
-    ByteString hostPort() {
-        ByteStringBuilder builder = new ByteStringBuilder(host.length() + colonBeforePort.length() + port.length());
+    String hostPort() {
+        StringBuilder builder = new StringBuilder(host.length() + colonBeforePort.length() + port.length());
         builder.append(host);
         builder.append(colonBeforePort);
         builder.append(port);
-        return builder.toByteString();
+        return builder.toString();
     }
 
     //-------------------------------------------------------------------------
@@ -410,140 +456,144 @@ public class ParsedUrl {
     //region Accessors: Simple
     //-------------------------------------------------------------------------
 
-    public ByteString getLeadingJunk() {
+    public String getLeadingJunk() {
         return leadingJunk;
     }
 
-    public void setLeadingJunk(ByteString leadingJunk) {
+    public void setLeadingJunk(String leadingJunk) {
         this.leadingJunk = Objects.requireNonNull(leadingJunk);
     }
 
-    public ByteString getTrailingJunk() {
+    public String getTrailingJunk() {
         return trailingJunk;
     }
 
-    public void setTrailingJunk(ByteString trailingJunk) {
+    public void setTrailingJunk(String trailingJunk) {
         this.trailingJunk = Objects.requireNonNull(trailingJunk);
     }
 
-    public ByteString getScheme() {
+    public String getScheme() {
         return scheme;
     }
 
-    public void setScheme(ByteString scheme) {
+    public void setScheme(String scheme) {
         this.scheme = Objects.requireNonNull(scheme);
     }
 
-    public ByteString getColonAfterScheme() {
+    public String getColonAfterScheme() {
         return colonAfterScheme;
     }
 
-    public void setColonAfterScheme(ByteString colonAfterScheme) {
+    public void setColonAfterScheme(String colonAfterScheme) {
         this.colonAfterScheme = Objects.requireNonNull(colonAfterScheme);
     }
 
-    public ByteString getQuestionMark() {
+    public String getQuestionMark() {
         return questionMark;
     }
 
-    public void setQuestionMark(ByteString questionMark) {
+    public void setQuestionMark(String questionMark) {
         this.questionMark = Objects.requireNonNull(questionMark);
     }
 
-    public ByteString getQuery() {
+    public String getQuery() {
         return query;
     }
 
-    public void setQuery(ByteString query) {
+    public void setQuery(String query) {
         this.query = Objects.requireNonNull(query);
     }
 
-    public ByteString getHashSign() {
+    public String getHashSign() {
         return hashSign;
     }
 
-    public void setHashSign(ByteString hashSign) {
+    public void setHashSign(String hashSign) {
         this.hashSign = Objects.requireNonNull(hashSign);
     }
 
-    public ByteString getFragment() {
+    public String getFragment() {
         return fragment;
     }
 
-    public void setFragment(ByteString fragment) {
+    public void setFragment(String fragment) {
         this.fragment = Objects.requireNonNull(fragment);
     }
 
-    public ByteString getSlashes() {
+    public String getSlashes() {
         return slashes;
     }
 
-    public void setSlashes(ByteString slashes) {
+    public void setSlashes(String slashes) {
         this.slashes = Objects.requireNonNull(slashes);
     }
 
-    public ByteString getPath() {
+    public String getPath() {
         return path;
     }
 
-    public void setPath(ByteString path) {
+    public void setPath(String path) {
         this.path = Objects.requireNonNull(path);
     }
 
-    public ByteString getUsername() {
+    public String getUsername() {
         return username;
     }
 
-    public void setUsername(ByteString username) {
+    public void setUsername(String username) {
         this.username = Objects.requireNonNull(username);
     }
 
-    public ByteString getColonBeforePassword() {
+    public String getColonBeforePassword() {
         return colonBeforePassword;
     }
 
-    public void setColonBeforePassword(ByteString colonBeforePassword) {
+    public void setColonBeforePassword(String colonBeforePassword) {
         this.colonBeforePassword = Objects.requireNonNull(colonBeforePassword);
     }
 
-    public ByteString getPassword() {
+    public String getPassword() {
         return password;
     }
 
-    public void setPassword(ByteString password) {
+    public void setPassword(String password) {
         this.password = Objects.requireNonNull(password);
     }
 
-    public ByteString getAtSign() {
+    public String getAtSign() {
         return atSign;
     }
 
-    public void setAtSign(ByteString atSign) {
+    public void setAtSign(String atSign) {
         this.atSign = Objects.requireNonNull(atSign);
     }
 
-    public ByteString getHost() {
+    public String getHost() {
         return host;
     }
 
-    public void setHost(ByteString host) {
+    public void setHost(String host) {
         this.host = Objects.requireNonNull(host);
     }
 
-    public ByteString getColonBeforePort() {
+    public String getColonBeforePort() {
         return colonBeforePort;
     }
 
-    public void setColonBeforePort(ByteString colonBeforePort) {
+    public void setColonBeforePort(String colonBeforePort) {
         this.colonBeforePort = Objects.requireNonNull(colonBeforePort);
     }
 
-    public ByteString getPort() {
+    public String getPort() {
         return port;
     }
 
-    public void setPort(ByteString port) {
+    public void setPort(String port) {
         this.port = Objects.requireNonNull(port);
+    }
+
+    public ParsedUrl resolve(ParsedUrl relative) {
+        return new ParsedUrl(this, relative);
     }
 
     //-------------------------------------------------------------------------

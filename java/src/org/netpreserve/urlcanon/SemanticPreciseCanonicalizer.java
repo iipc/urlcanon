@@ -19,10 +19,7 @@
 
 package org.netpreserve.urlcanon;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -73,22 +70,22 @@ public class SemanticPreciseCanonicalizer implements Canonicalizer {
     Pattern TWO_OR_MORE_DOTS_RE = Pattern.compile("\\.{2,}");
 
     private void fixHostDots(ParsedUrl url) {
-        ByteString host = url.getHost();
-        host = host.replaceAll(LEADING_OR_TRAILING_DOTS_RE, "");
-        host = host.replaceAll(TWO_OR_MORE_DOTS_RE, ".");
+        String host = url.getHost();
+        host = LEADING_OR_TRAILING_DOTS_RE.matcher(host).replaceAll("");
+        host = TWO_OR_MORE_DOTS_RE.matcher(host).replaceAll(".");
         url.setHost(host);
     }
 
     private static final Pattern TWO_OR_MORE_SLASHES_RE = Pattern.compile("//+");
 
     private void collapseConsecutiveSlashes(ParsedUrl url) {
-        url.setPath(url.getPath().replaceAll(TWO_OR_MORE_SLASHES_RE, "/"));
+        url.setPath(TWO_OR_MORE_SLASHES_RE.matcher(url.getPath()).replaceAll("/"));
     }
 
     static void defaultSchemeHttp(ParsedUrl url) {
         if (url.getScheme().isEmpty()) {
-            url.setScheme(new ByteString("http"));
-            url.setColonAfterScheme(new ByteString(":"));
+            url.setScheme(new String("http"));
+            url.setColonAfterScheme(new String(":"));
             if (!url.getPath().isEmpty()) {
                 ParsedUrl.parsePathish(url, url.getPath());
             }
@@ -105,9 +102,9 @@ public class SemanticPreciseCanonicalizer implements Canonicalizer {
         url.setFragment(pctDecodeTokenRepeatedly(url.getFragment()));
     }
 
-    static ByteString pctDecodeTokenRepeatedly(ByteString str) {
+    static String pctDecodeTokenRepeatedly(String str) {
         for (;;) {
-            ByteString decoded = WhatwgCanonicalizer.pctDecode(str);
+            String decoded = WhatwgCanonicalizer.pctDecode(str);
             if (decoded.equals(str)) {
                 return decoded;
             }
@@ -116,10 +113,10 @@ public class SemanticPreciseCanonicalizer implements Canonicalizer {
     }
 
     static void removeUserinfo(ParsedUrl url) {
-        url.setUsername(ByteString.EMPTY);
-        url.setColonBeforePassword(ByteString.EMPTY);
-        url.setPassword(ByteString.EMPTY);
-        url.setAtSign(ByteString.EMPTY);
+        url.setUsername("");
+        url.setColonBeforePassword("");
+        url.setPassword("");
+        url.setAtSign("");
     }
 
     static final Pattern GOOGLE_PCT_ENCODE_RE = Pattern.compile("[\\x00-\\x20\\x7f-\\xff#%]");
@@ -140,26 +137,26 @@ public class SemanticPreciseCanonicalizer implements Canonicalizer {
     static final Pattern LESS_DUMB_QUERY_ENCODE_RE = Pattern.compile("[\\x00-\\x20\\x7f-\\xff#%&=]");
     static final Pattern QUERY_PARAM_RE = Pattern.compile("([^&=]*)(=[^&]*)?(&|$)");
 
-    private static ByteString pctRecodeQueryPart(ByteString s) {
-        ByteString decoded = pctDecodeTokenRepeatedly(s);
+    private static String pctRecodeQueryPart(String s) {
+        String decoded = pctDecodeTokenRepeatedly(s);
         return WhatwgCanonicalizer.pctEncode(decoded, LESS_DUMB_QUERY_ENCODE_RE);
     }
 
     static void lessDumbPctRecodeQuery(ParsedUrl url) {
-        ByteString query = url.getQuery();
+        String query = url.getQuery();
         if (query.isEmpty()) {
             return;
         }
-        ByteStringBuilder out = new ByteStringBuilder(query.length());
+        StringBuilder out = new StringBuilder(query.length());
 
         Matcher m = QUERY_PARAM_RE.matcher(query);
         while (m.lookingAt()) {
-            ByteString key = query.subSequence(m.start(1), m.end(1));
+            String key = query.substring(m.start(1), m.end(1));
             out.append(pctRecodeQueryPart(key));
 
             if (m.start(2) != -1) {
                 out.append('=');
-                ByteString value = query.subSequence(m.start(2) + 1, m.end(2));
+                String value = query.substring(m.start(2) + 1, m.end(2));
                 out.append(pctRecodeQueryPart(value));
             }
 
@@ -173,12 +170,12 @@ public class SemanticPreciseCanonicalizer implements Canonicalizer {
             m.region(m.end(), query.length());
         }
 
-        url.setQuery(out.toByteString());
+        url.setQuery(out.toString());
     }
 
     static void alphaReorderQuery(ParsedUrl url) {
-        List<ByteString> params = url.getQuery().split('&');
+        List<String> params = Arrays.asList(url.getQuery().split("&"));
         Collections.sort(params);
-        url.setQuery(ByteString.join("&", params));
+        url.setQuery(String.join("&", params));
     }
 }

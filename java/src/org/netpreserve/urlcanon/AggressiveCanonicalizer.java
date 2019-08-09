@@ -18,6 +18,7 @@
 
 package org.netpreserve.urlcanon;
 
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 /**
@@ -48,22 +49,22 @@ public class AggressiveCanonicalizer implements Canonicalizer {
     }
     static void httpsToHttp(ParsedUrl url) {
         if (url.getScheme().equalsIgnoreCase("https")) {
-            url.setScheme(new ByteString("http"));
+            url.setScheme("http");
         }
     }
 
     private static final Pattern WWW_RE = Pattern.compile("^www[0-9]*\\.");
 
     static void stripWww(ParsedUrl url) {
-        url.setHost(url.getHost().replaceAll(WWW_RE, ""));
+        url.setHost(WWW_RE.matcher(url.getHost()).replaceAll(""));
     }
 
     static void lowercasePath(ParsedUrl url) {
-        url.setPath(url.getPath().asciiLowerCase());
+        url.setPath(url.getPath().toLowerCase(Locale.US));
     }
 
     static void lowercaseQuery(ParsedUrl url) {
-        url.setQuery(url.getQuery().asciiLowerCase());
+        url.setQuery(url.getQuery().toLowerCase(Locale.US));
     }
 
     private static final Pattern QUERY_SESSIONID_RE = Pattern.compile(
@@ -77,7 +78,7 @@ public class AggressiveCanonicalizer implements Canonicalizer {
                     + ")(?:&|$)");
 
     static void stripSessionIdsFromQuery(ParsedUrl url) {
-        url.setQuery(url.getQuery().replaceAll(QUERY_SESSIONID_RE, ""));
+        url.setQuery(QUERY_SESSIONID_RE.matcher(url.getQuery()).replaceAll(""));
     }
 
     private static final Pattern ASPX_SUFFIX_RE = Pattern.compile(".*\\.aspx$");
@@ -87,29 +88,29 @@ public class AggressiveCanonicalizer implements Canonicalizer {
     private static final Pattern PATH_SESSIONID_RE = Pattern.compile(";jsessionid=[0-9a-z]{32}$");
 
     static void stripSessionIdsFromPath(ParsedUrl url) {
-        ByteString path = url.getPath();
+        String path = url.getPath();
         if (ASPX_SUFFIX_RE.matcher(path).matches()) {
-            path = path.replaceAll(ASPX_PATH_SESSIONID_RE, "");
+            path = ASPX_PATH_SESSIONID_RE.matcher(path).replaceAll("");
         }
-        path = path.replaceAll(PATH_SESSIONID_RE, "");
+        path = PATH_SESSIONID_RE.matcher(path).replaceAll( "");
         url.setPath(path);
     }
 
     private static final Pattern REDUNDANT_AMPERSANDS_RE = Pattern.compile("^&+|&+$|(?<=&)&+");
     static void removeRedundantAmpersandsFromQuery(ParsedUrl url) {
-        url.setQuery(url.getQuery().replaceAll(REDUNDANT_AMPERSANDS_RE, ""));
+        url.setQuery(REDUNDANT_AMPERSANDS_RE.matcher(url.getQuery()).replaceAll(""));
     }
 
     private static void stripTrailingSlashUnlessEmpty(ParsedUrl url) {
-        ByteString path = url.getPath();
+        String path = url.getPath();
         if (path.length() > 1 && path.charAt(path.length() - 1) == '/') {
-            url.setPath(path.subSequence(0, path.length() - 1));
+            url.setPath(path.substring(0, path.length() - 1));
         }
     }
 
     private void omitQuestionMarkIfQueryEmpty(ParsedUrl url) {
         if (url.getQuery().isEmpty()) {
-            url.setQuestionMark(ByteString.EMPTY);
+            url.setQuestionMark("");
         }
     }
 }

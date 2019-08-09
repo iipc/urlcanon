@@ -28,13 +28,13 @@ class IpAddresses {
                 (ipv4 >> 8) & 0xff, ipv4 & 0xff);
     }
 
-    static long parseIpv4(CharSequence host) {
+    static long parseIpv4(String host) {
         long ipv4 = 0;
         int startOfPart = 0;
 
         for (int i = 0;; i++) {
             // find the end of this part
-            int endOfPart = CharSequences.indexOf(host, '.', startOfPart);
+            int endOfPart = host.indexOf(".", startOfPart);
             if (endOfPart == -1) {
                 endOfPart = host.length();
             }
@@ -45,9 +45,7 @@ class IpAddresses {
             }
 
             long part = parseIpv4Num(host, startOfPart, endOfPart);
-
-            // not a number
-            if (part == -1) return -1;
+            if (part == -1) return -1; // not a number
 
             // if this is the last part (or second-last part and last part is empty)
             if (endOfPart >= host.length() - 1) {
@@ -70,7 +68,7 @@ class IpAddresses {
         }
     }
 
-    private static long parseIpv4Num(CharSequence host, int start, int end) {
+    private static long parseIpv4Num(String host, int start, int end) {
         int radix = 10;
         if (end - start >= 2 && host.charAt(start) == '0') {
             char c = host.charAt(start + 1);
@@ -82,18 +80,6 @@ class IpAddresses {
                 start++;
             }
         }
-        return parseLongFast(host, start, end, radix);
-    }
-
-    static long parseLongFast(CharSequence s, int start, int end, int radix) {
-        long n = 0;
-        for (int i = start; i < end; i++) {
-            int digit = Character.digit(s.charAt(i), radix);
-            if (digit == -1) {
-                return -1;
-            }
-            n = n * radix + digit;
-        }
-        return n;
+        return CharSequences.parseUnsignedLongNoThrow(host, start, end, radix);
     }
 }
