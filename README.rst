@@ -81,6 +81,20 @@ Java releases are available in the Maven Central repository:
         <version>0.1.2</version>
     </dependency>
 
+### Internationalized domain names
+
+The Java version of urlcanon will attempt to use ICU4J for punycode encoding if available. Otherwise it will fall back
+to java.net.IDN which does not support the newer IDNA2008 rules. So if you need correct IDN handling make sure to add
+ICU4J to your project:
+
+.. code:: xml
+
+    <dependency>
+        <groupId>com.ibm.icu</groupId>
+        <artifactId>icu4j</artifactId>
+        <version>53.1</version>
+    </dependency>
+
 License
 -------
 
