@@ -53,6 +53,7 @@ class WhatwgCanonicalizer implements Canonicalizer {
     private static final boolean[] HOST_ENCODE = buildEncodeSet("[\\x00-\\x20\\x7f-\\xff]");
 
     private static final Pattern TAB_AND_NEWLINE_REGEX = Pattern.compile("[\\x09\\x0a\\x0d]");
+    private static final Idn idn = Idn.load();
 
     static boolean[] buildEncodeSet(String regex) {
         boolean[] array = new boolean[256];
@@ -302,7 +303,7 @@ class WhatwgCanonicalizer implements Canonicalizer {
                 }
             }
             try {
-                String ascii = Idn.load().toAscii(host);
+                String ascii = idn.toAscii(host);
                 url.setHost(ascii.toLowerCase());
             } catch (IllegalArgumentException e) {
                 // leave unmodified
