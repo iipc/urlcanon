@@ -52,7 +52,6 @@ class WhatwgCanonicalizer implements Canonicalizer {
     private static final boolean[] USERINFO_ENCODE = buildEncodeSet("[\\x00-\\x20\\x7f-\\xff\"#<>?`{}/:;=@\\x5b\\x5c\\x5d\\x5e\\x7c]");
     private static final boolean[] HOST_ENCODE = buildEncodeSet("[\\x00-\\x20\\x7f-\\xff]");
 
-    private static final Pattern TAB_AND_NEWLINE_REGEX = Pattern.compile("[\\x09\\x0a\\x0d]");
     private static final Idn idn = Idn.load();
 
     static boolean[] buildEncodeSet(String regex) {
@@ -65,7 +64,27 @@ class WhatwgCanonicalizer implements Canonicalizer {
     }
 
     static String removeTabsAndNewlines(String s) {
-        return TAB_AND_NEWLINE_REGEX.matcher(s).replaceAll("");
+        int first = findTabOrNewline(s);
+        if (first == -1) return s;
+        StringBuilder sb = new StringBuilder(s.length());
+        sb.append(s, 0, first);
+        for (int j = first; j < s.length(); j++) {
+            char c = s.charAt(j);
+            if (c != '\t' && c != '\r' && c != '\n') {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
+    }
+
+    private static int findTabOrNewline(String s) {
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (c == '\t' || c == '\r' || c == '\n') {
+                return i;
+            }
+        }
+        return -1;
     }
 
     static void removeLeadingTrailingJunk(ParsedUrl url) {
@@ -112,6 +131,13 @@ class WhatwgCanonicalizer implements Canonicalizer {
 
     static String resolvePathDots(String path, boolean special) {
         if (!path.isEmpty() && (path.charAt(0) == '/' || (special && path.charAt(0) == '\\'))) {
+            // optimisation: skip string that have nothing to resolve
+            // scanning the string several times like this seems faster than the regex
+            if (!path.contains("/.") && !path.contains("/%2") &&
+                    (!special || (!path.contains("\\.") && !path.contains("\\%2")))) {
+                return path;
+            }
+
             StringBuilder buf = new StringBuilder(path.length());
             buf.append(path.charAt(0));
             Deque<Integer> segmentOffsets = new ArrayDeque<>();
@@ -144,6 +170,7 @@ class WhatwgCanonicalizer implements Canonicalizer {
     }
 
     public static String pctDecode(String str, Charset charset) {
+        if (str.indexOf('%') == -1) return str;
         StringBuilder sb = new StringBuilder(str.length());
         byte[] buf = new byte[16];
         int len = 0;
@@ -182,12 +209,16 @@ class WhatwgCanonicalizer implements Canonicalizer {
 
 
     static String pctEncode(String str, boolean[] encodeSet, Charset charset) {
-        StringBuilder buf = new StringBuilder(str.length());
+        StringBuilder buf = null;
         for (int i = 0; i < str.length();) {
             int codepoint = str.codePointAt(i);
             int len = Character.charCount(codepoint);
 
             if (codepoint > 0xff || encodeSet[codepoint]) {
+                if (buf == null) {
+                    buf = new StringBuilder(str.length());
+                    buf.append(str, 0, i);
+                }
                 byte[] encoded = str.substring(i, i + len).getBytes(charset);
                 for (byte b : encoded) {
                     buf.append('%');
@@ -195,11 +226,13 @@ class WhatwgCanonicalizer implements Canonicalizer {
                     buf.append(Character.toUpperCase(Character.forDigit(b & 0xf, 16)));
                 }
             } else {
-                buf.append(str, i, i + len);
+                if (buf != null) {
+                    buf.append(str, i, i + len);
+                }
             }
             i += len;
         }
-        return buf.toString();
+        return buf == null ? str : buf.toString();
     }
 
     void pctEncodePath(ParsedUrl url, Charset charset) {

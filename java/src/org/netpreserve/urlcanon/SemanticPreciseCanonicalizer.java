@@ -23,7 +23,6 @@ import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -76,14 +75,26 @@ public class SemanticPreciseCanonicalizer implements Canonicalizer {
 
     }
 
-    Pattern LEADING_OR_TRAILING_DOTS_RE = Pattern.compile("^\\.+|\\.+$");
-    Pattern TWO_OR_MORE_DOTS_RE = Pattern.compile("\\.{2,}");
+    static String removeLeadingTrailingAndDuplicateChars(String s, char charToRemove) {
+        if (s.indexOf(charToRemove) == -1) return s;
+        StringBuilder sb = new StringBuilder();
+        char prev = charToRemove; // to remove leading
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (c != charToRemove || prev != charToRemove) {
+                sb.append(c);
+            }
+            prev = c;
+        }
+        // remove trailing
+        if (sb.charAt(sb.length() - 1) == charToRemove) {
+            sb.setLength(sb.length() - 1);
+        }
+        return sb.toString();
+    }
 
     private void fixHostDots(ParsedUrl url) {
-        String host = url.getHost();
-        host = LEADING_OR_TRAILING_DOTS_RE.matcher(host).replaceAll("");
-        host = TWO_OR_MORE_DOTS_RE.matcher(host).replaceAll(".");
-        url.setHost(host);
+        url.setHost(removeLeadingTrailingAndDuplicateChars(url.getHost(), '.'));
     }
 
     private static final Pattern TWO_OR_MORE_SLASHES_RE = Pattern.compile("//+");
@@ -99,7 +110,7 @@ public class SemanticPreciseCanonicalizer implements Canonicalizer {
             url.setScheme(new String("http"));
             url.setColonAfterScheme(new String(":"));
             if (!url.getPath().isEmpty()) {
-                ParsedUrl.parsePathish(url, url.getPath());
+                UrlParser.parsePathish(url, url.getPath(), 0, url.getPath().length());
             }
         }
     }
@@ -147,7 +158,6 @@ public class SemanticPreciseCanonicalizer implements Canonicalizer {
     }
 
     static final boolean[] LESS_DUMB_QUERY_ENCODE = buildEncodeSet("[\\x00-\\x20\\x7f-\\xff#%&=]");
-    static final Pattern QUERY_PARAM_RE = Pattern.compile("([^&=]*)(=[^&]*)?(&|$)");
 
     private static String pctRecodeQueryPart(String s, Charset charset) {
         String decoded = pctDecodeTokenRepeatedly(s, charset);
@@ -159,30 +169,22 @@ public class SemanticPreciseCanonicalizer implements Canonicalizer {
         if (query.isEmpty()) {
             return;
         }
-        StringBuilder out = new StringBuilder(query.length());
-
-        Matcher m = QUERY_PARAM_RE.matcher(query);
-        while (m.lookingAt()) {
-            String key = query.substring(m.start(1), m.end(1));
-            out.append(pctRecodeQueryPart(key, charset));
-
-            if (m.start(2) != -1) {
-                out.append('=');
-                String value = query.substring(m.start(2) + 1, m.end(2));
-                out.append(pctRecodeQueryPart(value, charset));
+        StringBuilder sb = new StringBuilder();
+        int i = 0;
+        while (i < query.length()) {
+            int eq = query.indexOf('=', i);
+            int amp = query.indexOf('&', i);
+            if (amp == -1) amp = query.length();
+            if (eq != -1 && eq < amp) {
+                sb.append(pctRecodeQueryPart(query.substring(i, eq), charset));
+                sb.append('=');
+                i = eq + 1;
             }
-
-            if (m.start(3) < m.end()) {
-                out.append('&');
-            }
-
-            if (m.end() == query.length()) {
-                break;
-            }
-            m.region(m.end(), query.length());
+            sb.append(pctRecodeQueryPart(query.substring(i, amp), charset));
+            if (amp < query.length()) sb.append('&');
+            i = amp + 1;
         }
-
-        url.setQuery(out.toString());
+        url.setQuery(sb.toString());
     }
 
     static void alphaReorderQuery(ParsedUrl url) {

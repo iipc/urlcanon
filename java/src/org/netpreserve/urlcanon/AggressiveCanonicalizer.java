@@ -96,9 +96,8 @@ public class AggressiveCanonicalizer implements Canonicalizer {
         url.setPath(path);
     }
 
-    private static final Pattern REDUNDANT_AMPERSANDS_RE = Pattern.compile("^&+|&+$|(?<=&)&+");
     static void removeRedundantAmpersandsFromQuery(ParsedUrl url) {
-        url.setQuery(REDUNDANT_AMPERSANDS_RE.matcher(url.getQuery()).replaceAll(""));
+        url.setQuery(SemanticPreciseCanonicalizer.removeLeadingTrailingAndDuplicateChars(url.getQuery(), '&'));
     }
 
     private static void stripTrailingSlashUnlessEmpty(ParsedUrl url) {
