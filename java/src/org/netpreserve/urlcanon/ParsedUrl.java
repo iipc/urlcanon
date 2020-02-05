@@ -137,11 +137,7 @@ public class ParsedUrl {
             return;
         }
 
-        String dirname = base.dirname();
-        StringBuilder builder = new StringBuilder(dirname.length() + path.length());
-        builder.append(dirname);
-        builder.append(path);
-        path = builder.toString();
+        path = base.dirname() + path;
     }
 
     private String dirname() {
@@ -202,30 +198,23 @@ public class ParsedUrl {
      * Format this URL with a field order suitable for sorting.
      */
     public String ssurt() {
-        String ssurtHost = ssurtHost(host);
-        StringBuilder builder = new StringBuilder(leadingJunk.length() + scheme.length() + colonAfterScheme.length()
-                + slashes.length() + username.length() + colonBeforePassword.length() + password.length()
-                + atSign.length() + ssurtHost.length() + colonBeforePort.length() + port.length() + path.length()
-                + questionMark.length() + query.length() + hashSign.length()
-                + fragment.length() + trailingJunk.length());
-        builder.append(leadingJunk);
-        builder.append(ssurtHost);
-        builder.append(slashes);
-        builder.append(port);
-        builder.append(colonBeforePort);
-        builder.append(scheme);
-        builder.append(atSign);
-        builder.append(username);
-        builder.append(colonBeforePassword);
-        builder.append(password);
-        builder.append(colonAfterScheme);
-        builder.append(path);
-        builder.append(questionMark);
-        builder.append(query);
-        builder.append(hashSign);
-        builder.append(fragment);
-        builder.append(trailingJunk);
-        return builder.toString();
+        return leadingJunk +
+                ssurtHost(host) +
+                slashes +
+                port +
+                colonBeforePort +
+                scheme +
+                atSign +
+                username +
+                colonBeforePassword +
+                password +
+                colonAfterScheme +
+                path +
+                questionMark +
+                query +
+                hashSign +
+                fragment +
+                trailingJunk;
     }
 
     /**
@@ -273,11 +262,7 @@ public class ParsedUrl {
     //-------------------------------------------------------------------------
 
     String hostPort() {
-        StringBuilder builder = new StringBuilder(host.length() + colonBeforePort.length() + port.length());
-        builder.append(host);
-        builder.append(colonBeforePort);
-        builder.append(port);
-        return builder.toString();
+        return host + colonBeforePort + port;
     }
 
     //-------------------------------------------------------------------------
