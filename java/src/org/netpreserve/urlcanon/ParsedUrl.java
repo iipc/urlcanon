@@ -64,6 +64,29 @@ public class ParsedUrl {
     ParsedUrl() {
     }
 
+    /**
+     * Copy constructor.
+     */
+    public ParsedUrl(ParsedUrl parsedUrl) {
+        this.leadingJunk = parsedUrl.getLeadingJunk();
+        this.trailingJunk = parsedUrl.getTrailingJunk();
+        this.scheme = parsedUrl.getScheme();
+        this.colonAfterScheme = parsedUrl.getColonAfterScheme();
+        this.questionMark = parsedUrl.getQuestionMark();
+        this.query = parsedUrl.getQuery();
+        this.hashSign = parsedUrl.getHashSign();
+        this.fragment = parsedUrl.getFragment();
+        this.slashes = parsedUrl.getSlashes();
+        this.path = parsedUrl.getPath();
+        this.username = parsedUrl.getUsername();
+        this.colonBeforePassword = parsedUrl.getColonBeforePassword();
+        this.password = parsedUrl.getPassword();
+        this.atSign = parsedUrl.getAtSign();
+        this.host = parsedUrl.getHost();
+        this.colonBeforePort = parsedUrl.getColonBeforePort();
+        this.port = parsedUrl.getPort();
+    }
+
     private ParsedUrl(ParsedUrl base, ParsedUrl relative) {
         leadingJunk = relative.leadingJunk;
         trailingJunk = relative.trailingJunk;
