@@ -5,6 +5,14 @@ urlcanon
     :target: https://travis-ci.org/iipc/urlcanon
     :alt: build status
 
+.. image:: https://maven-badges.herokuapp.com/maven-central/org.netpreserve/urlcanon/badge.svg
+    :target: https://maven-badges.herokuapp.com/maven-central/org.netpreserve/urlcanon
+    :alt: maven central
+
+.. image:: https://javadoc.io/badge2/org.netpreserve/urlcanon/javadoc.svg
+    :target: https://javadoc.io/doc/org.netpreserve/urlcanon
+    :alt: javadoc
+
 A URL canonicalization (normalization) library for Python and Java.
 
 It currently provides:
@@ -78,7 +86,7 @@ Java releases are available in the Maven Central repository:
     <dependency>
         <groupId>org.netpreserve</groupId>
         <artifactId>urlcanon</artifactId>
-        <version>0.1.2</version>
+        <version>0.2.0</version>
     </dependency>
 
 Internationalized domain names
@@ -100,7 +108,7 @@ License
 -------
 
 * Copyright (C) 2016-2018 Internet Archive
-* Copyright (C) 2016-2017 National Library of Australia
+* Copyright (C) 2016-2020 National Library of Australia
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may
 not use this software except in compliance with the License. You may
