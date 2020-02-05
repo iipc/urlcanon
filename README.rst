@@ -86,7 +86,7 @@ Java releases are available in the Maven Central repository:
     <dependency>
         <groupId>org.netpreserve</groupId>
         <artifactId>urlcanon</artifactId>
-        <version>0.2.0</version>
+        <version>0.3.0</version>
     </dependency>
 
 Internationalized domain names
