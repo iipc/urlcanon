@@ -194,6 +194,31 @@ public class ParsedUrl {
     //region SSURT Formatting
     //-------------------------------------------------------------------------
 
+    private String surt(boolean trailingComma) {
+        String openParen = "".equals(scheme) ? "" : "(";
+        String surtHost = ssurtHost(host);
+        if (!trailingComma) {
+            surtHost = surtHost.replaceFirst(",$", "");
+        }
+        String hostWithPort = "".equals(host) ? "" : openParen + surtHost + colonBeforePort + port + ")";
+        return leadingJunk + scheme + colonAfterScheme + slashes + hostWithPort + path + questionMark + query + hashSign
+                + fragment + trailingJunk;
+    }
+
+    /**
+     * Format this URL as a Heritrix-compatible SURT.
+     */
+    public String surt() {
+        return surt(true);
+    }
+
+    /**
+     * Format this URL as a SURT without the trailing host comma (as used in some CDX implementations).
+     */
+    public String surtWithoutTrailingComma() {
+        return surt(false);
+    }
+
     /**
      * Format this URL with a field order suitable for sorting.
      */
